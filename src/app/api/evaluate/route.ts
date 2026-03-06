@@ -3,7 +3,7 @@ import {
   buildEvaluationSystemPrompt,
   buildEvaluationUserPrompt,
 } from '@/lib/evaluation-format'
-import { getAdminClient, GUEST_ID } from '@/lib/supabase'
+import { requireActionSession } from '@/lib/supabase/user'
 
 interface EvaluateRequestBody {
   word?: string
@@ -19,6 +19,10 @@ interface ProviderDeltaChunk {
       content?: string
     }
   }>
+}
+
+interface PastSentenceRow {
+  original_text: string | null
 }
 
 function readProviderContent(payload: string): string | null {
@@ -42,17 +46,27 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'invalid-request' }, { status: 400 })
   }
 
-  const supabase = getAdminClient()
+  let supabase
+  let userId
+
+  try {
+    const session = await requireActionSession()
+    supabase = session.supabase
+    userId = session.user.id
+  } catch {
+    return Response.json({ error: 'unauthorized' }, { status: 401 })
+  }
+
   const { data: pastRecords } = await supabase
     .from('sentences')
-    .select('sentence')
-    .eq('user_id', GUEST_ID)
+    .select('original_text')
+    .eq('user_id', userId)
     .eq('word_id', wordId)
     .order('created_at', { ascending: false })
     .limit(5)
 
   const learningHistory = (pastRecords ?? [])
-    .map((record) => record.sentence)
+    .map((record) => (record as PastSentenceRow).original_text)
     .filter((value): value is string => typeof value === 'string')
     .reverse()
 

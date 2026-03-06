@@ -9,6 +9,7 @@ ContextVocab is a Next.js vocabulary learning app for practicing words through s
 - Streams live feedback before showing the final structured score card
 - Tracks review progress with SRS
 - Stores sentence history in Supabase
+- Stores favorites in Supabase for cross-device sync
 - Supports favorites and a favorites-only study mode
 - Provides sentence-help prompts when the user cannot start writing
 
@@ -44,6 +45,7 @@ Required values:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `NEXT_PUBLIC_SITE_URL`
 - `OPENAI_API_KEY`
 - `OPENAI_API_BASE`
 - `OPENAI_MODEL`
@@ -93,6 +95,11 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+For password reset links, add these redirect URLs in Supabase Auth:
+
+- `http://localhost:3000/auth/callback`
+- your production domain `/auth/callback`
 
 ## Scripts
 
@@ -214,6 +221,6 @@ Usually one of these is missing:
 
 ## Notes
 
-- Favorites are currently stored in browser local storage
+- Favorites are stored in Supabase and sync with the signed-in user
 - AI model config is server-side only
 - TTS settings are browser-side only

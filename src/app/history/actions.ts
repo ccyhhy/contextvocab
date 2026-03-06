@@ -1,6 +1,6 @@
 'use server'
 
-import { getAdminClient, GUEST_ID } from '@/lib/supabase'
+import { requireActionSession } from '@/lib/supabase/user'
 
 export interface SentenceRecord {
   id: string
@@ -50,8 +50,8 @@ export async function getSentenceHistory({
   search?: string
   sortBy?: HistorySortBy
 } = {}): Promise<HistoryResult> {
-  const supabase = getAdminClient()
-  const userId = GUEST_ID
+  const { supabase, user } = await requireActionSession()
+  const userId = user.id
   const offset = (page - 1) * pageSize
 
   // Build query

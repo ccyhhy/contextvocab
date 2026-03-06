@@ -9,7 +9,12 @@ import {
   parseVisibleFeedbackSections,
   type VisibleFeedbackSections,
 } from "@/lib/evaluation-format"
-import { submitSentence, getNextWord, type EvaluationResult } from "./actions"
+import {
+  getNextWord,
+  submitSentence,
+  toggleFavoriteWord,
+  type EvaluationResult,
+} from "./actions"
 
 const DEFAULT_SPEECH_CONFIG: SpeechConfig = {
   ttsRate: 1.0,
@@ -21,7 +26,6 @@ interface SpeechConfig {
   ttsPitch: number
 }
 
-const FAVORITES_STORAGE_KEY = "contextvocab-favorites"
 const SPEECH_CONFIG_STORAGE_KEY = "contextvocab-speech-config"
 
 interface StreamEvaluateRequest {
@@ -306,7 +310,13 @@ function ErrorTag({ type }: { type: string }) {
   return <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border ${c.color}`}>{c.label}</span>
 }
 
-export default function StudyClient({ initialWord }: { initialWord: StudyWord | null }) {
+export default function StudyClient({
+  initialWord,
+  initialFavoriteWordIds,
+}: {
+  initialWord: StudyWord | null
+  initialFavoriteWordIds: string[]
+}) {
   const [currentWord, setCurrentWord] = useState<StudyWord | null>(initialWord)
   const [sentence, setSentence] = useState("")
   const [status, setStatus] = useState<"idle" | "submitting" | "result">("idle")
@@ -318,7 +328,8 @@ export default function StudyClient({ initialWord }: { initialWord: StudyWord | 
   const [showSentenceHelp, setShowSentenceHelp] = useState(false)
   const [library, setLibrary] = useState<"All" | "CET-4" | "CET-6">("All")
   const [studyMode, setStudyMode] = useState<StudyMode>("all")
-  const [favoriteWordIds, setFavoriteWordIds] = useState<string[]>([])
+  const [favoriteWordIds, setFavoriteWordIds] = useState<string[]>(initialFavoriteWordIds)
+  const [favoritePending, setFavoritePending] = useState(false)
   const [loadingNext, setLoadingNext] = useState(false)
   const [skippedWordIds, setSkippedWordIds] = useState<string[]>([])
   const [wordKey, setWordKey] = useState(0)
@@ -361,35 +372,9 @@ export default function StudyClient({ initialWord }: { initialWord: StudyWord | 
     }
   }, [])
 
-  useEffect(() => {
-    const savedFavorites = localStorage.getItem(FAVORITES_STORAGE_KEY)
-    if (!savedFavorites) {
-      return
-    }
-
-    try {
-      const parsed = JSON.parse(savedFavorites)
-      if (Array.isArray(parsed)) {
-        setFavoriteWordIds(parsed.filter((value): value is string => typeof value === "string"))
-      }
-    } catch (error) {
-      console.error("Failed to parse favorites", error)
-    }
-  }, [])
-
   const handleSaveSettings = () => {
     localStorage.setItem(SPEECH_CONFIG_STORAGE_KEY, JSON.stringify(speechConfig))
     setShowSettings(false)
-  }
-
-  const getPreferredWordIds = (mode: StudyMode) => (mode === "favorites" ? favoriteWordIds : [])
-
-  const updateFavorites = (updater: (current: string[]) => string[]) => {
-    setFavoriteWordIds((current) => {
-      const next = updater(current)
-      localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(next))
-      return next
-    })
   }
 
   const submitCurrentSentence = async () => {
@@ -481,7 +466,7 @@ export default function StudyClient({ initialWord }: { initialWord: StudyWord | 
     }
 
     try {
-      const next = await getNextWord(targetLibrary, updatedSkippedList, getPreferredWordIds(targetMode))
+      const next = await getNextWord(targetLibrary, updatedSkippedList, targetMode === "favorites")
       setCurrentWord(next)
       setWordKey(k => k + 1)
     } catch (err) {
@@ -499,7 +484,7 @@ export default function StudyClient({ initialWord }: { initialWord: StudyWord | 
     
     setLoadingNext(true)
     try {
-      const next = await getNextWord(newLib, [], getPreferredWordIds(studyMode))
+      const next = await getNextWord(newLib, [], studyMode === "favorites")
       setCurrentWord(next)
       setWordKey(k => k + 1)
       setSentence("")
@@ -524,7 +509,7 @@ export default function StudyClient({ initialWord }: { initialWord: StudyWord | 
 
     setLoadingNext(true)
     try {
-      const next = await getNextWord(library, [], getPreferredWordIds(nextMode))
+      const next = await getNextWord(library, [], nextMode === "favorites")
       setCurrentWord(next)
       setWordKey((k) => k + 1)
       setSentence("")
@@ -955,32 +940,36 @@ const settingsModalJsx = showSettings && (
   }
 
   const toggleFavorite = async () => {
-    const nextFavorites = isFavorite
-      ? favoriteWordIds.filter((id) => id !== currentWord.word_id)
-      : [...favoriteWordIds, currentWord.word_id]
+    const nextFavorite = !isFavorite
 
-    updateFavorites(() => nextFavorites)
+    setFavoritePending(true)
+    try {
+      const updatedFavorites = await toggleFavoriteWord(currentWord.word_id, nextFavorite)
+      setFavoriteWordIds(updatedFavorites)
 
-    if (studyMode === "favorites" && isFavorite) {
-      const remainingFavorites = nextFavorites.filter((id) => id !== currentWord.word_id)
-      setLoadingNext(true)
-      try {
-        const next = await getNextWord(library, skippedWordIds, remainingFavorites)
-        setCurrentWord(next)
-        setWordKey((k) => k + 1)
-        setSentence("")
-        setResult(null)
-        setStreamProgressChars(0)
-        setStreamSections(EMPTY_VISIBLE_FEEDBACK)
-        setStreamPhase("idle")
-        setStatus("idle")
-        setShowExample(false)
-        setShowSentenceHelp(false)
-      } catch (error) {
-        console.error(error)
-      } finally {
-        setLoadingNext(false)
+      if (studyMode === "favorites" && !nextFavorite) {
+        setLoadingNext(true)
+        try {
+          const next = await getNextWord(library, skippedWordIds, true)
+          setCurrentWord(next)
+          setWordKey((k) => k + 1)
+          setSentence("")
+          setResult(null)
+          setStreamProgressChars(0)
+          setStreamSections(EMPTY_VISIBLE_FEEDBACK)
+          setStreamPhase("idle")
+          setStatus("idle")
+          setShowExample(false)
+          setShowSentenceHelp(false)
+        } finally {
+          setLoadingNext(false)
+        }
       }
+    } catch (error) {
+      console.error(error)
+      alert(error instanceof Error ? error.message : "收藏状态更新失败。")
+    } finally {
+      setFavoritePending(false)
     }
   }
 
@@ -1077,11 +1066,12 @@ const settingsModalJsx = showSettings && (
               <button
                 type="button"
                 onClick={toggleFavorite}
+                disabled={favoritePending || status === "submitting"}
                 className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
                   isFavorite
                     ? "border-rose-500/30 bg-rose-500/12 text-rose-300"
                     : "border-white/10 bg-black/20 text-zinc-400 hover:text-white hover:border-white/20"
-                }`}
+                } disabled:cursor-not-allowed disabled:opacity-60`}
                 title={isFavorite ? "取消收藏" : "收藏这个单词"}
               >
                 <Heart className={`w-3.5 h-3.5 ${isFavorite ? "fill-current" : ""}`} />

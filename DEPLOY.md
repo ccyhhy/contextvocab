@@ -9,8 +9,14 @@ Create a Supabase project, then collect:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `NEXT_PUBLIC_SITE_URL`
 
 Run [schema.sql](e:/codework/words/supabase/schema.sql) in Supabase SQL Editor.
+
+In Supabase Auth settings, add these redirect URLs for password reset:
+
+- `http://localhost:3000/auth/callback`
+- `https://your-domain/auth/callback`
 
 ## 2. Prepare AI Provider
 
@@ -98,6 +104,16 @@ Update them in Vercel, then redeploy.
 ## 9. If You Change the Database Schema
 
 Apply the SQL change in Supabase first, then deploy the matching code.
+
+Current schema update for cloud favorites:
+
+```sql
+ALTER TABLE public.user_words
+ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN DEFAULT FALSE;
+
+CREATE INDEX IF NOT EXISTS idx_user_words_user_favorite
+ON public.user_words (user_id, is_favorite);
+```
 
 ## 10. Common Problems
 

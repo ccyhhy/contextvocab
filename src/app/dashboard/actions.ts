@@ -1,6 +1,6 @@
 'use server'
 
-import { getAdminClient, GUEST_ID } from '@/lib/supabase'
+import { requireActionSession } from '@/lib/supabase/user'
 
 export interface DashboardStats {
   totalStudied: number
@@ -45,8 +45,8 @@ function readJoinedWord(words: JoinedWord): string {
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const supabase = getAdminClient()
-  const userId = GUEST_ID
+  const { supabase, user } = await requireActionSession()
+  const userId = user.id
   const today = new Date().toISOString().split('T')[0]
 
   // Total studied words
@@ -118,8 +118,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 }
 
 export async function getRecentActivity(limit: number = 10): Promise<RecentActivity[]> {
-  const supabase = getAdminClient()
-  const userId = GUEST_ID
+  const { supabase, user } = await requireActionSession()
+  const userId = user.id
 
   const { data, error } = await supabase
     .from('sentences')

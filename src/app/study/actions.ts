@@ -1,12 +1,13 @@
 'use server'
 
+import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   buildEvaluationSystemPrompt,
   buildEvaluationUserPrompt,
   extractEvaluationJson,
 } from '@/lib/evaluation-format'
 import { calculateNextReview } from '@/lib/srs'
-import { getAdminClient, GUEST_ID } from '@/lib/supabase'
+import { requireActionSession } from '@/lib/supabase/user'
 
 export interface EvaluationResult {
   score: number           // 0-100 overall score
@@ -72,6 +73,16 @@ interface UserWordRecord {
   interval: number
   ease_factor: number
 }
+
+interface PastSentenceRow {
+  original_text: string | null
+}
+
+interface FavoriteRow {
+  word_id: string | null
+}
+
+let favoriteColumnSupported: boolean | null = null
 
 let pickUnstudiedWordRpcSupported: boolean | null = null
 
@@ -278,12 +289,49 @@ function isUserWordRecord(value: unknown): value is UserWordRecord {
   )
 }
 
+function isMissingFavoriteColumnError(error: { message?: string; details?: string; code?: string } | null) {
+  const message = `${error?.message ?? ''} ${error?.details ?? ''}`.toLowerCase()
+  return message.includes('is_favorite')
+}
+
+async function getUserFavoriteWordIds(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<string[]> {
+  if (favoriteColumnSupported === false) {
+    return []
+  }
+
+  const { data, error } = await supabase
+    .from('user_words')
+    .select('word_id')
+    .eq('user_id', userId)
+    .eq('is_favorite', true)
+
+  if (error || !data) {
+    if (error) {
+      if (isMissingFavoriteColumnError(error)) {
+        favoriteColumnSupported = false
+      } else {
+        console.error('Failed to load favorite words:', error)
+      }
+    }
+    return []
+  }
+
+  favoriteColumnSupported = true
+
+  return (data as FavoriteRow[])
+    .map((row) => row.word_id)
+    .filter((wordId): wordId is string => typeof wordId === 'string')
+}
+
 async function pickRandomUnseenWord(
   tag: string,
   skippedWordIds: string[],
-  preferredWordIds: string[] = [],
-  supabase = getAdminClient(),
-  userId = GUEST_ID,
+  preferredWordIds: string[],
+  supabase: SupabaseClient,
+  userId: string,
   attempts = 8
 ): Promise<WordRecord | null> {
   let countQuery = supabase.from('words').select('id', { count: 'exact', head: true })
@@ -333,8 +381,8 @@ async function pickRandomUnseenWord(
 async function attachWordToUser(
   wordId: string,
   reviewDate: string,
-  supabase = getAdminClient(),
-  userId = GUEST_ID
+  supabase: SupabaseClient,
+  userId: string
 ) {
   const { data: inserted, error: insertError } = await supabase
     .from('user_words')
@@ -345,6 +393,7 @@ async function attachWordToUser(
       ease_factor: 2.5,
       repetitions: 0,
       next_review_date: reviewDate,
+      is_favorite: false,
     })
     .select('*, words(*)')
     .maybeSingle()
@@ -374,11 +423,17 @@ async function attachWordToUser(
 export async function getNextWord(
   tag: string = 'All',
   skippedWordIds: string[] = [],
-  preferredWordIds: string[] = []
+  favoritesOnly: boolean = false
 ) {
-  const supabase = getAdminClient()
-  const user = { id: GUEST_ID }
+  const { supabase, user } = await requireActionSession()
   const today = new Date().toISOString().split('T')[0]
+  const preferredWordIds = favoritesOnly
+    ? await getUserFavoriteWordIds(supabase, user.id)
+    : []
+
+  if (favoritesOnly && preferredWordIds.length === 0) {
+    return null
+  }
 
   // 1. Try to get a word that is due for review today
   let dueQuery = supabase
@@ -480,8 +535,7 @@ export async function submitSentence(
   sentence: string,
   streamedContent?: string | null
 ) {
-  const supabase = getAdminClient()
-  const user = { id: GUEST_ID }
+  const { supabase, user } = await requireActionSession()
   let evaluation: EvaluationResult | null = null
 
   if (streamedContent?.trim()) {
@@ -497,14 +551,14 @@ export async function submitSentence(
     // Query latest first for better index locality, then reverse to chronological order.
     const { data: pastRecords } = await supabase
       .from('sentences')
-      .select('sentence')
+      .select('original_text')
       .eq('user_id', user.id)
       .eq('word_id', wordId)
       .order('created_at', { ascending: false })
       .limit(5)
 
     const learningHistory = (pastRecords ?? [])
-      .map((record) => record.sentence)
+      .map((record) => (record as PastSentenceRow).original_text)
       .filter((value): value is string => typeof value === 'string')
       .reverse()
 
@@ -563,4 +617,47 @@ export async function submitSentence(
     .single()
 
   return { evaluation, nextSrs, savedSentence }
+}
+
+export async function getFavoriteWordIds() {
+  const { supabase, user } = await requireActionSession()
+  return getUserFavoriteWordIds(supabase, user.id)
+}
+
+export async function toggleFavoriteWord(wordId: string, nextFavorite: boolean) {
+  const { supabase, user } = await requireActionSession()
+  const today = new Date().toISOString().split('T')[0]
+
+  if (favoriteColumnSupported === false) {
+    throw new Error('收藏功能需要先执行最新的 Supabase schema。')
+  }
+
+  const { error } = await supabase
+    .from('user_words')
+    .upsert(
+      {
+        user_id: user.id,
+        word_id: wordId,
+        interval: 0,
+        ease_factor: 2.5,
+        repetitions: 0,
+        next_review_date: today,
+        is_favorite: nextFavorite,
+      },
+      {
+        onConflict: 'user_id,word_id',
+      }
+    )
+
+  if (error) {
+    if (isMissingFavoriteColumnError(error)) {
+      favoriteColumnSupported = false
+      throw new Error('收藏功能需要先执行最新的 Supabase schema。')
+    }
+    throw error
+  }
+
+  favoriteColumnSupported = true
+
+  return getUserFavoriteWordIds(supabase, user.id)
 }

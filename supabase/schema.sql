@@ -31,6 +31,7 @@ CREATE TABLE public.user_words (
     ease_factor      REAL    DEFAULT 2.5,         -- SM-2 ease factor
     next_review_date DATE    DEFAULT CURRENT_DATE,
     repetitions      INTEGER DEFAULT 0,           -- total review count
+    is_favorite      BOOLEAN DEFAULT FALSE,       -- bookmark word for focused review
     created_at       TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (user_id, word_id)
@@ -39,6 +40,7 @@ CREATE TABLE public.user_words (
 CREATE INDEX idx_user_words_user_id          ON public.user_words (user_id);
 CREATE INDEX idx_user_words_next_review_date ON public.user_words (next_review_date);
 CREATE INDEX idx_user_words_user_review_date ON public.user_words (user_id, next_review_date);
+CREATE INDEX idx_user_words_user_favorite    ON public.user_words (user_id, is_favorite);
 
 -- Auto-update updated_at on every UPDATE
 CREATE OR REPLACE FUNCTION public.handle_updated_at()

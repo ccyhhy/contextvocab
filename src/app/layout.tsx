@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { getCurrentUser } from "@/lib/supabase/user";
 import "./globals.css";
 import Nav from "./components/nav";
 
@@ -15,15 +16,17 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.ico" },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser()
+
   return (
     <html lang="zh-CN">
       <body className={`${inter.variable} antialiased`}>
-        <Nav />
+        <Nav userEmail={user?.email ?? null} />
         <main className="min-h-[calc(100vh-3.5rem)]">{children}</main>
       </body>
     </html>
