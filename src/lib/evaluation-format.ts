@@ -39,6 +39,7 @@ function buildJsonSchemaDescription(): string {
   return `{
   "score": <integer 0-100>,
   "correctedSentence": "<corrected English sentence; keep the target word or a valid inflection>",
+  "correctedSentenceMeaning": "<brief Simplified Chinese meaning of correctedSentence>",
   "errors": [
     {
       "type": "<grammar|word_usage|naturalness|spelling>",
@@ -59,12 +60,16 @@ function buildJsonSchemaDescription(): string {
   "advancedExpressions": [
     {
       "original": "<plain word or phrase from the student's sentence>",
+      "originalMeaning": "<brief Simplified Chinese meaning of original>",
       "advanced": "<more advanced replacement>",
+      "advancedMeaning": "<brief Simplified Chinese meaning of advanced>",
       "explanation": "<brief explanation in Simplified Chinese>",
-      "example": "<short English example sentence>"
+      "example": "<short English example sentence>",
+      "exampleMeaning": "<brief Simplified Chinese meaning of example>"
     }
   ],
-  "polishedSentence": "<polished English sentence; keep the target word or a valid inflection>"
+  "polishedSentence": "<polished English sentence; keep the target word or a valid inflection>",
+  "polishedSentenceMeaning": "<brief Simplified Chinese meaning of polishedSentence>"
 }`
 }
 
@@ -88,25 +93,27 @@ Evaluation priorities:
 3. Praise and suggestions must be concrete, encouraging, and they must be written in Simplified Chinese.
 4. Explanations inside errors and advancedExpressions must be written in Simplified Chinese.
 5. correctedSentence and polishedSentence must be English only.
-6. If there is no error, return an empty errors array.
-7. Provide 2-3 advancedExpressions when there is enough material, but do not replace the target word itself.
-8. If the learner input is random text, irrelevant filler, fragments that do not form a real sentence, or an obviously fake attempt because they cannot make a sentence, set attemptStatus to "needs_help".
-9. When attemptStatus is "needs_help", keep the score below 60. If there is a minimally salvageable real sentence core, you may still provide a short correctedSentence and polishedSentence to demonstrate a better direction. Only leave them empty when the input is truly unusable.
-10. When attemptStatus is "needs_help", the Chinese suggestion must explicitly tell the learner to use sentence help and start from a short simple sentence, but keep the tone supportive rather than dismissive.
-11. Very important: penalize meta sentences that talk about the word itself instead of using the word to express a real meaning.
-12. Examples of low-value meta sentences include patterns like "I like the word X", "This word is hard", "I know this word", "I use the word X", or similar sentence shells that merely mention the vocabulary item.
-13. A grammatically correct sentence can still be low quality if it does not show the meaning, collocation, or real usage of the target word in context.
-14. For those meta or shallow sentences, keep the score below 60 unless the sentence genuinely demonstrates the target word's meaning in context. Explain in Chinese that the learner is still talking about the word rather than fully using it, and then provide a more natural example sentence when possible.
-15. Do not reward short meta sentences with a high score just because the grammar is simple and correct, but do offer a constructive rewrite that turns the sentence into real usage whenever possible.
-16. Set usageQuality as follows:
+6. correctedSentenceMeaning and polishedSentenceMeaning must be brief Simplified Chinese explanations of those English sentences.
+7. For each advancedExpressions item, originalMeaning, advancedMeaning, and exampleMeaning must be brief Simplified Chinese explanations.
+8. If there is no error, return an empty errors array.
+9. Provide 2-3 advancedExpressions when there is enough material, but do not replace the target word itself.
+10. If the learner input is random text, irrelevant filler, fragments that do not form a real sentence, or an obviously fake attempt because they cannot make a sentence, set attemptStatus to "needs_help".
+11. When attemptStatus is "needs_help", keep the score below 60. If there is a minimally salvageable real sentence core, you may still provide a short correctedSentence and polishedSentence to demonstrate a better direction. Only leave them empty when the input is truly unusable.
+12. When attemptStatus is "needs_help", the Chinese suggestion must explicitly tell the learner to use sentence help and start from a short simple sentence, but keep the tone supportive rather than dismissive.
+13. Very important: penalize meta sentences that talk about the word itself instead of using the word to express a real meaning.
+14. Examples of low-value meta sentences include patterns like "I like the word X", "This word is hard", "I know this word", "I use the word X", or similar sentence shells that merely mention the vocabulary item.
+15. A grammatically correct sentence can still be low quality if it does not show the meaning, collocation, or real usage of the target word in context.
+16. For those meta or shallow sentences, keep the score below 60 unless the sentence genuinely demonstrates the target word's meaning in context. Explain in Chinese that the learner is still talking about the word rather than fully using it, and then provide a more natural example sentence when possible.
+17. Do not reward short meta sentences with a high score just because the grammar is simple and correct, but do offer a constructive rewrite that turns the sentence into real usage whenever possible.
+18. Set usageQuality as follows:
    - strong: the learner clearly uses the target word to express a concrete meaning in context.
    - weak: the learner attempts to use the word, but the context is thin, generic, or only partially shows the meaning.
    - meta: the learner is mainly talking about the word itself rather than using it.
    - invalid: the input is random, irrelevant, or not a meaningful sentence attempt.
-17. usesWordInContext must be true only when the sentence uses the target word to express a real idea or situation.
-18. isMetaSentence must be true when the sentence is mainly about the word as a vocabulary item.
-19. Unless the input is truly unusable, prefer to provide a helpful correctedSentence and polishedSentence so the learner can see how to improve the sentence.
-20. Suggestions should sound like coaching from a teacher, not like a rigid classifier label.
+19. usesWordInContext must be true only when the sentence uses the target word to express a real idea or situation.
+20. isMetaSentence must be true when the sentence is mainly about the word as a vocabulary item.
+21. Unless the input is truly unusable, prefer to provide a helpful correctedSentence and polishedSentence so the learner can see how to improve the sentence.
+22. Suggestions should sound like coaching from a teacher, not like a rigid classifier label.
 
 Scoring guide:
 - 90-100: excellent, natural, precise, near-native.

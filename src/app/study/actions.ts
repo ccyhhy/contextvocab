@@ -6,7 +6,7 @@ import {
   buildEvaluationUserPrompt,
   extractEvaluationJson,
 } from '@/lib/evaluation-format'
-import { calculateNextReview, type ReviewBucket } from '@/lib/srs'
+import { calculateNextReview, type ReviewBucket, type SRSData } from '@/lib/srs'
 import {
   buildStudyMixPlan,
   getStudyPriorityReason,
@@ -17,12 +17,16 @@ import { requireActionSession } from '@/lib/supabase/user'
 
 export type AttemptStatus = 'valid' | 'needs_help'
 export type UsageQuality = 'strong' | 'weak' | 'meta' | 'invalid'
+export type StudyView = 'all' | 'favorites' | 'weak' | 'recent_failures'
 
 export interface AdvancedExpression {
   original: string
+  originalMeaning: string
   advanced: string
+  advancedMeaning: string
   explanation: string
   example: string
+  exampleMeaning: string
 }
 
 export interface ErrorItem {
@@ -35,6 +39,7 @@ export interface ErrorItem {
 export interface EvaluationResult {
   score: number
   correctedSentence: string
+  correctedSentenceMeaning: string
   errors: ErrorItem[]
   praise: string
   suggestion: string
@@ -43,10 +48,19 @@ export interface EvaluationResult {
   wordUsageScore: number
   advancedExpressions: AdvancedExpression[]
   polishedSentence: string
+  polishedSentenceMeaning: string
   attemptStatus: AttemptStatus
   usageQuality: UsageQuality
   usesWordInContext: boolean
   isMetaSentence: boolean
+}
+
+export interface StudySubmissionResult {
+  evaluation: EvaluationResult
+  nextSrs: SRSData | null
+  savedSentence: unknown | null
+  evaluationModelLabel: string
+  reviewImpact: 'scheduled' | 'practice_only'
 }
 
 export interface StudyWordInfo {
@@ -65,6 +79,20 @@ export interface StudyBatchItem {
   priorityReason: StudyPriorityReason
 }
 
+export interface StudyLibrary {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  sourceType: 'official' | 'custom'
+  wordCount: number
+  activeCount: number
+  dueCount: number
+  remainingCount: number
+  planStatus: 'active' | 'paused' | 'completed' | 'not_started'
+  dailyNewLimit: number | null
+}
+
 export interface SentenceHelpItem {
   sentence: string
   cue: string
@@ -76,6 +104,8 @@ export interface SentenceHelpResult {
 }
 
 export interface GetStudyBatchParams {
+  librarySlug?: string
+  studyView?: StudyView
   tag?: string
   skippedWordIds?: string[]
   favoritesOnly?: boolean
@@ -85,6 +115,7 @@ export interface GetStudyBatchParams {
 interface EvaluationPayload {
   score?: unknown
   correctedSentence?: unknown
+  correctedSentenceMeaning?: unknown
   errors?: unknown
   praise?: unknown
   suggestion?: unknown
@@ -93,6 +124,7 @@ interface EvaluationPayload {
   wordUsageScore?: unknown
   advancedExpressions?: unknown
   polishedSentence?: unknown
+  polishedSentenceMeaning?: unknown
   attemptStatus?: unknown
   usageQuality?: unknown
   usesWordInContext?: unknown
@@ -108,9 +140,12 @@ interface ErrorPayload {
 
 interface AdvancedExpressionPayload {
   original?: unknown
+  originalMeaning?: unknown
   advanced?: unknown
+  advancedMeaning?: unknown
   explanation?: unknown
   example?: unknown
+  exampleMeaning?: unknown
 }
 
 interface WordRecord {
@@ -147,6 +182,23 @@ interface FavoriteRow {
   word_id: string | null
 }
 
+interface LibraryRow {
+  id: string
+  slug: string
+  name: string
+  description?: string | null
+  source_type?: 'official' | 'custom' | null
+}
+
+interface LibraryWordRow {
+  word_id: string | null
+}
+
+interface UserLibraryPlanRow {
+  status?: 'active' | 'paused' | 'completed' | null
+  daily_new_limit?: number | null
+}
+
 interface SentenceHelpPayload {
   hints?: unknown
 }
@@ -160,6 +212,11 @@ let favoriteColumnSupported: boolean | null = null
 let pickUnstudiedWordRpcSupported: boolean | null = null
 
 const DEFAULT_STUDY_BATCH_SIZE = 5
+const LEGACY_LIBRARY_OPTIONS = [
+  { slug: 'all', name: '全部词库', tag: 'All' },
+  { slug: 'cet-4', name: 'CET-4', tag: 'CET-4' },
+  { slug: 'cet-6', name: 'CET-6', tag: 'CET-6' },
+] as const
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value))
@@ -187,6 +244,50 @@ function getErrorMessage(error: unknown) {
   return 'Unknown error'
 }
 
+function normalizeLibrarySlug(value?: string | null) {
+  const normalized = (value ?? '').trim().toLowerCase()
+  if (!normalized || normalized === 'all') {
+    return 'all'
+  }
+  if (normalized === 'cet-4' || normalized === 'cet4') {
+    return 'cet-4'
+  }
+  if (normalized === 'cet-6' || normalized === 'cet6') {
+    return 'cet-6'
+  }
+  return normalized
+}
+
+function getLegacyTagForLibrarySlug(librarySlug: string) {
+  return LEGACY_LIBRARY_OPTIONS.find((option) => option.slug === normalizeLibrarySlug(librarySlug))?.tag ?? 'All'
+}
+
+function getLibrarySlugForLegacyTag(tag?: string | null) {
+  const normalized = (tag ?? '').trim().toLowerCase()
+  if (!normalized || normalized === 'all') {
+    return 'all'
+  }
+
+  return LEGACY_LIBRARY_OPTIONS.find((option) => option.tag.toLowerCase() === normalized)?.slug ?? 'all'
+}
+
+function resolveStudyView(params: Pick<GetStudyBatchParams, 'studyView' | 'favoritesOnly'>): StudyView {
+  if (params.studyView) {
+    return params.studyView
+  }
+  return params.favoritesOnly ? 'favorites' : 'all'
+}
+
+function isReviewOnlyView(studyView: StudyView) {
+  return studyView !== 'all'
+}
+
+function getRecentFailureSince() {
+  const date = new Date()
+  date.setDate(date.getDate() - 14)
+  return date.toISOString()
+}
+
 function extractJsonObject(content: string) {
   const trimmed = content.trim()
   if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
@@ -211,6 +312,7 @@ function makeErrorResult(message: string): EvaluationResult {
   return {
     score: 0,
     correctedSentence: '',
+    correctedSentenceMeaning: '',
     errors: [],
     praise: '',
     suggestion: message,
@@ -219,6 +321,7 @@ function makeErrorResult(message: string): EvaluationResult {
     wordUsageScore: 0,
     advancedExpressions: [],
     polishedSentence: '',
+    polishedSentenceMeaning: '',
     attemptStatus: 'needs_help',
     usageQuality: 'invalid',
     usesWordInContext: false,
@@ -243,6 +346,7 @@ function normalizeEvaluation(payload: EvaluationPayload, fallbackSentence: strin
   return {
     score: clamp(Number(payload.score) || 0, 0, 100),
     correctedSentence: allowRewrite ? sanitizeText(payload.correctedSentence) || fallbackSentence : '',
+    correctedSentenceMeaning: allowRewrite ? sanitizeText(payload.correctedSentenceMeaning) : '',
     errors: errorItems.map((item) => ({
       type: sanitizeText(item.type) || 'grammar',
       original: sanitizeText(item.original),
@@ -259,12 +363,16 @@ function normalizeEvaluation(payload: EvaluationPayload, fallbackSentence: strin
     advancedExpressions: allowRewrite
       ? advancedItems.map((item) => ({
           original: sanitizeText(item.original),
+          originalMeaning: sanitizeText(item.originalMeaning),
           advanced: sanitizeText(item.advanced),
+          advancedMeaning: sanitizeText(item.advancedMeaning),
           explanation: sanitizeText(item.explanation),
           example: sanitizeText(item.example),
+          exampleMeaning: sanitizeText(item.exampleMeaning),
         }))
       : [],
     polishedSentence: allowRewrite ? sanitizeText(payload.polishedSentence) : '',
+    polishedSentenceMeaning: allowRewrite ? sanitizeText(payload.polishedSentenceMeaning) : '',
     attemptStatus,
     usageQuality,
     usesWordInContext: payload.usesWordInContext === true,
@@ -442,6 +550,32 @@ function isMissingFavoriteColumnError(error: { message?: string; details?: strin
   return message.includes('is_favorite')
 }
 
+function isMissingLibrariesTableError(error: { message?: string; details?: string } | null) {
+  const message = `${error?.message ?? ''} ${error?.details ?? ''}`.toLowerCase()
+  return (
+    message.includes('libraries') ||
+    message.includes('library_words') ||
+    message.includes('user_library_plans') ||
+    message.includes('user_library_words')
+  )
+}
+
+function applyStudyViewFilters(query: any, studyView: StudyView) {
+  switch (studyView) {
+    case 'favorites':
+      return query.eq('is_favorite', true)
+    case 'weak':
+      return query.or('last_score.lt.75,consecutive_failures.gte.2')
+    case 'recent_failures':
+      return query
+        .or('last_score.lt.60,consecutive_failures.gte.1')
+        .gte('last_reviewed_at', getRecentFailureSince())
+    case 'all':
+    default:
+      return query
+  }
+}
+
 function isWordRecord(value: unknown): value is WordRecord {
   return typeof value === 'object' && value !== null && typeof (value as WordRecord).id === 'string'
 }
@@ -513,6 +647,131 @@ function toPostgrestInList(ids: string[]) {
 
 function getTodayDateString() {
   return new Date().toISOString().split('T')[0]
+}
+
+async function getLibraryBySlug(supabase: SupabaseClient, librarySlug: string) {
+  const normalizedSlug = normalizeLibrarySlug(librarySlug)
+  if (normalizedSlug === 'all') {
+    return null
+  }
+
+  const { data, error } = await supabase
+    .from('libraries')
+    .select('id, slug, name, description, source_type')
+    .eq('slug', normalizedSlug)
+    .maybeSingle()
+
+  if (error) {
+    if (!isMissingLibrariesTableError(error)) {
+      console.error('Failed to load library by slug:', error)
+    }
+    return null
+  }
+
+  return (data as LibraryRow | null) ?? null
+}
+
+async function getLibraryWordIds(supabase: SupabaseClient, libraryId: string) {
+  const { data, error } = await supabase
+    .from('library_words')
+    .select('word_id')
+    .eq('library_id', libraryId)
+
+  if (error || !data) {
+    if (error && !isMissingLibrariesTableError(error)) {
+      console.error('Failed to load library words:', error)
+    }
+    return [] as string[]
+  }
+
+  return (data as LibraryWordRow[])
+    .map((row) => row.word_id)
+    .filter((wordId): wordId is string => typeof wordId === 'string')
+}
+
+async function ensureUserLibraryPlan(
+  supabase: SupabaseClient,
+  userId: string,
+  libraryId: string
+) {
+  const now = new Date().toISOString()
+  const { error } = await supabase
+    .from('user_library_plans')
+    .upsert(
+      {
+        user_id: userId,
+        library_id: libraryId,
+        status: 'active',
+        last_studied_at: now,
+      },
+      { onConflict: 'user_id,library_id' }
+    )
+
+  if (error && !isMissingLibrariesTableError(error)) {
+    console.error('Failed to ensure user library plan:', error)
+  }
+}
+
+async function touchUserLibraryWord(
+  supabase: SupabaseClient,
+  userId: string,
+  libraryId: string,
+  wordId: string
+) {
+  const now = new Date().toISOString()
+  const { data: existing, error: existingError } = await supabase
+    .from('user_library_words')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('library_id', libraryId)
+    .eq('word_id', wordId)
+    .maybeSingle()
+
+  if (existingError && !isMissingLibrariesTableError(existingError)) {
+    console.error('Failed to load user library word:', existingError)
+    return
+  }
+
+  if (existing) {
+    const { error } = await supabase
+      .from('user_library_words')
+      .update({ last_studied_at: now })
+      .eq('id', existing.id)
+
+    if (error && !isMissingLibrariesTableError(error)) {
+      console.error('Failed to update user library word:', error)
+    }
+    return
+  }
+
+  const { error } = await supabase.from('user_library_words').insert({
+    user_id: userId,
+    library_id: libraryId,
+    word_id: wordId,
+    introduced_at: now,
+    first_studied_at: now,
+    last_studied_at: now,
+    source: 'scheduled',
+  })
+
+  if (error && !isMissingLibrariesTableError(error)) {
+    console.error('Failed to insert user library word:', error)
+  }
+}
+
+async function touchLibraryProgress(
+  supabase: SupabaseClient,
+  userId: string,
+  wordId: string,
+  librarySlug?: string | null
+) {
+  const library = await getLibraryBySlug(supabase, librarySlug ?? 'all')
+  if (!library) {
+    return
+  }
+
+  await ensureUserLibraryPlan(supabase, userId, library.id)
+  await touchUserLibraryWord(supabase, userId, library.id, wordId)
 }
 
 function buildWordFeedbackForStorage(
@@ -724,11 +983,20 @@ async function pickUnseenWord(
   return findFallbackUnseenWord(tag, skippedWordIds, preferredWordIds, supabase, userId)
 }
 
+async function getWordById(supabase: SupabaseClient, wordId: string) {
+  const { data, error } = await supabase.from('words').select('*').eq('id', wordId).maybeSingle()
+  if (error) {
+    throw error
+  }
+  return isWordRecord(data) ? data : null
+}
+
 async function attachWordToUser(
   wordId: string,
   reviewDate: string,
   supabase: SupabaseClient,
-  userId: string
+  userId: string,
+  libraryId?: string | null
 ) {
   const { data: inserted, error: insertError } = await supabase
     .from('user_words')
@@ -745,6 +1013,10 @@ async function attachWordToUser(
     .maybeSingle()
 
   if (inserted) {
+    if (libraryId) {
+      await ensureUserLibraryPlan(supabase, userId, libraryId)
+      await touchUserLibraryWord(supabase, userId, libraryId, wordId)
+    }
     return inserted
   }
 
@@ -763,6 +1035,11 @@ async function attachWordToUser(
     throw existingError
   }
 
+  if (existing && libraryId) {
+    await ensureUserLibraryPlan(supabase, userId, libraryId)
+    await touchUserLibraryWord(supabase, userId, libraryId, wordId)
+  }
+
   return existing
 }
 
@@ -772,7 +1049,9 @@ async function getDueWordCount(
   tag: string,
   today: string,
   skippedWordIds: string[],
-  preferredWordIds: string[]
+  preferredWordIds: string[],
+  studyView: StudyView,
+  libraryWordIds: string[] = []
 ) {
   let query = supabase
     .from('user_words')
@@ -780,8 +1059,13 @@ async function getDueWordCount(
     .eq('user_id', userId)
     .lte('next_review_date', today)
 
+  query = applyStudyViewFilters(query, studyView)
+
   if (tag !== 'All') {
     query = query.eq('words.tags', tag)
+  }
+  if (libraryWordIds.length > 0) {
+    query = query.in('word_id', libraryWordIds)
   }
   if (preferredWordIds.length > 0) {
     query = query.in('word_id', preferredWordIds)
@@ -801,7 +1085,9 @@ async function getDueStudyItems(
   today: string,
   skippedWordIds: string[],
   preferredWordIds: string[],
-  batchSize: number
+  batchSize: number,
+  studyView: StudyView,
+  libraryWordIds: string[] = []
 ) {
   let query = supabase
     .from('user_words')
@@ -809,8 +1095,13 @@ async function getDueStudyItems(
     .eq('user_id', userId)
     .lte('next_review_date', today)
 
+  query = applyStudyViewFilters(query, studyView)
+
   if (tag !== 'All') {
     query = query.eq('words.tags', tag)
+  }
+  if (libraryWordIds.length > 0) {
+    query = query.in('word_id', libraryWordIds)
   }
   if (preferredWordIds.length > 0) {
     query = query.in('word_id', preferredWordIds)
@@ -839,26 +1130,57 @@ async function getNewStudyItems(
   skippedWordIds: string[],
   preferredWordIds: string[],
   batchSize: number,
-  reviewDate: string
+  reviewDate: string,
+  libraryWordIds: string[] = [],
+  libraryId?: string | null
 ) {
   const items: StudyBatchItem[] = []
   const excludedWordIds = new Set(skippedWordIds)
+  let libraryUnseenWordIds = libraryWordIds
+
+  if (libraryWordIds.length > 0) {
+    const { data: studiedRows } = await supabase
+      .from('user_words')
+      .select('word_id')
+      .eq('user_id', userId)
+      .in('word_id', libraryWordIds)
+
+    const studiedWordIds = new Set(
+      (studiedRows ?? [])
+        .map((row) => row.word_id)
+        .filter((id): id is string => typeof id === 'string')
+    )
+
+    libraryUnseenWordIds = libraryWordIds.filter((wordId) => !studiedWordIds.has(wordId))
+  }
 
   while (items.length < batchSize) {
-    const candidate = await pickUnseenWord(
-      tag,
-      Array.from(excludedWordIds),
-      preferredWordIds,
-      supabase,
-      userId
-    )
+    let candidate: WordRecord | null
+    if (libraryWordIds.length > 0) {
+      const availableWordIds = libraryUnseenWordIds.filter((wordId) => !excludedWordIds.has(wordId))
+
+      if (availableWordIds.length === 0) {
+        break
+      }
+
+      const randomIndex = Math.floor(Math.random() * availableWordIds.length)
+      candidate = await getWordById(supabase, availableWordIds[randomIndex]!)
+    } else {
+      candidate = await pickUnseenWord(
+        tag,
+        Array.from(excludedWordIds),
+        preferredWordIds,
+        supabase,
+        userId
+      )
+    }
 
     if (!candidate) {
       break
     }
 
     excludedWordIds.add(candidate.id)
-    const attached = await attachWordToUser(candidate.id, reviewDate, supabase, userId)
+    const attached = await attachWordToUser(candidate.id, reviewDate, supabase, userId, libraryId)
     const item = normalizeStudyBatchItem(attached, {
       isNew: true,
       priorityReason: 'new',
@@ -939,6 +1261,106 @@ async function getWordLearningHistory(
     .map((record) => (record as PastSentenceRow).original_text)
     .filter((value): value is string => typeof value === 'string')
     .reverse()
+}
+
+async function buildLibrarySummary(
+  supabase: SupabaseClient,
+  userId: string,
+  library: LibraryRow
+): Promise<StudyLibrary> {
+  const libraryWordIds = await getLibraryWordIds(supabase, library.id)
+  const wordCount = libraryWordIds.length
+  const planPromise = supabase
+    .from('user_library_plans')
+    .select('status, daily_new_limit')
+    .eq('user_id', userId)
+    .eq('library_id', library.id)
+    .maybeSingle()
+
+  if (libraryWordIds.length === 0) {
+    const { data: plan } = await planPromise
+    const planRow = (plan as UserLibraryPlanRow | null) ?? null
+    return {
+      id: library.id,
+      slug: library.slug,
+      name: library.name,
+      description: library.description ?? null,
+      sourceType: library.source_type === 'custom' ? 'custom' : 'official',
+      wordCount: 0,
+      activeCount: 0,
+      dueCount: 0,
+      remainingCount: 0,
+      planStatus: planRow?.status ?? 'not_started',
+      dailyNewLimit: planRow?.daily_new_limit ?? null,
+    }
+  }
+
+  const today = getTodayDateString()
+  const [{ count: active }, { count: due }, { data: plan }] = await Promise.all([
+    supabase
+      .from('user_words')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('word_id', libraryWordIds),
+    supabase
+      .from('user_words')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('word_id', libraryWordIds)
+      .lte('next_review_date', today),
+    planPromise,
+  ])
+
+  const planRow = (plan as UserLibraryPlanRow | null) ?? null
+  const activeCount = active ?? 0
+
+  return {
+    id: library.id,
+    slug: library.slug,
+    name: library.name,
+    description: library.description ?? null,
+    sourceType: library.source_type === 'custom' ? 'custom' : 'official',
+    wordCount,
+    activeCount,
+    dueCount: due ?? 0,
+    remainingCount: Math.max(wordCount - activeCount, 0),
+    planStatus: planRow?.status ?? 'not_started',
+    dailyNewLimit: planRow?.daily_new_limit ?? null,
+  }
+}
+
+export async function getStudyLibraries(): Promise<StudyLibrary[]> {
+  const { supabase, user } = await requireActionSession()
+  const { data, error } = await supabase
+    .from('libraries')
+    .select('id, slug, name, description, source_type')
+    .order('name', { ascending: true })
+
+  if (error || !data) {
+    if (error && !isMissingLibrariesTableError(error)) {
+      console.error('Failed to load study libraries:', error)
+    }
+
+    return LEGACY_LIBRARY_OPTIONS.filter((option) => option.slug !== 'all').map((option) => ({
+      id: option.slug,
+      slug: option.slug,
+      name: option.name,
+      description: null,
+      sourceType: 'official',
+      wordCount: 0,
+      activeCount: 0,
+      dueCount: 0,
+      remainingCount: 0,
+      planStatus: 'not_started',
+      dailyNewLimit: null,
+    }))
+  }
+
+  const libraries = (data as LibraryRow[]).filter(
+    (row) => typeof row.id === 'string' && typeof row.slug === 'string' && typeof row.name === 'string'
+  )
+
+  return Promise.all(libraries.map((library) => buildLibrarySummary(supabase, user.id, library)))
 }
 
 export async function generateSentenceHelp(
@@ -1126,6 +1548,8 @@ export async function evaluateSentence(
 
 export async function getStudyBatch(params: GetStudyBatchParams = {}) {
   const {
+    librarySlug,
+    studyView,
     tag = 'All',
     skippedWordIds = [],
     favoritesOnly = false,
@@ -1133,57 +1557,82 @@ export async function getStudyBatch(params: GetStudyBatchParams = {}) {
   } = params
   const { supabase, user } = await requireActionSession()
   const today = getTodayDateString()
-  const preferredWordIds = favoritesOnly
+  const resolvedLibrarySlug = normalizeLibrarySlug(librarySlug ?? getLibrarySlugForLegacyTag(tag))
+  const resolvedStudyView = resolveStudyView({ studyView, favoritesOnly })
+  const preferredWordIds = resolvedStudyView === 'favorites'
     ? await getUserFavoriteWordIds(supabase, user.id)
     : []
+  let tagFilter = tag
+  let libraryId: string | null = null
+  let libraryWordIds: string[] = []
 
-  if (favoritesOnly && preferredWordIds.length === 0) {
+  if (resolvedLibrarySlug !== 'all') {
+    const library = await getLibraryBySlug(supabase, resolvedLibrarySlug)
+    if (library) {
+      libraryId = library.id
+      tagFilter = 'All'
+      libraryWordIds = await getLibraryWordIds(supabase, library.id)
+      await ensureUserLibraryPlan(supabase, user.id, library.id)
+    } else {
+      tagFilter = getLegacyTagForLibrarySlug(resolvedLibrarySlug)
+    }
+  } else {
+    tagFilter = 'All'
+  }
+
+  if (resolvedStudyView === 'favorites' && preferredWordIds.length === 0) {
     return [] as StudyBatchItem[]
   }
 
   const dueCount = await getDueWordCount(
     supabase,
     user.id,
-    tag,
+    tagFilter,
     today,
     skippedWordIds,
-    preferredWordIds
+    preferredWordIds,
+    resolvedStudyView,
+    libraryWordIds
   )
 
   const dueItems = await getDueStudyItems(
     supabase,
     user.id,
-    tag,
+    tagFilter,
     today,
     skippedWordIds,
     preferredWordIds,
-    batchSize
+    batchSize,
+    resolvedStudyView,
+    libraryWordIds
   )
 
-  const newItems = favoritesOnly
+  const newItems = isReviewOnlyView(resolvedStudyView)
     ? []
     : await getNewStudyItems(
         supabase,
         user.id,
-        tag,
+        tagFilter,
         [...skippedWordIds, ...dueItems.map((item) => item.word_id)],
         preferredWordIds,
         batchSize,
-        today
+        today,
+        libraryWordIds,
+        libraryId
       )
 
-  return composeStudyBatch(dueItems, newItems, dueCount, favoritesOnly, batchSize)
+  return composeStudyBatch(dueItems, newItems, dueCount, isReviewOnlyView(resolvedStudyView), batchSize)
 }
 
 export async function getNextWord(
-  tag: string = 'All',
+  librarySlug: string = 'all',
   skippedWordIds: string[] = [],
-  favoritesOnly: boolean = false
+  studyView: StudyView = 'all'
 ) {
   const batch = await getStudyBatch({
-    tag,
+    librarySlug,
     skippedWordIds,
-    favoritesOnly,
+    studyView,
     batchSize: 1,
   })
 
@@ -1197,8 +1646,9 @@ export async function submitSentence(
   definition: string,
   tags: string,
   sentence: string,
+  librarySlug?: string,
   streamedContent?: string | null
-) {
+): Promise<StudySubmissionResult> {
   const { supabase, user } = await requireActionSession()
   let evaluation: EvaluationResult | null = null
 
@@ -1271,6 +1721,8 @@ export async function submitSentence(
     .select()
     .single()
 
+  await touchLibraryProgress(supabase, user.id, wordId, librarySlug)
+
   const evaluationModel =
     process.env.OPENAI_MODEL || 'gpt-4o-mini'
   const evaluationApiBase =
@@ -1281,6 +1733,46 @@ export async function submitSentence(
     nextSrs,
     savedSentence,
     evaluationModelLabel: formatModelLabel(evaluationModel, evaluationApiBase),
+    reviewImpact: 'scheduled',
+  }
+}
+
+export async function rewriteSentence(
+  wordId: string,
+  wordStr: string,
+  definition: string,
+  tags: string,
+  sentence: string,
+  librarySlug?: string,
+  streamedContent?: string | null
+): Promise<StudySubmissionResult> {
+  const { supabase, user } = await requireActionSession()
+  let evaluation: EvaluationResult | null = null
+
+  if (streamedContent?.trim()) {
+    try {
+      evaluation = parseEvaluationJson(streamedContent, sentence)
+    } catch (error) {
+      console.error('Failed to parse streamed rewrite evaluation content:', error)
+    }
+  }
+
+  if (!evaluation) {
+    const learningHistory = await getWordLearningHistory(supabase, user.id, wordId)
+    evaluation = await evaluateSentence(wordStr, sentence, definition, tags, learningHistory)
+  }
+
+  await touchLibraryProgress(supabase, user.id, wordId, librarySlug)
+
+  const evaluationModel = process.env.OPENAI_MODEL || 'gpt-4o-mini'
+  const evaluationApiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+
+  return {
+    evaluation,
+    nextSrs: null,
+    savedSentence: null,
+    evaluationModelLabel: formatModelLabel(evaluationModel, evaluationApiBase),
+    reviewImpact: 'practice_only',
   }
 }
 

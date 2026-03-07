@@ -28,18 +28,22 @@ import {
 import {
   generateSentenceHelp,
   getStudyBatch,
+  rewriteSentence,
   submitSentence,
   toggleFavoriteWord,
   type EvaluationResult,
   type SentenceHelpItem,
   type SentenceHelpResult,
+  type StudySubmissionResult,
   type StudyBatchItem,
+  type StudyLibrary,
+  type StudyView,
 } from "./actions"
 
 type StreamPhase = "idle" | "connecting" | "feedback" | "structuring"
-type StudyMode = "all" | "favorites"
-type SubmissionResult = Awaited<ReturnType<typeof submitSentence>>
+type SubmissionResult = StudySubmissionResult
 type SentenceHelpState = "idle" | "loading" | "ready"
+type SubmissionMode = "scheduled" | "practice"
 
 interface SpeechConfig {
   ttsRate: number
@@ -156,6 +160,20 @@ function getPriorityLabel(reason: StudyBatchItem["priorityReason"]) {
     case "new":
     default:
       return "新词"
+  }
+}
+
+function getStudyViewLabel(view: StudyView) {
+  switch (view) {
+    case "favorites":
+      return "收藏"
+    case "weak":
+      return "弱项"
+    case "recent_failures":
+      return "最近失误"
+    case "all":
+    default:
+      return "全部"
   }
 }
 
@@ -308,21 +326,26 @@ async function streamEvaluateSentence(
 export default function StudyClient({
   initialBatch,
   initialFavoriteWordIds,
+  libraries,
+  initialLibrarySlug,
 }: {
   initialBatch: StudyBatchItem[]
   initialFavoriteWordIds: string[]
+  libraries: StudyLibrary[]
+  initialLibrarySlug: string
 }) {
   const [currentWord, setCurrentWord] = useState<StudyBatchItem | null>(initialBatch[0] ?? null)
   const [queuedWords, setQueuedWords] = useState<StudyBatchItem[]>(initialBatch.slice(1))
   const [sentence, setSentence] = useState("")
   const [status, setStatus] = useState<"idle" | "submitting" | "result">("idle")
+  const [submissionMode, setSubmissionMode] = useState<SubmissionMode>("scheduled")
   const [result, setResult] = useState<SubmissionResult | null>(null)
   const [streamPhase, setStreamPhase] = useState<StreamPhase>("idle")
   const [streamProgressChars, setStreamProgressChars] = useState(0)
   const [streamSections, setStreamSections] = useState<VisibleFeedbackSections>(EMPTY_VISIBLE_FEEDBACK)
   const [showSentenceHelp, setShowSentenceHelp] = useState(false)
-  const [library, setLibrary] = useState<"All" | "CET-4" | "CET-6">("All")
-  const [studyMode, setStudyMode] = useState<StudyMode>("all")
+  const [librarySlug, setLibrarySlug] = useState<string>(initialLibrarySlug)
+  const [studyView, setStudyView] = useState<StudyView>("all")
   const [favoriteWordIds, setFavoriteWordIds] = useState<string[]>(initialFavoriteWordIds)
   const [favoritePending, setFavoritePending] = useState(false)
   const [loadingNext, setLoadingNext] = useState(false)
@@ -342,6 +365,8 @@ export default function StudyClient({
   const activeSpeechTokenRef = useRef(0)
   const sentenceInputRef = useRef<HTMLTextAreaElement | null>(null)
   const sentenceHelpCacheRef = useRef<Record<string, SentenceHelpResult>>({})
+  const selectedLibrary =
+    libraries.find((item) => item.slug === librarySlug) ?? null
 
   const updateSpeechConfig = (updater: (current: SpeechConfig) => SpeechConfig) => {
     setSpeechConfig((current) => {
@@ -507,8 +532,8 @@ export default function StudyClient({
   }
 
   const fetchBatch = async (
-    nextLibrary: "All" | "CET-4" | "CET-6",
-    nextMode: StudyMode,
+    nextLibrarySlug: string,
+    nextStudyView: StudyView,
     nextSkippedWordIds: string[],
     activeWord: StudyBatchItem | null,
     pendingQueue: StudyBatchItem[],
@@ -523,8 +548,8 @@ export default function StudyClient({
     )
 
     return getStudyBatch({
-      tag: nextLibrary,
-      favoritesOnly: nextMode === "favorites",
+      librarySlug: nextLibrarySlug,
+      studyView: nextStudyView,
       skippedWordIds: excludedWordIds,
       batchSize,
     })
@@ -536,15 +561,15 @@ export default function StudyClient({
   }
 
   const reloadStudyBatch = async (
-    nextLibrary = library,
-    nextMode = studyMode,
+    nextLibrarySlug = librarySlug,
+    nextStudyView = studyView,
     nextSkippedWordIds = skippedWordIds
   ) => {
     queueContextRef.current += 1
     const context = queueContextRef.current
     setLoadingNext(true)
     try {
-      const batch = await fetchBatch(nextLibrary, nextMode, nextSkippedWordIds, null, [])
+      const batch = await fetchBatch(nextLibrarySlug, nextStudyView, nextSkippedWordIds, null, [])
       if (queueContextRef.current === context) {
         applyBatch(batch)
       }
@@ -571,8 +596,8 @@ export default function StudyClient({
       setRefillingQueue(true)
       try {
         const refillBatch = await fetchBatch(
-          library,
-          studyMode,
+          librarySlug,
+          studyView,
           skippedWordIds,
           currentWord,
           queuedWords,
@@ -610,9 +635,9 @@ export default function StudyClient({
     return () => {
       cancelled = true
     }
-  }, [currentWord, queuedWords, library, studyMode, skippedWordIds])
+  }, [currentWord, queuedWords, librarySlug, studyView, skippedWordIds])
 
-  const submitCurrentSentence = async () => {
+  const submitCurrentSentence = async (mode: SubmissionMode = submissionMode) => {
     if (!sentence.trim() || !currentWord) {
       alert("请先写一个句子。")
       return
@@ -647,20 +672,36 @@ export default function StudyClient({
         console.error(error)
       }
 
-      const submission = await submitSentence(
-        currentWord.id,
-        currentWord.word_id,
-        wordData.word,
-        wordData.definition || "",
-        wordData.tags || "",
-        sentence,
-        streamedContent
-      )
+      const submission =
+        mode === "practice"
+          ? await rewriteSentence(
+              currentWord.word_id,
+              wordData.word,
+              wordData.definition || "",
+              wordData.tags || "",
+              sentence,
+              librarySlug,
+              streamedContent
+            )
+          : await submitSentence(
+              currentWord.id,
+              currentWord.word_id,
+              wordData.word,
+              wordData.definition || "",
+              wordData.tags || "",
+              sentence,
+              librarySlug,
+              streamedContent
+            )
 
       setResult(submission)
       setStatus("result")
 
-      if (currentWord.isNew && !requeuedNewWordIdsRef.current.has(currentWord.word_id)) {
+      if (
+        mode === "scheduled" &&
+        currentWord.isNew &&
+        !requeuedNewWordIdsRef.current.has(currentWord.word_id)
+      ) {
         const insertOffset = submission.evaluation.score < 75 ? 1 : 3
         requeuedNewWordIdsRef.current.add(currentWord.word_id)
         setQueuedWords((existingQueue) => {
@@ -692,10 +733,39 @@ export default function StudyClient({
     }
   }
 
+  const handleRewrite = () => {
+    const nextSentence =
+      result?.evaluation.correctedSentence ||
+      result?.evaluation.polishedSentence ||
+      sentence
+
+    resetViewState(
+      {
+        setSentence,
+        setResult,
+        setStatus,
+        setStreamPhase,
+        setStreamProgressChars,
+        setStreamSections,
+        setShowSentenceHelp,
+      },
+      { preserveSentence: true }
+    )
+    setSubmissionMode("practice")
+    setSentence(nextSentence)
+
+    requestAnimationFrame(() => {
+      const input = sentenceInputRef.current
+      if (!input) return
+      input.focus()
+      input.setSelectionRange(nextSentence.length, nextSentence.length)
+    })
+  }
+
   const handleNext = async (
-    nextLibrary = library,
+    nextLibrarySlug = librarySlug,
     isSkipping = false,
-    nextMode = studyMode
+    nextStudyView = studyView
   ) => {
     let nextSkippedWordIds = [...skippedWordIds]
     if (isSkipping && currentWord) {
@@ -715,19 +785,22 @@ export default function StudyClient({
 
     if (queuedWords.length > 0) {
       const [nextWord, ...restQueue] = queuedWords
+      setSubmissionMode("scheduled")
       setCurrentWord(nextWord)
       setQueuedWords(restQueue)
       return
     }
 
-    await reloadStudyBatch(nextLibrary, nextMode, nextSkippedWordIds)
+    setSubmissionMode("scheduled")
+    await reloadStudyBatch(nextLibrarySlug, nextStudyView, nextSkippedWordIds)
   }
 
   const handleLibraryChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const nextLibrary = event.target.value as "All" | "CET-4" | "CET-6"
-    setLibrary(nextLibrary)
+    const nextLibrarySlug = event.target.value
+    setLibrarySlug(nextLibrarySlug)
     setSkippedWordIds([])
     requeuedNewWordIdsRef.current.clear()
+    setSubmissionMode("scheduled")
     resetViewState({
       setSentence,
       setResult,
@@ -737,14 +810,15 @@ export default function StudyClient({
       setStreamSections,
       setShowSentenceHelp,
     })
-    await reloadStudyBatch(nextLibrary, studyMode, [])
+    await reloadStudyBatch(nextLibrarySlug, studyView, [])
   }
 
   const handleStudyModeChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const nextMode = event.target.value as StudyMode
-    setStudyMode(nextMode)
+    const nextStudyView = event.target.value as StudyView
+    setStudyView(nextStudyView)
     setSkippedWordIds([])
     requeuedNewWordIdsRef.current.clear()
+    setSubmissionMode("scheduled")
     resetViewState({
       setSentence,
       setResult,
@@ -754,7 +828,7 @@ export default function StudyClient({
       setStreamSections,
       setShowSentenceHelp,
     })
-    await reloadStudyBatch(library, nextMode, [])
+    await reloadStudyBatch(librarySlug, nextStudyView, [])
   }
 
   const toggleFavorite = async () => {
@@ -766,8 +840,8 @@ export default function StudyClient({
         !favoriteWordIds.includes(currentWord.word_id)
       )
       setFavoriteWordIds(updatedFavorites)
-      if (studyMode === "favorites" && !updatedFavorites.includes(currentWord.word_id)) {
-        await handleNext(library, false, studyMode)
+      if (studyView === "favorites" && !updatedFavorites.includes(currentWord.word_id)) {
+        await handleNext(librarySlug, false, studyView)
       }
     } catch (error) {
       console.error(error)
@@ -885,6 +959,11 @@ export default function StudyClient({
             </button>
           </div>
           <p className="text-sm text-emerald-200 italic leading-relaxed">&quot;{evaluation.correctedSentence}&quot;</p>
+          {evaluation.correctedSentenceMeaning && (
+            <p className="mt-2 text-xs leading-6 text-emerald-100/80">
+              中文释义：{evaluation.correctedSentenceMeaning}
+            </p>
+          )}
         </motion.div>
       )}
 
@@ -965,12 +1044,26 @@ export default function StudyClient({
                   <span className="text-zinc-600">→</span>
                   <span className="text-sm font-semibold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded">{expr.advanced}</span>
                 </div>
+                {(expr.originalMeaning || expr.advancedMeaning) && (
+                  <p className="text-xs leading-6 text-zinc-500">
+                    {expr.originalMeaning ? `原表达：${expr.originalMeaning}` : ""}
+                    {expr.originalMeaning && expr.advancedMeaning ? " | " : ""}
+                    {expr.advancedMeaning ? `更地道表达：${expr.advancedMeaning}` : ""}
+                  </p>
+                )}
                 <p className="text-xs text-zinc-400 leading-relaxed">{expr.explanation}</p>
                 {expr.example && (
                   <div className="flex items-start justify-between gap-2 pl-3 border-l-2 border-indigo-500/20">
-                    <p className="text-xs text-zinc-500 italic">
-                      {expr.example}
-                    </p>
+                    <div className="space-y-1">
+                      <p className="text-xs text-zinc-500 italic">
+                        {expr.example}
+                      </p>
+                      {expr.exampleMeaning && (
+                        <p className="text-xs leading-6 text-zinc-600">
+                          中文释义：{expr.exampleMeaning}
+                        </p>
+                      )}
+                    </div>
                     <button type="button" onClick={() => playAudio(expr.example)} className="text-indigo-400/50 hover:text-indigo-400 shrink-0 p-0.5" title="朗读例句">
                       <Volume2 className="w-3.5 h-3.5" />
                     </button>
@@ -998,6 +1091,11 @@ export default function StudyClient({
                 <p className="text-sm text-indigo-200 italic leading-relaxed">
                   &quot;{evaluation.polishedSentence}&quot;
                 </p>
+                {evaluation.polishedSentenceMeaning && (
+                  <p className="mt-2 text-xs leading-6 text-indigo-100/75">
+                    中文释义：{evaluation.polishedSentenceMeaning}
+                  </p>
+                )}
               </motion.div>
             )}
           </div>
@@ -1012,21 +1110,26 @@ export default function StudyClient({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <select
-              value={library}
+              value={librarySlug}
               onChange={handleLibraryChange}
               className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
             >
-              <option value="All">全部词库</option>
-              <option value="CET-4">四级</option>
-              <option value="CET-6">六级</option>
+              <option value="all">全部词库</option>
+              {libraries.map((item) => (
+                <option key={item.id} value={item.slug}>
+                  {item.name}
+                </option>
+              ))}
             </select>
             <select
-              value={studyMode}
+              value={studyView}
               onChange={handleStudyModeChange}
               className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
             >
               <option value="all">全部单词</option>
-              <option value="favorites">仅看收藏</option>
+              <option value="favorites">收藏</option>
+              <option value="weak">弱项</option>
+              <option value="recent_failures">最近失误</option>
             </select>
           </div>
           <button
@@ -1038,10 +1141,10 @@ export default function StudyClient({
           </button>
         </div>
 
-        <div className="glass-panel rounded-3xl p-10 text-center text-zinc-300">
-          当前条件下没有可学习的单词了。
+          <div className="glass-panel rounded-3xl p-10 text-center text-zinc-300">
+            当前条件下没有可学习的单词了。
+          </div>
         </div>
-      </div>
     )
   }
 
@@ -1169,23 +1272,28 @@ export default function StudyClient({
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <select
-            value={library}
+            value={librarySlug}
             onChange={handleLibraryChange}
             disabled={loadingNext || status === "submitting"}
             className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
           >
-            <option value="All">全部词库</option>
-            <option value="CET-4">四级</option>
-            <option value="CET-6">六级</option>
+            <option value="all">全部词库</option>
+            {libraries.map((item) => (
+              <option key={item.id} value={item.slug}>
+                {item.name}
+              </option>
+            ))}
           </select>
           <select
-            value={studyMode}
+            value={studyView}
             onChange={handleStudyModeChange}
             disabled={loadingNext || status === "submitting"}
             className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
           >
             <option value="all">全部单词</option>
-            <option value="favorites">仅看收藏</option>
+            <option value="favorites">收藏</option>
+            <option value="weak">弱项</option>
+            <option value="recent_failures">最近失误</option>
           </select>
           <button
             type="button"
@@ -1198,6 +1306,38 @@ export default function StudyClient({
 
         <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">
           队列 {queuedWords.length} {(loadingNext || refillingQueue) ? (loadingNext ? "加载中" : "预取中") : ""}
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="glass-panel rounded-2xl p-4">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Current Library</p>
+          <p className="mt-2 text-lg font-semibold text-white">
+            {selectedLibrary?.name ?? "全部词库"}
+          </p>
+          <p className="mt-1 text-xs text-zinc-500">
+            {selectedLibrary
+              ? `剩余未学 ${selectedLibrary.remainingCount} · 已激活 ${selectedLibrary.activeCount}`
+              : "聚合视图会优先处理全局待复习单词。"}
+          </p>
+        </div>
+        <div className="glass-panel rounded-2xl p-4">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Smart View</p>
+          <p className="mt-2 text-lg font-semibold text-white">{getStudyViewLabel(studyView)}</p>
+          <p className="mt-1 text-xs text-zinc-500">
+            {studyView === "all" ? "允许新词和复习混排。" : "当前视图只拉取复习词，不引入新词。"}
+          </p>
+        </div>
+        <div className="glass-panel rounded-2xl p-4">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Plan Snapshot</p>
+          <p className="mt-2 text-lg font-semibold text-white">
+            {selectedLibrary ? `${selectedLibrary.dueCount} 待复习` : `${queuedWords.length + (currentWord ? 1 : 0)} 当前队列`}
+          </p>
+          <p className="mt-1 text-xs text-zinc-500">
+            {selectedLibrary
+              ? `词库词数 ${selectedLibrary.wordCount} · 状态 ${selectedLibrary.planStatus}`
+              : "全部词库模式下按全局复习状态调度。"}
+          </p>
         </div>
       </div>
 
@@ -1282,7 +1422,7 @@ export default function StudyClient({
 
             <button
               type="button"
-              onClick={() => handleNext(library, true)}
+              onClick={() => handleNext(librarySlug, true)}
               className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300"
             >
               <SkipForward className="h-4 w-4" />
@@ -1297,7 +1437,7 @@ export default function StudyClient({
               {status === "submitting" ? "AI 评估中..." : (
                 <>
                   <Sparkles className="h-4 w-4" />
-                  提交
+                  {submissionMode === "practice" ? "提交重写" : "提交"}
                 </>
               )}
             </button>
@@ -1385,6 +1525,11 @@ export default function StudyClient({
               <p className="mb-2 text-[11px] uppercase tracking-[0.18em] text-blue-300/70">
                 Eval Model {result.evaluationModelLabel}
               </p>
+              {result.reviewImpact === "practice_only" && (
+                <p className="mb-2 text-xs text-amber-200/80">
+                  本次是重写练习，不影响复习间隔，也不会计入学习记录。
+                </p>
+              )}
               <p className="text-sm text-zinc-400 italic bg-black/20 p-3 rounded-lg border border-white/5 line-clamp-2">&quot; {sentence} &quot;</p>
             </div>
 
@@ -1413,16 +1558,31 @@ export default function StudyClient({
 
           <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-white/10 gap-4">
             <div className="flex flex-col text-xs text-zinc-500">
-              <span>下次复习：{mounted ? new Date(result.nextSrs.nextReviewDate).toLocaleDateString("zh-CN") : '...'}</span>
-              <span>当前难度系数：{result.nextSrs.easeFactor}</span>
+              {result.nextSrs ? (
+                <>
+                  <span>下次复习：{mounted ? new Date(result.nextSrs.nextReviewDate).toLocaleDateString("zh-CN") : '...'}</span>
+                  <span>当前难度系数：{result.nextSrs.easeFactor}</span>
+                </>
+              ) : (
+                <span>重写练习不会改变当前单词的复习安排。</span>
+              )}
             </div>
-            <button
-              onClick={() => handleNext(library)}
-              className="group flex items-center justify-center gap-2 rounded-xl bg-white/10 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-white/20 w-full sm:w-auto"
-            >
-              下一个单词
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </button>
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <button
+                type="button"
+                onClick={handleRewrite}
+                className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-5 py-3 text-sm font-medium text-amber-100 transition-all hover:bg-amber-500/15"
+              >
+                根据反馈再写一次
+              </button>
+              <button
+                onClick={() => handleNext(librarySlug)}
+                className="group flex items-center justify-center gap-2 rounded-xl bg-white/10 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-white/20 w-full sm:w-auto"
+              >
+                下一个单词
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </button>
+            </div>
           </div>
         </motion.div>
       )}

@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { BookOpen, BarChart3, History, Menu, X, Sparkles } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { BarChart3, BookOpen, History, Layers3, Menu, Sparkles, X } from "lucide-react"
 
 const navLinks = [
   { href: "/dashboard", label: "仪表盘", icon: BarChart3 },
   { href: "/study", label: "学习", icon: BookOpen },
+  { href: "/libraries", label: "词库", icon: Layers3 },
   { href: "/history", label: "历史", icon: History },
 ]
 
@@ -30,9 +31,7 @@ export default function Nav({ userEmail }: { userEmail?: string | null }) {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 shadow-inner transition-all group-hover:from-blue-500/30 group-hover:to-purple-500/30">
             <Sparkles className="h-4 w-4 text-blue-400" />
           </div>
-          <span className="text-sm font-semibold tracking-wide text-zinc-100">
-            ContextVocab
-          </span>
+          <span className="text-sm font-semibold tracking-wide text-zinc-100">ContextVocab</span>
         </Link>
 
         <div className="hidden items-center gap-1 sm:flex">
