@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState, useTransition } from "react"
+import { type FormEvent, useState, useTransition } from "react"
 import {
   ArrowRight,
   BookOpen,
@@ -20,6 +20,11 @@ import {
   deleteCustomLibrary,
   type LibraryMutationResult,
 } from "./actions"
+
+const OFFICIAL_LIBRARY_DESCRIPTIONS: Record<string, string> = {
+  "cet-4": "大学英语四级核心词库",
+  "cet-6": "大学英语六级核心词库",
+}
 
 function getLibraryProgress(library: Pick<StudyLibrary, "wordCount" | "activeCount">) {
   if (library.wordCount <= 0) {
@@ -41,6 +46,18 @@ function getPlanLabel(status: "active" | "paused" | "completed" | "not_started")
     default:
       return "未开始"
   }
+}
+
+function getLibraryDescription(library: Pick<StudyLibrary, "slug" | "sourceType" | "description">) {
+  if (library.sourceType === "official") {
+    return (
+      OFFICIAL_LIBRARY_DESCRIPTIONS[library.slug] ??
+      library.description ??
+      "按词库组织新词来源，复习仍共享全局 SRS 和记忆进度。"
+    )
+  }
+
+  return library.description || "按词库组织新词来源，复习仍共享全局 SRS 和记忆进度。"
 }
 
 function ResultNotice({
@@ -108,7 +125,7 @@ export default function LibrariesClient({
   const officialLibraries = initialLibraries.filter((library) => library.sourceType === "official")
   const customLibraries = initialLibraries.filter((library) => library.sourceType === "custom")
 
-  const handleCreateManual = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleCreateManual = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setManualResult(null)
     setFavoriteResult(null)
@@ -133,7 +150,7 @@ export default function LibrariesClient({
     })
   }
 
-  const handleCreateFromFavorites = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleCreateFromFavorites = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setManualResult(null)
     setFavoriteResult(null)
@@ -157,7 +174,9 @@ export default function LibrariesClient({
   }
 
   const handleDelete = async (library: StudyLibrary) => {
-    const confirmed = window.confirm(`确定删除自定义词库“${library.name}”吗？这个操作不会删除全局单词和学习记录。`)
+    const confirmed = window.confirm(
+      `确定删除自定义词库“${library.name}”吗？这个操作不会删除全局单词和学习记录。`
+    )
     if (!confirmed) {
       return
     }
@@ -176,103 +195,107 @@ export default function LibrariesClient({
     }
   }
 
-  const renderLibraryCard = (library: StudyLibrary) => (
-    <div
-      key={library.id}
-      className="glass-panel rounded-3xl border border-white/[0.08] p-6"
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-zinc-400">
-            <Layers3 className="h-3.5 w-3.5" />
-            {library.sourceType === "official" ? "Official" : "Custom"}
+  const renderLibraryCard = (library: StudyLibrary) => {
+    const progress = getLibraryProgress(library)
+
+    return (
+      <div
+        key={library.id}
+        className="glass-panel rounded-3xl border border-white/[0.08] p-6"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-zinc-400">
+              <Layers3 className="h-3.5 w-3.5" />
+              {library.sourceType === "official" ? "Official" : "Custom"}
+            </div>
+            <h2 className="mt-4 text-2xl font-bold text-white">{library.name}</h2>
+            <p className="mt-2 min-h-12 text-sm leading-6 text-zinc-400">
+              {getLibraryDescription(library)}
+            </p>
           </div>
-          <h2 className="mt-4 text-2xl font-bold text-white">{library.name}</h2>
-          <p className="mt-2 min-h-12 text-sm leading-6 text-zinc-400">
-            {library.description || "按词库组织新词来源，复习仍共享全局 SRS 和记忆进度。"}
-          </p>
+
+          <div className="flex flex-col items-end gap-3">
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-200">
+              {getPlanLabel(library.planStatus)}
+            </span>
+            {library.sourceType === "custom" && (
+              <button
+                type="button"
+                onClick={() => handleDelete(library)}
+                disabled={deletingLibraryId === library.id}
+                className="inline-flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-100 transition-colors hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {deletingLibraryId === library.id ? "删除中..." : "删除"}
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="flex flex-col items-end gap-3">
-          <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-200">
-            {getPlanLabel(library.planStatus)}
-          </span>
-          {library.sourceType === "custom" && (
-            <button
-              type="button"
-              onClick={() => handleDelete(library)}
-              disabled={deletingLibraryId === library.id}
-              className="inline-flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-100 transition-colors hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              {deletingLibraryId === library.id ? "删除中..." : "删除"}
-            </button>
-          )}
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Words</p>
+            <p className="mt-2 text-2xl font-black text-white">{library.wordCount}</p>
+          </div>
+          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Due</p>
+            <p className="mt-2 text-2xl font-black text-amber-200">{library.dueCount}</p>
+          </div>
+          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Started</p>
+            <p className="mt-2 text-2xl font-black text-blue-200">{library.activeCount}</p>
+          </div>
+          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Remaining</p>
+            <p className="mt-2 text-2xl font-black text-white">{library.remainingCount}</p>
+          </div>
         </div>
+
+        <div className="mt-6 rounded-2xl border border-white/8 bg-black/20 p-4">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-zinc-400">新词引入进度</span>
+            <span className="font-semibold text-white">{progress}%</span>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/8">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <div className="mt-3 flex items-center justify-between text-xs text-zinc-500">
+            <span>已开始 {library.activeCount}</span>
+            <span>总计 {library.wordCount}</span>
+          </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-zinc-400">
+          <div className="flex items-center gap-2">
+            <Clock3 className="h-4 w-4 text-zinc-500" />
+            {library.dailyNewLimit ? `每日新词 ${library.dailyNewLimit}` : "每日新词暂未设置"}
+          </div>
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-zinc-500" />
+            全局 SRS
+          </div>
+        </div>
+
+        <Link
+          href={`/study?library=${encodeURIComponent(library.slug)}`}
+          className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-white/15"
+        >
+          进入学习
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+        <Link
+          href={`/libraries/${encodeURIComponent(library.slug)}`}
+          className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm font-medium text-zinc-200 transition-all hover:bg-white/5"
+        >
+          {library.sourceType === "custom" ? "管理词库" : "查看详情"}
+        </Link>
       </div>
-
-      <div className="mt-6 grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Words</p>
-          <p className="mt-2 text-2xl font-black text-white">{library.wordCount}</p>
-        </div>
-        <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Due</p>
-          <p className="mt-2 text-2xl font-black text-amber-200">{library.dueCount}</p>
-        </div>
-        <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Active</p>
-          <p className="mt-2 text-2xl font-black text-blue-200">{library.activeCount}</p>
-        </div>
-        <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Remaining</p>
-          <p className="mt-2 text-2xl font-black text-white">{library.remainingCount}</p>
-        </div>
-      </div>
-
-      <div className="mt-6 rounded-2xl border border-white/8 bg-black/20 p-4">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-zinc-400">Progress</span>
-          <span className="font-semibold text-white">{getLibraryProgress(library)}%</span>
-        </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/8">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-300"
-            style={{ width: `${getLibraryProgress(library)}%` }}
-          />
-        </div>
-        <div className="mt-3 flex items-center justify-between text-xs text-zinc-500">
-          <span>Learned {library.activeCount}</span>
-          <span>Total {library.wordCount}</span>
-        </div>
-      </div>
-
-      <div className="mt-6 flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-zinc-400">
-        <div className="flex items-center gap-2">
-          <Clock3 className="h-4 w-4 text-zinc-500" />
-          {library.dailyNewLimit ? `每日新词 ${library.dailyNewLimit}` : "每日新词暂未设置"}
-        </div>
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-4 w-4 text-zinc-500" />
-          全局 SRS
-        </div>
-      </div>
-
-      <Link
-        href={`/study?library=${encodeURIComponent(library.slug)}`}
-        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-white/15"
-      >
-        进入学习
-        <ArrowRight className="h-4 w-4" />
-      </Link>
-      <Link
-        href={`/libraries/${encodeURIComponent(library.slug)}`}
-        className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm font-medium text-zinc-200 transition-all hover:bg-white/5"
-      >
-        {library.sourceType === "custom" ? "绠＄悊璇嶅簱" : "鏌ョ湅璇嶅簱"}
-      </Link>
-    </div>
-  )
+    )
+  }
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-8 p-4 sm:p-8">
@@ -284,7 +307,7 @@ export default function LibrariesClient({
           <div>
             <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">词库</h1>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
-              词库决定新词从哪里来，复习节奏仍由全局 SRS 控制。现在你可以手动创建自定义词库，也可以把收藏词一键整理成专属学习集合。
+              词库决定新词从哪里来，复习节奏仍由全局 SRS 控制。你可以手动创建自定义词库，也可以把收藏单词整理成单独词库。
             </p>
           </div>
           <Link
@@ -308,8 +331,8 @@ export default function LibrariesClient({
               <h2 className="text-lg font-semibold">手动创建自定义词库</h2>
             </div>
             <p className="mt-2 text-sm leading-7 text-zinc-400">
-              把已有词表中的单词重新组织成你自己的专题词库。当前版本会精确匹配 `words`
-              表中已存在的单词。
+              把现有词表里的单词重新组织成你自己的专题词库。当前版本会精确匹配
+              `words` 表里已经存在的单词。
             </p>
 
             <div className="mt-5 space-y-4">
@@ -413,9 +436,7 @@ export default function LibrariesClient({
             </div>
           </form>
 
-          {deleteResult && (
-            <ResultNotice result={deleteResult} />
-          )}
+          {deleteResult && <ResultNotice result={deleteResult} />}
         </div>
 
         <div className="space-y-8">
@@ -425,9 +446,7 @@ export default function LibrariesClient({
               <span className="text-sm text-zinc-500">{officialLibraries.length} 个</span>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              {officialLibraries.map(renderLibraryCard)}
-            </div>
+            <div className="grid gap-4 md:grid-cols-2">{officialLibraries.map(renderLibraryCard)}</div>
           </section>
 
           <section className="space-y-4">
@@ -437,9 +456,7 @@ export default function LibrariesClient({
             </div>
 
             {customLibraries.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                {customLibraries.map(renderLibraryCard)}
-              </div>
+              <div className="grid gap-4 md:grid-cols-2">{customLibraries.map(renderLibraryCard)}</div>
             ) : (
               <div className="glass-panel rounded-3xl p-10 text-center text-zinc-400">
                 你还没有创建自定义词库。可以先手动输入单词，或把收藏词整理成一个专属词库。

@@ -1407,6 +1407,75 @@ async function getWordLearningHistory(
     .reverse()
 }
 
+async function getStartedLibraryWordIds(
+  supabase: SupabaseClient,
+  userId: string,
+  libraryWordIds: string[]
+) {
+  const startedWordIds = new Set<string>()
+
+  for (let from = 0; from < libraryWordIds.length; from += SUPABASE_PAGE_SIZE) {
+    const chunk = libraryWordIds.slice(from, from + SUPABASE_PAGE_SIZE)
+    if (chunk.length === 0) {
+      continue
+    }
+
+    const [
+      { data: userWordRows, error: userWordError },
+      { data: sentenceRows, error: sentenceError },
+      { data: libraryWordRows, error: libraryWordError },
+    ] = await Promise.all([
+      supabase
+        .from('user_words')
+        .select('word_id')
+        .eq('user_id', userId)
+        .in('word_id', chunk),
+      supabase
+        .from('sentences')
+        .select('word_id')
+        .eq('user_id', userId)
+        .in('word_id', chunk),
+      supabase
+        .from('user_library_words')
+        .select('word_id')
+        .eq('user_id', userId)
+        .in('word_id', chunk),
+    ])
+
+    if (userWordError) {
+      console.error('Failed to load started library user_words:', userWordError)
+    }
+
+    if (sentenceError) {
+      console.error('Failed to load started library sentences:', sentenceError)
+    }
+
+    if (libraryWordError) {
+      console.error('Failed to load started user_library_words:', libraryWordError)
+    }
+
+    for (const row of (userWordRows ?? []) as Array<{ word_id?: string | null }>) {
+      if (typeof row.word_id === 'string') {
+        startedWordIds.add(row.word_id)
+      }
+    }
+
+    for (const row of (sentenceRows ?? []) as Array<{ word_id?: string | null }>) {
+      if (typeof row.word_id === 'string') {
+        startedWordIds.add(row.word_id)
+      }
+    }
+
+    for (const row of (libraryWordRows ?? []) as Array<{ word_id?: string | null }>) {
+      if (typeof row.word_id === 'string') {
+        startedWordIds.add(row.word_id)
+      }
+    }
+  }
+
+  return startedWordIds
+}
+
 async function buildLibrarySummary(
   supabase: SupabaseClient,
   userId: string,
@@ -1440,12 +1509,8 @@ async function buildLibrarySummary(
   }
 
   const today = getTodayDateString()
-  const [{ count: active }, { count: due }, { data: plan }] = await Promise.all([
-    supabase
-      .from('user_words')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .in('word_id', libraryWordIds),
+  const [startedWordIds, { count: due }, { data: plan }] = await Promise.all([
+    getStartedLibraryWordIds(supabase, userId, libraryWordIds),
     supabase
       .from('user_words')
       .select('id', { count: 'exact', head: true })
@@ -1456,7 +1521,7 @@ async function buildLibrarySummary(
   ])
 
   const planRow = (plan as UserLibraryPlanRow | null) ?? null
-  const activeCount = active ?? 0
+  const activeCount = startedWordIds.size
 
   return {
     id: library.id,

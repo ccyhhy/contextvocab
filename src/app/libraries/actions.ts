@@ -84,7 +84,7 @@ async function createLibraryWithWords(input: {
 
   if (libraryError || !library) {
     console.error('Failed to create custom library:', libraryError)
-    return { ok: false, message: '创建词库失败，请稍后重试。' }
+    return { ok: false, message: '创建词库失败，请稍后再试。' }
   }
 
   const libraryWordsPayload = matchedWords.map((row, index) => ({
@@ -98,7 +98,7 @@ async function createLibraryWithWords(input: {
   if (linkError) {
     console.error('Failed to insert library words:', linkError)
     await supabase.from('libraries').delete().eq('id', library.id)
-    return { ok: false, message: '词库创建成功，但加入单词时失败，请重试。' }
+    return { ok: false, message: '词库创建成功，但加入单词时失败了，请重试。' }
   }
 
   revalidatePath('/libraries')
@@ -135,7 +135,7 @@ export async function createCustomLibrary(input: {
 
   if (matchError) {
     console.error('Failed to match words for custom library:', matchError)
-    return { ok: false, message: '匹配单词失败，请稍后重试。' }
+    return { ok: false, message: '匹配单词失败，请稍后再试。' }
   }
 
   const matched = ((matchedRows ?? []) as MatchedWordRow[]).sort((a, b) =>
@@ -175,7 +175,7 @@ export async function createLibraryFromFavorites(input: {
 
   if (error) {
     console.error('Failed to load favorite words for library creation:', error)
-    return { ok: false, message: '读取收藏单词失败，请稍后重试。' }
+    return { ok: false, message: '读取收藏单词失败，请稍后再试。' }
   }
 
   const matchedWords = Array.from(
@@ -215,7 +215,7 @@ export async function deleteCustomLibrary(libraryId: string): Promise<LibraryMut
 
   if (libraryError) {
     console.error('Failed to load library before deletion:', libraryError)
-    return { ok: false, message: '读取词库信息失败，请稍后重试。' }
+    return { ok: false, message: '读取词库信息失败，请稍后再试。' }
   }
 
   if (!library) {
@@ -230,7 +230,7 @@ export async function deleteCustomLibrary(libraryId: string): Promise<LibraryMut
 
   if (deleteError) {
     console.error('Failed to delete custom library:', deleteError)
-    return { ok: false, message: '删除词库失败，请稍后重试。' }
+    return { ok: false, message: '删除词库失败，请稍后再试。' }
   }
 
   revalidatePath('/libraries')

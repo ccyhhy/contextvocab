@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { type FormEvent, useState, useTransition } from "react"
 import {
   ArrowLeft,
   ArrowRight,
@@ -11,7 +11,6 @@ import {
   Search,
   Trash2,
 } from "lucide-react"
-import type { StudyLibrary } from "@/app/study/actions"
 import {
   addWordToLibrary,
   getLibraryWordsPage,
@@ -25,6 +24,11 @@ import {
   type SearchableWord,
 } from "./actions"
 
+const OFFICIAL_LIBRARY_DESCRIPTIONS: Record<string, string> = {
+  "cet-4": "大学英语四级核心词库",
+  "cet-6": "大学英语六级核心词库",
+}
+
 function getLibraryProgress(counts: { wordCount: number; activeCount: number }) {
   if (counts.wordCount <= 0) {
     return 0
@@ -33,7 +37,7 @@ function getLibraryProgress(counts: { wordCount: number; activeCount: number }) 
   return Math.min(100, Math.round((counts.activeCount / counts.wordCount) * 100))
 }
 
-function getPlanStatusLabel(status: StudyLibrary["planStatus"]) {
+function getPlanStatusLabel(status: LibraryDetail["planStatus"]) {
   switch (status) {
     case "active":
       return "进行中"
@@ -45,6 +49,18 @@ function getPlanStatusLabel(status: StudyLibrary["planStatus"]) {
     default:
       return "未开始"
   }
+}
+
+function getLibraryDescription(library: Pick<LibraryDetail, "slug" | "sourceType" | "description">) {
+  if (library.sourceType === "official") {
+    return (
+      OFFICIAL_LIBRARY_DESCRIPTIONS[library.slug] ??
+      library.description ??
+      "按词库组织新词来源，复习仍共享全局 SRS 和记忆进度。"
+    )
+  }
+
+  return library.description || "按词库组织新词来源，复习仍共享全局 SRS 和记忆进度。"
 }
 
 function ResultNotice({ result }: { result: LibraryWordMutationResult | null }) {
@@ -83,13 +99,13 @@ function BatchImportNotice({ result }: { result: LibraryBatchImportResult | null
         typeof result.alreadyExistsCount === "number" ||
         typeof result.matchedCount === "number") && (
         <p className="mt-2 text-xs opacity-90">
-          matched {result.matchedCount ?? 0} / added {result.addedCount ?? 0} / existing{" "}
+          匹配 {result.matchedCount ?? 0} / 新增 {result.addedCount ?? 0} / 已存在{" "}
           {result.alreadyExistsCount ?? 0}
         </p>
       )}
       {result.unmatchedWords && result.unmatchedWords.length > 0 && (
         <p className="mt-2 text-xs leading-6 opacity-90">
-          unmatched: {result.unmatchedWords.join(", ")}
+          未匹配：{result.unmatchedWords.join(", ")}
         </p>
       )}
     </div>
@@ -155,12 +171,12 @@ export default function LibraryDetailClient({
     })
   }
 
-  const handleSearchLibraryWords = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSearchLibraryWords = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     runLibrarySearch(libraryQueryInput.trim())
   }
 
-  const handleSearchWordsToAdd = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSearchWordsToAdd = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const query = addQueryInput.trim()
     setMutationResult(null)
@@ -173,7 +189,7 @@ export default function LibraryDetailClient({
     })
   }
 
-  const handleImportWords = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleImportWords = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setMutationResult(null)
     setBatchImportResult(null)
@@ -272,7 +288,7 @@ export default function LibraryDetailClient({
                 {library.name}
               </h1>
               <p className="mt-3 text-sm leading-7 text-zinc-400">
-                {library.description || "按词库组织新词来源，复习仍共用全局 SRS 和记忆进度。"}
+                {getLibraryDescription(library)}
               </p>
             </div>
 
@@ -286,7 +302,7 @@ export default function LibraryDetailClient({
                 <p className="mt-2 text-2xl font-black text-amber-200">{library.dueCount}</p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Active</p>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Started</p>
                 <p className="mt-2 text-2xl font-black text-blue-200">{library.activeCount}</p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
@@ -300,14 +316,14 @@ export default function LibraryDetailClient({
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                  New-Word Progress
+                  新词引入进度
                 </p>
                 <p className="mt-2 text-2xl font-black text-white">{progress}%</p>
               </div>
               <div className="text-sm text-zinc-400">
                 {allWordsIntroduced
-                  ? "All words in this library have been introduced."
-                  : `${library.activeCount} learned / ${library.remainingCount} remaining`}
+                  ? "这个词库的新词都已经进入学习流程。"
+                  : `已开始 ${library.activeCount} / 未开始 ${library.remainingCount}`}
               </div>
             </div>
 
@@ -320,9 +336,9 @@ export default function LibraryDetailClient({
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-zinc-400">
-            <span>计划：{getPlanStatusLabel(library.planStatus)}</span>
+            <span>计划状态：{getPlanStatusLabel(library.planStatus)}</span>
             <span>每日新词：{library.dailyNewLimit ?? "未设置"}</span>
-            <span>{library.isEditable ? "可维护自定义词库" : "官方词库只读"}</span>
+            <span>{library.isEditable ? "可编辑的自定义词库" : "官方词库只读"}</span>
           </div>
         </div>
       </div>
@@ -337,7 +353,7 @@ export default function LibraryDetailClient({
               <div>
                 <h2 className="text-xl font-bold text-white">词库单词</h2>
                 <p className="mt-1 text-sm text-zinc-400">
-                  支持按单词搜索当前词库，默认按加入顺序展示。
+                  支持在当前词库内搜索。默认按加入顺序展示。
                 </p>
               </div>
               <div className="text-sm text-zinc-500">
@@ -432,24 +448,21 @@ export default function LibraryDetailClient({
             </h2>
             <p className="mt-2 text-sm leading-7 text-zinc-400">
               {library.isEditable
-                ? "从全局词表搜索已有单词，并追加到当前自定义词库。"
-                : "官方词库当前只提供查看和进入学习，不支持手动加词或删词。"}
+                ? "从全局单词表搜索现有单词，并追加到当前自定义词库。"
+                : "官方词库当前只支持查看和进入学习，不支持手动加词或删词。"}
             </p>
 
             {library.isEditable ? (
               <>
-                <form
-                  onSubmit={handleImportWords}
-                  className="mt-5 flex flex-col gap-3"
-                >
+                <form onSubmit={handleImportWords} className="mt-5 flex flex-col gap-3">
                   <textarea
                     value={batchWordsText}
                     onChange={(event) => setBatchWordsText(event.target.value)}
-                    placeholder={"paste words here, one per line or comma-separated"}
+                    placeholder={"批量粘贴单词，每行一个或用逗号分隔"}
                     className="h-40 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm leading-7 text-white outline-none transition-colors focus:border-emerald-500/40"
                   />
                   <p className="text-xs leading-6 text-zinc-500">
-                    Import appends new matches to the end of this library and skips words that are already present.
+                    批量导入会把新匹配到的单词追加到词库末尾，已存在的单词会自动跳过。
                   </p>
                   <button
                     type="submit"
@@ -457,20 +470,17 @@ export default function LibraryDetailClient({
                     className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <Plus className="h-4 w-4" />
-                    {isImporting ? "importing..." : "batch import words"}
+                    {isImporting ? "导入中..." : "批量导入单词"}
                   </button>
                 </form>
 
                 <div className="mt-6 h-px bg-white/10" />
 
-                <form
-                  onSubmit={handleSearchWordsToAdd}
-                  className="mt-5 flex flex-col gap-3"
-                >
+                <form onSubmit={handleSearchWordsToAdd} className="mt-5 flex flex-col gap-3">
                   <input
                     value={addQueryInput}
                     onChange={(event) => setAddQueryInput(event.target.value)}
-                    placeholder="搜索全局词表中的单词"
+                    placeholder="搜索全局单词表中的单词"
                     className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-emerald-500/40"
                   />
                   <button
@@ -531,7 +541,7 @@ export default function LibraryDetailClient({
               </>
             ) : (
               <div className="mt-5 rounded-2xl border border-white/8 bg-black/20 px-4 py-5 text-sm leading-7 text-zinc-400">
-                如果后续要支持官方词库扩展，建议单独走“复制为自定义词库”而不是直接改官方词库。
+                如果后续要支持官方词库扩展，更合适的做法是“复制为自定义词库”后再维护，而不是直接修改官方词库。
               </div>
             )}
           </div>

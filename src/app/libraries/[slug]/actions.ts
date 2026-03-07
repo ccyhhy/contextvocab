@@ -7,6 +7,11 @@ import { requireActionSession } from '@/lib/supabase/user'
 const LIBRARY_WORD_PAGE_SIZE = 100
 const ADD_WORD_SEARCH_LIMIT = 12
 const LIBRARY_SEARCH_MATCH_LIMIT = 200
+const LIBRARY_STATS_CHUNK_SIZE = 1000
+const OFFICIAL_LIBRARY_DESCRIPTIONS: Record<string, string> = {
+  'cet-4': '大学英语四级核心词库',
+  'cet-6': '大学英语六级核心词库',
+}
 
 export interface LibraryDetail {
   id: string
@@ -152,11 +157,19 @@ function parseWordInput(raw: string) {
   return Array.from(
     new Set(
       raw
-        .split(/[\n\r,;锛岋紱\t ]+/)
+        .split(/[\n\r,;\t ]+/)
         .map((item) => item.trim().toLowerCase())
         .filter(Boolean)
     )
   )
+}
+
+function getLibraryDescription(library: Pick<LibraryRow, 'slug' | 'description' | 'source_type'>) {
+  if (library.source_type === 'official') {
+    return OFFICIAL_LIBRARY_DESCRIPTIONS[library.slug] ?? library.description ?? null
+  }
+
+  return library.description ?? null
 }
 
 async function getReadableLibraryBySlug(
@@ -233,6 +246,75 @@ async function getAllLibraryWordIds(supabase: SupabaseClient, libraryId: string)
   return wordIds
 }
 
+async function getStartedLibraryWordIds(
+  supabase: SupabaseClient,
+  userId: string,
+  libraryWordIds: string[]
+) {
+  const startedWordIds = new Set<string>()
+
+  for (let from = 0; from < libraryWordIds.length; from += LIBRARY_STATS_CHUNK_SIZE) {
+    const chunk = libraryWordIds.slice(from, from + LIBRARY_STATS_CHUNK_SIZE)
+    if (chunk.length === 0) {
+      continue
+    }
+
+    const [
+      { data: userWordRows, error: userWordError },
+      { data: sentenceRows, error: sentenceError },
+      { data: libraryWordRows, error: libraryWordError },
+    ] = await Promise.all([
+      supabase
+        .from('user_words')
+        .select('word_id')
+        .eq('user_id', userId)
+        .in('word_id', chunk),
+      supabase
+        .from('sentences')
+        .select('word_id')
+        .eq('user_id', userId)
+        .in('word_id', chunk),
+      supabase
+        .from('user_library_words')
+        .select('word_id')
+        .eq('user_id', userId)
+        .in('word_id', chunk),
+    ])
+
+    if (userWordError) {
+      console.error('Failed to load started library user_words:', userWordError)
+    }
+
+    if (sentenceError) {
+      console.error('Failed to load started library sentences:', sentenceError)
+    }
+
+    if (libraryWordError) {
+      console.error('Failed to load started user_library_words for library detail:', libraryWordError)
+    }
+
+    for (const row of (userWordRows ?? []) as WordIdRow[]) {
+      if (typeof row.word_id === 'string') {
+        startedWordIds.add(row.word_id)
+      }
+    }
+
+    for (const row of (sentenceRows ?? []) as WordIdRow[]) {
+      if (typeof row.word_id === 'string') {
+        startedWordIds.add(row.word_id)
+      }
+    }
+
+    for (const row of (libraryWordRows ?? []) as WordIdRow[]) {
+      if (typeof row.word_id === 'string') {
+        startedWordIds.add(row.word_id)
+      }
+    }
+  }
+
+  return startedWordIds
+}
+
 async function buildLibraryDetail(
   supabase: SupabaseClient,
   userId: string,
@@ -256,7 +338,7 @@ async function buildLibraryDetail(
       id: library.id,
       slug: library.slug,
       name: library.name,
-      description: library.description ?? null,
+      description: getLibraryDescription(library),
       sourceType: library.source_type === 'custom' ? 'custom' : 'official',
       isEditable: library.source_type === 'custom' && library.created_by === userId,
       wordCount: 0,
@@ -268,12 +350,8 @@ async function buildLibraryDetail(
     }
   }
 
-  const [{ count: active }, { count: due }, { data: plan }] = await Promise.all([
-    supabase
-      .from('user_words')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .in('word_id', libraryWordIds),
+  const [startedWordIds, { count: due }, { data: plan }] = await Promise.all([
+    getStartedLibraryWordIds(supabase, userId, libraryWordIds),
     supabase
       .from('user_words')
       .select('id', { count: 'exact', head: true })
@@ -284,13 +362,13 @@ async function buildLibraryDetail(
   ])
 
   const planRow = (plan as UserLibraryPlanRow | null) ?? null
-  const activeCount = active ?? 0
+  const activeCount = startedWordIds.size
 
   return {
     id: library.id,
     slug: library.slug,
     name: library.name,
-    description: library.description ?? null,
+    description: getLibraryDescription(library),
     sourceType: library.source_type === 'custom' ? 'custom' : 'official',
     isEditable: library.source_type === 'custom' && library.created_by === userId,
     wordCount,
@@ -485,7 +563,7 @@ export async function addWordToLibrary(
   const library = await getEditableLibraryBySlug(supabase, user.id, librarySlug)
 
   if (!library) {
-    return { ok: false, message: 'Only custom libraries owned by you can be edited.' }
+    return { ok: false, message: '只有你创建的自定义词库可以编辑。' }
   }
 
   const { data: existing } = await supabase
@@ -496,7 +574,7 @@ export async function addWordToLibrary(
     .maybeSingle()
 
   if (existing) {
-    return { ok: false, message: 'This word is already in the current library.' }
+    return { ok: false, message: '这个单词已经在当前词库里了。' }
   }
 
   const { data: lastRow } = await supabase
@@ -516,14 +594,14 @@ export async function addWordToLibrary(
 
   if (error) {
     console.error('Failed to add word to library:', error)
-    return { ok: false, message: 'Failed to add the word. Please try again.' }
+    return { ok: false, message: '加词失败，请稍后再试。' }
   }
 
   revalidatePath('/libraries')
   revalidatePath(`/libraries/${library.slug}`)
   revalidatePath('/study')
 
-  return { ok: true, message: 'Word added to library.' }
+  return { ok: true, message: '已加入词库。' }
 }
 
 export async function removeWordFromLibrary(
@@ -534,7 +612,7 @@ export async function removeWordFromLibrary(
   const library = await getEditableLibraryBySlug(supabase, user.id, librarySlug)
 
   if (!library) {
-    return { ok: false, message: 'Only custom libraries owned by you can be edited.' }
+    return { ok: false, message: '只有你创建的自定义词库可以编辑。' }
   }
 
   const { error } = await supabase
@@ -545,14 +623,14 @@ export async function removeWordFromLibrary(
 
   if (error) {
     console.error('Failed to remove word from library:', error)
-    return { ok: false, message: 'Failed to remove the word. Please try again.' }
+    return { ok: false, message: '移除失败，请稍后再试。' }
   }
 
   revalidatePath('/libraries')
   revalidatePath(`/libraries/${library.slug}`)
   revalidatePath('/study')
 
-  return { ok: true, message: 'Word removed from library.' }
+  return { ok: true, message: '已从词库移除。' }
 }
 
 export async function importWordsToLibrary(
@@ -563,12 +641,12 @@ export async function importWordsToLibrary(
   const library = await getEditableLibraryBySlug(supabase, user.id, librarySlug)
 
   if (!library) {
-    return { ok: false, message: 'Only custom libraries owned by you can be edited.' }
+    return { ok: false, message: '只有你创建的自定义词库可以编辑。' }
   }
 
   const candidateWords = parseWordInput(wordsText)
   if (candidateWords.length === 0) {
-    return { ok: false, message: 'Enter at least one word to import.' }
+    return { ok: false, message: '请至少输入一个要导入的单词。' }
   }
 
   const { data: matchedRows, error: matchError } = await supabase
@@ -578,7 +656,7 @@ export async function importWordsToLibrary(
 
   if (matchError) {
     console.error('Failed to match words for library import:', matchError)
-    return { ok: false, message: 'Failed to match words. Please try again.' }
+    return { ok: false, message: '匹配单词失败，请稍后再试。' }
   }
 
   const matchedWords = ((matchedRows ?? []) as Array<{ id: string; word: string }>).sort((a, b) =>
@@ -590,7 +668,7 @@ export async function importWordsToLibrary(
   if (matchedWords.length === 0) {
     return {
       ok: false,
-      message: 'No importable words were matched.',
+      message: '没有匹配到可导入的单词。',
       matchedCount: 0,
       addedCount: 0,
       alreadyExistsCount: 0,
@@ -607,7 +685,7 @@ export async function importWordsToLibrary(
 
   if (existingError) {
     console.error('Failed to load existing library words for import:', existingError)
-    return { ok: false, message: 'Failed to load existing library words. Please try again.' }
+    return { ok: false, message: '读取词库现有单词失败，请稍后再试。' }
   }
 
   const existingWordIds = new Set(
@@ -622,7 +700,7 @@ export async function importWordsToLibrary(
   if (wordsToInsert.length === 0) {
     return {
       ok: false,
-      message: 'All matched words are already in this library.',
+      message: '匹配到的单词都已经在这个词库里了。',
       matchedCount: matchedWords.length,
       addedCount: 0,
       alreadyExistsCount,
@@ -649,7 +727,7 @@ export async function importWordsToLibrary(
 
   if (insertError) {
     console.error('Failed to import words into library:', insertError)
-    return { ok: false, message: 'Batch import failed. Please try again.' }
+    return { ok: false, message: '批量导入失败，请稍后再试。' }
   }
 
   revalidatePath('/libraries')
@@ -660,8 +738,8 @@ export async function importWordsToLibrary(
     ok: true,
     message:
       unmatchedWords.length > 0 || alreadyExistsCount > 0
-        ? `Imported ${wordsToInsert.length} words. ${alreadyExistsCount} already existed and ${unmatchedWords.length} were unmatched.`
-        : `Imported ${wordsToInsert.length} words.`,
+        ? `已导入 ${wordsToInsert.length} 个单词，${alreadyExistsCount} 个已存在，${unmatchedWords.length} 个未匹配。`
+        : `已导入 ${wordsToInsert.length} 个单词。`,
     matchedCount: matchedWords.length,
     addedCount: wordsToInsert.length,
     alreadyExistsCount,
