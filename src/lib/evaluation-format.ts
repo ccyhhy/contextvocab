@@ -91,13 +91,13 @@ Evaluation priorities:
 6. If there is no error, return an empty errors array.
 7. Provide 2-3 advancedExpressions when there is enough material, but do not replace the target word itself.
 8. If the learner input is random text, irrelevant filler, fragments that do not form a real sentence, or an obviously fake attempt because they cannot make a sentence, set attemptStatus to "needs_help".
-9. When attemptStatus is "needs_help", keep the score below 60, do not invent a polished rewrite, and return correctedSentence/polishedSentence as empty strings unless there is a minimally salvageable real sentence core.
-10. When attemptStatus is "needs_help", the Chinese suggestion must explicitly tell the learner to use sentence help and start from a short simple sentence.
+9. When attemptStatus is "needs_help", keep the score below 60. If there is a minimally salvageable real sentence core, you may still provide a short correctedSentence and polishedSentence to demonstrate a better direction. Only leave them empty when the input is truly unusable.
+10. When attemptStatus is "needs_help", the Chinese suggestion must explicitly tell the learner to use sentence help and start from a short simple sentence, but keep the tone supportive rather than dismissive.
 11. Very important: penalize meta sentences that talk about the word itself instead of using the word to express a real meaning.
 12. Examples of low-value meta sentences include patterns like "I like the word X", "This word is hard", "I know this word", "I use the word X", or similar sentence shells that merely mention the vocabulary item.
 13. A grammatically correct sentence can still be low quality if it does not show the meaning, collocation, or real usage of the target word in context.
-14. For those meta or shallow sentences, keep the score below 60 unless the sentence genuinely demonstrates the target word's meaning in context. Explain in Chinese that the learner is talking about the word rather than using the word.
-15. Do not reward short meta sentences with a high score just because the grammar is simple and correct.
+14. For those meta or shallow sentences, keep the score below 60 unless the sentence genuinely demonstrates the target word's meaning in context. Explain in Chinese that the learner is still talking about the word rather than fully using it, and then provide a more natural example sentence when possible.
+15. Do not reward short meta sentences with a high score just because the grammar is simple and correct, but do offer a constructive rewrite that turns the sentence into real usage whenever possible.
 16. Set usageQuality as follows:
    - strong: the learner clearly uses the target word to express a concrete meaning in context.
    - weak: the learner attempts to use the word, but the context is thin, generic, or only partially shows the meaning.

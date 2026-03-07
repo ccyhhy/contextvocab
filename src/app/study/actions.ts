@@ -195,7 +195,11 @@ function normalizeEvaluation(payload: EvaluationPayload, fallbackSentence: strin
 
   const attemptStatus = sanitizeAttemptStatus(payload.attemptStatus)
   const usageQuality = sanitizeUsageQuality(payload.usageQuality)
-  const allowRewrite = attemptStatus === 'valid'
+  const allowRewrite =
+    usageQuality !== 'invalid' &&
+    (attemptStatus === 'valid' ||
+      sanitizeText(payload.correctedSentence).length > 0 ||
+      sanitizeText(payload.polishedSentence).length > 0)
 
   return {
     score: clamp(Number(payload.score) || 0, 0, 100),

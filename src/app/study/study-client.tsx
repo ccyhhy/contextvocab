@@ -928,21 +928,21 @@ export default function StudyClient({
           {evaluation.attemptStatus === "needs_help" && (
             <div className="mb-4 flex gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/[0.06] p-4 text-sm text-zinc-300">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
-              <div>这次输入更像占位或乱写。系统不会直接把它润色成标准答案，建议先用造句辅助搭一个简单句。</div>
+              <div>这次输入还没形成一个自然完整的例句。先用造句辅助搭一个短句骨架，再补上人物、时间或原因，会更容易写出来。</div>
             </div>
           )}
 
           {evaluation.isMetaSentence && (
             <div className="mb-4 flex gap-3 rounded-2xl border border-orange-500/20 bg-orange-500/[0.06] p-4 text-sm text-zinc-300">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-300" />
-              <div>这句话是在谈这个词本身，而不是在语境里使用这个词。请改成一个真实场景里的表达。</div>
+              <div>这句话更像是在谈这个词本身，还没有真正把它放进语境里使用。下面的修改版可以作为一个更自然的表达方向。</div>
             </div>
           )}
 
           {evaluation.usageQuality === "weak" && !evaluation.isMetaSentence && evaluation.attemptStatus === "valid" && (
             <div className="mb-4 flex gap-3 rounded-2xl border border-blue-500/20 bg-blue-500/[0.06] p-4 text-sm text-zinc-300">
               <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-blue-300" />
-              <div>这句话已经成句，但使用场景还比较薄。给它补上人物、时间、原因或结果，学习价值会高很多。</div>
+              <div>这句话已经成句了，但语境还偏薄。给它补上人物、时间、原因或结果，表达会更自然，学习价值也会更高。</div>
             </div>
           )}
 
@@ -997,7 +997,7 @@ export default function StudyClient({
                 onClick={retryCurrentWord}
                 className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-zinc-200"
               >
-                {evaluation.attemptStatus === "needs_help" ? "打开造句辅助后重试" : "修改这句再试一次"}
+                {evaluation.attemptStatus === "needs_help" ? "打开造句辅助，再试一次" : "参考修改后再试一次"}
               </button>
               <button
                 type="button"
