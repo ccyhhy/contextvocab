@@ -187,10 +187,6 @@ function getErrorMessage(error: unknown) {
   return 'Unknown error'
 }
 
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
 function extractJsonObject(content: string) {
   const trimmed = content.trim()
   if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
@@ -397,15 +393,23 @@ function normalizeSentenceHelp(
   word: string,
   fallback: SentenceHelpItem[]
 ) {
-  const wordPattern = new RegExp(`\\b${escapeRegExp(word)}\\b`, 'i')
   const items = Array.isArray(payload.hints) ? (payload.hints as SentenceHelpItemPayload[]) : []
+  const normalizedWord = word.trim().toLowerCase()
 
   const normalized = items
     .map((item) => ({
       sentence: sanitizeText(item.sentence).trim(),
       cue: sanitizeText(item.cue).trim(),
     }))
-    .filter((item) => item.sentence.length > 0 && wordPattern.test(item.sentence))
+    .filter((item) => item.sentence.length > 0)
+    .filter((item) => {
+      if (!normalizedWord) {
+        return true
+      }
+
+      const normalizedSentence = item.sentence.toLowerCase()
+      return normalizedSentence.includes(normalizedWord)
+    })
     .map((item) => ({
       sentence: item.sentence,
       cue: item.cue || '先照着写，再把人物、时间或场景替换成你自己的。',
