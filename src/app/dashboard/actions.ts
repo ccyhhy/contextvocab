@@ -67,24 +67,18 @@ function getTodayDateString() {
   return new Date().toISOString().split('T')[0]
 }
 
-async function getAllWordIdsByTable(
-  supabase: SupabaseClient,
-  table: 'user_words' | 'user_library_words' | 'sentences',
-  userId: string
+async function getAllWordIdsByQuery(
+  query: ReturnType<SupabaseClient['from']>
 ) {
   const wordIds: string[] = []
   let from = 0
 
   while (true) {
     const to = from + DASHBOARD_PAGE_SIZE - 1
-    const { data, error } = await supabase
-      .from(table)
-      .select('word_id')
-      .eq('user_id', userId)
-      .range(from, to)
+    const { data, error } = await query.select('word_id').range(from, to)
 
     if (error) {
-      console.error(`Failed to load word ids from ${table}:`, error)
+      console.error('Failed to load word ids for dashboard stats:', error)
       return wordIds
     }
 
@@ -106,13 +100,21 @@ async function getAllWordIdsByTable(
 }
 
 async function getStartedWordCount(supabase: SupabaseClient, userId: string) {
-  const [userWordIds, userLibraryWordIds, sentenceWordIds] = await Promise.all([
-    getAllWordIdsByTable(supabase, 'user_words', userId),
-    getAllWordIdsByTable(supabase, 'user_library_words', userId),
-    getAllWordIdsByTable(supabase, 'sentences', userId),
+  const [reviewedWordIds, sentenceWordIds] = await Promise.all([
+    getAllWordIdsByQuery(
+      supabase
+        .from('user_words')
+        .eq('user_id', userId)
+        .not('last_reviewed_at', 'is', null)
+    ),
+    getAllWordIdsByQuery(
+      supabase
+        .from('sentences')
+        .eq('user_id', userId)
+    ),
   ])
 
-  return new Set([...userWordIds, ...userLibraryWordIds, ...sentenceWordIds]).size
+  return new Set([...reviewedWordIds, ...sentenceWordIds]).size
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
@@ -125,6 +127,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .from('user_words')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
+      .not('last_reviewed_at', 'is', null)
       .lte('next_review_date', today),
     supabase
       .from('sentences')
