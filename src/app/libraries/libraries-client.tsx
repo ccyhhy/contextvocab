@@ -21,6 +21,14 @@ import {
   type LibraryMutationResult,
 } from "./actions"
 
+function getLibraryProgress(library: Pick<StudyLibrary, "wordCount" | "activeCount">) {
+  if (library.wordCount <= 0) {
+    return 0
+  }
+
+  return Math.min(100, Math.round((library.activeCount / library.wordCount) * 100))
+}
+
 function getPlanLabel(status: "active" | "paused" | "completed" | "not_started") {
   switch (status) {
     case "active":
@@ -222,6 +230,23 @@ export default function LibrariesClient({
         </div>
       </div>
 
+      <div className="mt-6 rounded-2xl border border-white/8 bg-black/20 p-4">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-zinc-400">Progress</span>
+          <span className="font-semibold text-white">{getLibraryProgress(library)}%</span>
+        </div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/8">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-300"
+            style={{ width: `${getLibraryProgress(library)}%` }}
+          />
+        </div>
+        <div className="mt-3 flex items-center justify-between text-xs text-zinc-500">
+          <span>Learned {library.activeCount}</span>
+          <span>Total {library.wordCount}</span>
+        </div>
+      </div>
+
       <div className="mt-6 flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-zinc-400">
         <div className="flex items-center gap-2">
           <Clock3 className="h-4 w-4 text-zinc-500" />
@@ -239,6 +264,12 @@ export default function LibrariesClient({
       >
         进入学习
         <ArrowRight className="h-4 w-4" />
+      </Link>
+      <Link
+        href={`/libraries/${encodeURIComponent(library.slug)}`}
+        className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm font-medium text-zinc-200 transition-all hover:bg-white/5"
+      >
+        {library.sourceType === "custom" ? "绠＄悊璇嶅簱" : "鏌ョ湅璇嶅簱"}
       </Link>
     </div>
   )
