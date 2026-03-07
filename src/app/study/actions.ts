@@ -65,6 +65,11 @@ export interface StudyBatchItem {
   priorityReason: StudyPriorityReason
 }
 
+export interface SentenceHelpItem {
+  sentence: string
+  cue: string
+}
+
 export interface GetStudyBatchParams {
   tag?: string
   skippedWordIds?: string[]
@@ -137,6 +142,15 @@ interface FavoriteRow {
   word_id: string | null
 }
 
+interface SentenceHelpPayload {
+  hints?: unknown
+}
+
+interface SentenceHelpItemPayload {
+  sentence?: unknown
+  cue?: unknown
+}
+
 let favoriteColumnSupported: boolean | null = null
 let pickUnstudiedWordRpcSupported: boolean | null = null
 
@@ -166,6 +180,20 @@ function getErrorMessage(error: unknown) {
     return error.message
   }
   return 'Unknown error'
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function extractJsonObject(content: string) {
+  const trimmed = content.trim()
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    return trimmed
+  }
+
+  const match = trimmed.match(/\{[\s\S]*\}/)
+  return match?.[0] ?? trimmed
 }
 
 function makeErrorResult(message: string): EvaluationResult {
@@ -237,6 +265,138 @@ function parseEvaluationJson(content: string, fallbackSentence: string): Evaluat
   const jsonStr = extractEvaluationJson(content)
   const parsed = JSON.parse(jsonStr) as EvaluationPayload
   return normalizeEvaluation(parsed, fallbackSentence)
+}
+
+function inferPartOfSpeech(definition?: string | null) {
+  const normalized = (definition || '').toLowerCase()
+  if (normalized.includes('adj.')) return 'adjective'
+  if (normalized.includes('adv.')) return 'adverb'
+  if (normalized.includes('vt.') || normalized.includes('vi.') || normalized.includes('v.')) {
+    return 'verb'
+  }
+  if (normalized.includes('n.')) return 'noun'
+  return 'unknown'
+}
+
+function capitalizeWord(word: string) {
+  if (!word) return word
+  return word.charAt(0).toUpperCase() + word.slice(1)
+}
+
+function buildFallbackSentenceHelp(word: string, definition?: string | null, example?: string | null) {
+  const pos = inferPartOfSpeech(definition)
+  const capitalizedWord = capitalizeWord(word)
+  const suggestions: SentenceHelpItem[] = []
+
+  if (example) {
+    suggestions.push({
+      sentence: example,
+      cue: '先参考词库自带例句，再改成你自己的情境。',
+    })
+  }
+
+  const byPos: Record<string, SentenceHelpItem[]> = {
+    verb: [
+      {
+        sentence: `We need to ${word} the problem before it gets worse.`,
+        cue: '把它当动作，用“谁要做这件事”来造句。',
+      },
+      {
+        sentence: `She tried to ${word} her ideas clearly in the meeting.`,
+        cue: '放进工作或沟通场景，句子会更自然。',
+      },
+      {
+        sentence: `It is hard to ${word} the change without more support.`,
+        cue: '不会写复杂句时，可以先用 It is hard to... 结构。',
+      },
+    ],
+    noun: [
+      {
+        sentence: `The ${word} became a serious problem for our team.`,
+        cue: '名词最稳的写法是“the + 单词 + became/is + 描述”。',
+      },
+      {
+        sentence: `${capitalizedWord} plays an important role in daily life.`,
+        cue: '如果这个词是抽象概念，用 plays an important role 很容易起句。',
+      },
+      {
+        sentence: `I noticed the ${word} when I read the report.`,
+        cue: '也可以写“我在某个场景里注意到它”。',
+      },
+    ],
+    adjective: [
+      {
+        sentence: `It was a ${word} decision, but it solved the problem.`,
+        cue: '形容词可以直接修饰 decision, plan, situation 这类高频名词。',
+      },
+      {
+        sentence: `The new rule made the process more ${word}.`,
+        cue: '用 make ... more + 形容词，是很稳的句型。',
+      },
+      {
+        sentence: `We faced a ${word} situation at work yesterday.`,
+        cue: '也可以把它放进“situation/problem/plan”这类通用场景。',
+      },
+    ],
+    adverb: [
+      {
+        sentence: `She answered ${word} when the teacher asked the question.`,
+        cue: '副词一般修饰动作，先想“谁做了什么，做得怎么样”。',
+      },
+      {
+        sentence: `He spoke ${word} during the interview.`,
+        cue: '把副词接在 spoke, worked, reacted, responded 后面最容易。',
+      },
+      {
+        sentence: `They worked ${word} to finish the project on time.`,
+        cue: '也可以放进努力、反应、说话这类常见动作里。',
+      },
+    ],
+    unknown: [
+      {
+        sentence: `I used ${word} in a real conversation today.`,
+        cue: '如果词性不清楚，先参考词义，再把句子改成具体场景。',
+      },
+      {
+        sentence: `This example helped me understand ${word} better.`,
+        cue: '先写一条简单句，再替换成更具体的人物和场景。',
+      },
+      {
+        sentence: `${capitalizedWord} is easier to remember in a real situation.`,
+        cue: '不知道怎么展开时，先围绕 situation / conversation / work 来写。',
+      },
+    ],
+  }
+
+  for (const item of byPos[pos] ?? byPos.unknown) {
+    if (!suggestions.some((existing) => existing.sentence === item.sentence)) {
+      suggestions.push(item)
+    }
+  }
+
+  return suggestions.slice(0, 4)
+}
+
+function normalizeSentenceHelp(
+  payload: SentenceHelpPayload,
+  word: string,
+  fallback: SentenceHelpItem[]
+) {
+  const wordPattern = new RegExp(`\\b${escapeRegExp(word)}\\b`, 'i')
+  const items = Array.isArray(payload.hints) ? (payload.hints as SentenceHelpItemPayload[]) : []
+
+  const normalized = items
+    .map((item) => ({
+      sentence: sanitizeText(item.sentence).trim(),
+      cue: sanitizeText(item.cue).trim(),
+    }))
+    .filter((item) => item.sentence.length > 0 && wordPattern.test(item.sentence))
+    .map((item) => ({
+      sentence: item.sentence,
+      cue: item.cue || '先照着写，再把人物、时间或场景替换成你自己的。',
+    }))
+
+  return normalized.length > 0 ? normalized.slice(0, 4) : fallback
 }
 
 function buildSystemPrompt(word: string, definition: string, tags?: string, learningHistory?: string[]) {
@@ -750,6 +910,85 @@ async function getWordLearningHistory(
     .map((record) => (record as PastSentenceRow).original_text)
     .filter((value): value is string => typeof value === 'string')
     .reverse()
+}
+
+export async function generateSentenceHelp(
+  wordId: string,
+  word: string,
+  definition: string,
+  tags?: string,
+  example?: string | null
+): Promise<SentenceHelpItem[]> {
+  const fallback = buildFallbackSentenceHelp(word, definition, example)
+  const apiKey = process.env.OPENAI_API_KEY
+  const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini'
+
+  if (!apiKey) {
+    return fallback
+  }
+
+  try {
+    const { supabase, user } = await requireActionSession()
+    const learningHistory = await getWordLearningHistory(supabase, user.id, wordId)
+    const response = await fetch(`${apiBase}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.4,
+        messages: [
+          {
+            role: 'system',
+            content: [
+              'You help a Chinese learner make a sentence with one target English word.',
+              'Return JSON only.',
+              'Generate 3 to 4 short, natural example sentences that use the exact target word unchanged.',
+              'The sentences must clearly show the meaning in context, not talk about the word itself.',
+              'Keep them beginner-friendly but useful enough to adapt.',
+              'Each item must include:',
+              '- sentence: an English sentence.',
+              '- cue: one concise coaching tip in Simplified Chinese explaining why this sentence works or how to adapt it.',
+              'Avoid fake dictionary-style lines and avoid repetitive sentence frames.',
+              'Schema: {"hints":[{"sentence":"...","cue":"..."}]}',
+            ].join('\n'),
+          },
+          {
+            role: 'user',
+            content: [
+              `Target word: ${word}`,
+              `Definition: ${definition || 'N/A'}`,
+              `Word list tag: ${tags || 'General'}`,
+              `Dictionary example: ${example || 'N/A'}`,
+              learningHistory.length > 0
+                ? `Past learner sentences:\n${learningHistory.map((item, index) => `${index + 1}. ${item}`).join('\n')}`
+                : 'Past learner sentences: none',
+              'Generate better sentence hints that are specific to the meaning.',
+            ].join('\n\n'),
+          },
+        ],
+      }),
+    })
+
+    if (!response.ok) {
+      return fallback
+    }
+
+    const data = await response.json()
+    const content = data.choices?.[0]?.message?.content
+    if (typeof content !== 'string' || !content.trim()) {
+      return fallback
+    }
+
+    const parsed = JSON.parse(extractJsonObject(content)) as SentenceHelpPayload
+    return normalizeSentenceHelp(parsed, word, fallback)
+  } catch (error) {
+    console.error('Failed to generate sentence help:', error)
+    return fallback
+  }
 }
 
 export async function evaluateSentence(

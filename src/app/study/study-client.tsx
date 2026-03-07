@@ -26,16 +26,19 @@ import {
   type VisibleFeedbackSections,
 } from "@/lib/evaluation-format"
 import {
+  generateSentenceHelp,
   getStudyBatch,
   submitSentence,
   toggleFavoriteWord,
   type EvaluationResult,
+  type SentenceHelpItem,
   type StudyBatchItem,
 } from "./actions"
 
 type StreamPhase = "idle" | "connecting" | "feedback" | "structuring"
 type StudyMode = "all" | "favorites"
 type SubmissionResult = Awaited<ReturnType<typeof submitSentence>>
+type SentenceHelpState = "idle" | "loading" | "ready"
 
 interface SpeechConfig {
   ttsRate: number
@@ -64,131 +67,6 @@ function getPriorityLabel(reason: StudyBatchItem["priorityReason"]) {
     default:
       return "新词"
   }
-}
-
-function inferPartOfSpeech(definition?: string | null) {
-  const normalized = (definition || "").toLowerCase()
-  if (normalized.includes("adj.")) return "adjective"
-  if (normalized.includes("adv.")) return "adverb"
-  if (normalized.includes("vt.") || normalized.includes("vi.") || normalized.includes("v.")) {
-    return "verb"
-  }
-  if (normalized.includes("n.")) return "noun"
-  return "unknown"
-}
-
-function buildSentenceStarters(word: string, definition?: string | null) {
-  const pos = inferPartOfSpeech(definition)
-
-  switch (pos) {
-    case "verb":
-      return [
-        `I want to ${word} because ...`,
-        `We decided to ${word} when ...`,
-        `It is hard to ${word} if ...`,
-      ]
-    case "noun":
-      return [
-        `The ${word} became important when ...`,
-        `One example of ${word} is ...`,
-        `This ${word} matters because ...`,
-      ]
-    case "adjective":
-      return [
-        `The ${word} plan is hard to finish because ...`,
-        `In the ${word} situation, we need to ...`,
-        `This is ${word} for me because ...`,
-      ]
-    case "adverb":
-      return [
-        `She spoke ${word} when ...`,
-        `He responded ${word} because ...`,
-        `They worked ${word} to ...`,
-      ]
-    default:
-      return [
-        `I used "${word}" when ...`,
-        `In this situation, "${word}" means ...`,
-        `A simple sentence with "${word}" is ...`,
-      ]
-  }
-}
-
-function buildUsageCoachingSkeletons(
-  word: string,
-  definition?: string | null,
-  evaluation?: EvaluationResult | null
-) {
-  const baseStarters = buildSentenceStarters(word, definition)
-  const pos = inferPartOfSpeech(definition)
-
-  if (evaluation?.isMetaSentence || evaluation?.usageQuality === "meta") {
-    switch (pos) {
-      case "verb":
-        return [
-          `I had to ${word} because ...`,
-          `We chose to ${word} when ...`,
-          `People ${word} if ...`,
-        ]
-      case "noun":
-        return [
-          `The ${word} caused a problem because ...`,
-          `I noticed the ${word} when ...`,
-          `This ${word} can help people who ...`,
-        ]
-      case "adjective":
-        return [
-          `The ${word} plan may change because ...`,
-          `In the ${word} situation, I need to ...`,
-          `She is reading about ${word} events because ...`,
-        ]
-      case "adverb":
-        return [
-          `She spoke ${word} during the meeting because ...`,
-          `He answered ${word} after ...`,
-          `They worked ${word} to finish ...`,
-        ]
-      default:
-        return baseStarters
-    }
-  }
-
-  if (evaluation?.attemptStatus === "needs_help" || evaluation?.usageQuality === "invalid") {
-    return baseStarters
-  }
-
-  if (evaluation?.usageQuality === "weak") {
-    switch (pos) {
-      case "verb":
-        return [
-          `I ${word} the plan because ...`,
-          `We need to ${word} before ...`,
-          `They tried to ${word} after ...`,
-        ]
-      case "noun":
-        return [
-          `The ${word} helped us because ...`,
-          `I saw a ${word} when ...`,
-          `This ${word} changed after ...`,
-        ]
-      case "adjective":
-        return [
-          `The ${word} problem became worse when ...`,
-          `Under the ${word} conditions, we should ...`,
-          `My ${word} goal is to ...`,
-        ]
-      case "adverb":
-        return [
-          `She answered ${word} after ...`,
-          `He moved ${word} because ...`,
-          `They reacted ${word} when ...`,
-        ]
-      default:
-        return baseStarters
-    }
-  }
-
-  return baseStarters
 }
 
 function AnimatedScore({ score }: { score: number }) {
@@ -363,10 +241,14 @@ export default function StudyClient({
   const [showSettings, setShowSettings] = useState(false)
   const [speechConfig, setSpeechConfig] = useState<SpeechConfig>(DEFAULT_SPEECH_CONFIG)
   const [mounted, setMounted] = useState(false)
+  const [sentenceHelpItems, setSentenceHelpItems] = useState<SentenceHelpItem[]>([])
+  const [sentenceHelpState, setSentenceHelpState] = useState<SentenceHelpState>("idle")
 
   const queueContextRef = useRef(0)
   const requeuedNewWordIdsRef = useRef<Set<string>>(new Set())
   const speechConfigRef = useRef<SpeechConfig>(DEFAULT_SPEECH_CONFIG)
+  const sentenceInputRef = useRef<HTMLTextAreaElement | null>(null)
+  const sentenceHelpCacheRef = useRef<Record<string, SentenceHelpItem[]>>({})
 
   const updateSpeechConfig = (updater: (current: SpeechConfig) => SpeechConfig) => {
     setSpeechConfig((current) => {
@@ -391,6 +273,46 @@ export default function StudyClient({
     }
   }, [])
 
+  useEffect(() => {
+    if (!showSentenceHelp || !currentWord) {
+      return
+    }
+
+    const cached = sentenceHelpCacheRef.current[currentWord.word_id]
+    if (cached) {
+      setSentenceHelpItems(cached)
+      setSentenceHelpState("ready")
+      return
+    }
+
+    let cancelled = false
+    setSentenceHelpState("loading")
+
+    void generateSentenceHelp(
+      currentWord.word_id,
+      currentWord.words.word,
+      currentWord.words.definition || "",
+      currentWord.words.tags || "",
+      currentWord.words.example || null
+    )
+      .then((items) => {
+        if (cancelled) return
+        sentenceHelpCacheRef.current[currentWord.word_id] = items
+        setSentenceHelpItems(items)
+        setSentenceHelpState("ready")
+      })
+      .catch((error) => {
+        console.error(error)
+        if (cancelled) return
+        setSentenceHelpItems([])
+        setSentenceHelpState("ready")
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [showSentenceHelp, currentWord])
+
   const playAudio = (text: string) => {
     if (typeof window === "undefined" || !window.speechSynthesis) return
     const config = speechConfigRef.current
@@ -400,6 +322,18 @@ export default function StudyClient({
     utterance.pitch = config.ttsPitch
     window.speechSynthesis.cancel()
     window.speechSynthesis.speak(utterance)
+  }
+
+  const applySentenceHelp = (text: string) => {
+    setSentence(text)
+    setShowSentenceHelp(false)
+
+    requestAnimationFrame(() => {
+      const input = sentenceInputRef.current
+      if (!input) return
+      input.focus()
+      input.setSelectionRange(text.length, text.length)
+    })
   }
 
   const fetchBatch = async (
@@ -943,11 +877,6 @@ export default function StudyClient({
 
   const evaluation: EvaluationResult | null = result?.evaluation ?? null
   const isFavorite = favoriteWordIds.includes(currentWord.word_id)
-  const coachingSkeletons = buildUsageCoachingSkeletons(
-    currentWord.words.word,
-    currentWord.words.definition,
-    evaluation
-  )
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
@@ -1129,6 +1058,7 @@ export default function StudyClient({
           className="flex flex-col gap-4"
         >
           <textarea
+            ref={sentenceInputRef}
             value={sentence}
             onChange={(event) => setSentence(event.target.value)}
             onKeyDown={(event) => {
@@ -1181,7 +1111,10 @@ export default function StudyClient({
       {showSentenceHelp && (
         <div className="glass-panel rounded-3xl border border-amber-500/15 bg-amber-500/[0.05] p-6 text-sm text-zinc-300">
           <div className="mb-3 flex items-center justify-between">
-            <div className="font-medium text-white">先写一个最短可用句子</div>
+            <div>
+              <div className="font-medium text-white">先填一个最短可用句子</div>
+              <p className="mt-1 text-xs text-zinc-400">点任意一条会直接填入输入框，你可以再改。</p>
+            </div>
             <button
               type="button"
               onClick={() => setShowSentenceHelp(false)}
@@ -1192,37 +1125,27 @@ export default function StudyClient({
           </div>
 
           <div className="space-y-2">
-            <button
-              type="button"
-              onClick={() => setSentence(`I use ${currentWord.words.word} when `)}
-              className="block w-full rounded-xl border border-white/10 px-3 py-2 text-left hover:bg-white/5"
-            >
-              I use {currentWord.words.word} when ...
-            </button>
-            <button
-              type="button"
-              onClick={() => setSentence(`This ${currentWord.words.word} is important because `)}
-              className="block w-full rounded-xl border border-white/10 px-3 py-2 text-left hover:bg-white/5"
-            >
-              This {currentWord.words.word} is important because ...
-            </button>
-            {currentWord.words.example && (
-              <button
-                type="button"
-                onClick={() => setSentence(currentWord.words.example || "")}
-                className="block w-full rounded-xl border border-white/10 px-3 py-2 text-left hover:bg-white/5"
-              >
-                参考例句：{currentWord.words.example}
-              </button>
+            {sentenceHelpState === "loading" && (
+              <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-zinc-400">
+                正在生成更贴合这个单词的造句提示...
+              </div>
             )}
-            {coachingSkeletons.map((skeleton) => (
+
+            {sentenceHelpState === "ready" && sentenceHelpItems.length === 0 && (
+              <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-zinc-400">
+                暂时没有生成到可用提示，直接参考释义先写一个短句也可以。
+              </div>
+            )}
+
+            {sentenceHelpItems.map((item) => (
               <button
-                key={skeleton}
+                key={`${currentWord.word_id}-${item.sentence}`}
                 type="button"
-                onClick={() => setSentence((current) => (current.trim() ? `${current} ${skeleton}` : skeleton))}
-                className="block w-full rounded-xl border border-white/10 px-3 py-2 text-left hover:bg-white/5"
+                onClick={() => applySentenceHelp(item.sentence)}
+                className="block w-full rounded-xl border border-white/10 px-3 py-3 text-left hover:bg-white/5"
               >
-                {skeleton}
+                <div className="text-sm leading-relaxed text-zinc-100">{item.sentence}</div>
+                <div className="mt-1 text-xs leading-6 text-amber-200/80">{item.cue}</div>
               </button>
             ))}
           </div>

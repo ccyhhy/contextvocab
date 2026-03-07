@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { BookOpen, BarChart3, History, Menu, X, Sparkles } from "lucide-react"
 
@@ -14,7 +14,14 @@ const navLinks = [
 
 export default function Nav({ userEmail }: { userEmail?: string | null }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    for (const link of navLinks) {
+      router.prefetch(link.href)
+    }
+  }, [router])
 
   return (
     <nav className="sticky top-0 z-40 w-full border-b border-white/[0.06] bg-black/40 backdrop-blur-xl">
@@ -37,6 +44,7 @@ export default function Nav({ userEmail }: { userEmail?: string | null }) {
               <Link
                 key={link.href}
                 href={link.href}
+                prefetch
                 className={`relative flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-all ${
                   isActive
                     ? "text-white"
@@ -110,6 +118,7 @@ export default function Nav({ userEmail }: { userEmail?: string | null }) {
                   <Link
                     key={link.href}
                     href={link.href}
+                    prefetch
                     onClick={() => setMobileOpen(false)}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
                       isActive
