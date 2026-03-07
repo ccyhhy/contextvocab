@@ -85,7 +85,7 @@ ${buildHistoryBlock(learningHistory)}
 Evaluation priorities:
 1. The target word must stay in the corrected sentence and polished sentence. Never replace it with a synonym.
 2. Judge word usage, grammar, naturalness, and sentence quality fairly.
-3. Praise and suggestions must be concrete, and they must be written in Simplified Chinese.
+3. Praise and suggestions must be concrete, encouraging, and they must be written in Simplified Chinese.
 4. Explanations inside errors and advancedExpressions must be written in Simplified Chinese.
 5. correctedSentence and polishedSentence must be English only.
 6. If there is no error, return an empty errors array.
@@ -105,6 +105,8 @@ Evaluation priorities:
    - invalid: the input is random, irrelevant, or not a meaningful sentence attempt.
 17. usesWordInContext must be true only when the sentence uses the target word to express a real idea or situation.
 18. isMetaSentence must be true when the sentence is mainly about the word as a vocabulary item.
+19. Unless the input is truly unusable, prefer to provide a helpful correctedSentence and polishedSentence so the learner can see how to improve the sentence.
+20. Suggestions should sound like coaching from a teacher, not like a rigid classifier label.
 
 Scoring guide:
 - 90-100: excellent, natural, precise, near-native.

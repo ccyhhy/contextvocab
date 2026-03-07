@@ -6,13 +6,17 @@ import {
   AlertTriangle,
   ArrowRight,
   BookOpen,
+  CheckCircle2,
+  GraduationCap,
   Heart,
   Lightbulb,
+  PenLine,
   Save,
   Settings,
   SkipForward,
   Sparkles,
   Volume2,
+  Wand2,
   X,
 } from "lucide-react"
 import {
@@ -73,65 +77,176 @@ function inferPartOfSpeech(definition?: string | null) {
   return "unknown"
 }
 
-function buildUsageCoachingSkeletons(word: string, definition?: string | null, evaluation?: EvaluationResult | null) {
+function buildSentenceStarters(word: string, definition?: string | null) {
   const pos = inferPartOfSpeech(definition)
-
-  if (evaluation?.isMetaSentence || evaluation?.usageQuality === "meta") {
-    return [
-      `Instead of saying you like "${word}", say when or why you ${word}.`,
-      `Use "${word}" in a real situation: Yesterday, I ${word} because ...`,
-      `Describe a person, event, or object with "${word}" instead of talking about the word itself.`,
-    ]
-  }
-
-  if (evaluation?.attemptStatus === "needs_help" || evaluation?.usageQuality === "invalid") {
-    return [
-      `Start with one simple real scene using "${word}".`,
-      `Write: I / we / they ... then add "${word}" and one reason.`,
-      `Keep it short first, then add time, place, or cause.`,
-    ]
-  }
-
-  if (evaluation?.usageQuality === "weak") {
-    return [
-      `Add one concrete detail to show how "${word}" is used.`,
-      `Explain who did it, when it happened, or what the result was.`,
-      `Turn the sentence into a specific situation, not a generic statement.`,
-    ]
-  }
 
   switch (pos) {
     case "verb":
       return [
-        `I ${word} when ...`,
-        `We decided to ${word} because ...`,
-        `Yesterday, they ${word} and then ...`,
+        `I want to ${word} because ...`,
+        `We decided to ${word} when ...`,
+        `It is hard to ${word} if ...`,
       ]
     case "noun":
       return [
-        `The ${word} helped me ...`,
-        `I saw a ${word} when ...`,
-        `This ${word} is important because ...`,
+        `The ${word} became important when ...`,
+        `One example of ${word} is ...`,
+        `This ${word} matters because ...`,
       ]
     case "adjective":
       return [
-        `It was ${word} because ...`,
-        `The idea seemed ${word} when ...`,
-        `I felt ${word} after ...`,
+        `The ${word} plan is hard to finish because ...`,
+        `In the ${word} situation, we need to ...`,
+        `This is ${word} for me because ...`,
       ]
     case "adverb":
       return [
         `She spoke ${word} when ...`,
-        `He answered ${word} because ...`,
+        `He responded ${word} because ...`,
         `They worked ${word} to ...`,
       ]
     default:
       return [
-        `Use "${word}" in one real situation.`,
-        `Write one short sentence with a person, action, and reason.`,
-        `Avoid talking about the word itself; use it to express an idea.`,
+        `I used "${word}" when ...`,
+        `In this situation, "${word}" means ...`,
+        `A simple sentence with "${word}" is ...`,
       ]
   }
+}
+
+function buildUsageCoachingSkeletons(
+  word: string,
+  definition?: string | null,
+  evaluation?: EvaluationResult | null
+) {
+  const baseStarters = buildSentenceStarters(word, definition)
+  const pos = inferPartOfSpeech(definition)
+
+  if (evaluation?.isMetaSentence || evaluation?.usageQuality === "meta") {
+    switch (pos) {
+      case "verb":
+        return [
+          `I had to ${word} because ...`,
+          `We chose to ${word} when ...`,
+          `People ${word} if ...`,
+        ]
+      case "noun":
+        return [
+          `The ${word} caused a problem because ...`,
+          `I noticed the ${word} when ...`,
+          `This ${word} can help people who ...`,
+        ]
+      case "adjective":
+        return [
+          `The ${word} plan may change because ...`,
+          `In the ${word} situation, I need to ...`,
+          `She is reading about ${word} events because ...`,
+        ]
+      case "adverb":
+        return [
+          `She spoke ${word} during the meeting because ...`,
+          `He answered ${word} after ...`,
+          `They worked ${word} to finish ...`,
+        ]
+      default:
+        return baseStarters
+    }
+  }
+
+  if (evaluation?.attemptStatus === "needs_help" || evaluation?.usageQuality === "invalid") {
+    return baseStarters
+  }
+
+  if (evaluation?.usageQuality === "weak") {
+    switch (pos) {
+      case "verb":
+        return [
+          `I ${word} the plan because ...`,
+          `We need to ${word} before ...`,
+          `They tried to ${word} after ...`,
+        ]
+      case "noun":
+        return [
+          `The ${word} helped us because ...`,
+          `I saw a ${word} when ...`,
+          `This ${word} changed after ...`,
+        ]
+      case "adjective":
+        return [
+          `The ${word} problem became worse when ...`,
+          `Under the ${word} conditions, we should ...`,
+          `My ${word} goal is to ...`,
+        ]
+      case "adverb":
+        return [
+          `She answered ${word} after ...`,
+          `He moved ${word} because ...`,
+          `They reacted ${word} when ...`,
+        ]
+      default:
+        return baseStarters
+    }
+  }
+
+  return baseStarters
+}
+
+function AnimatedScore({ score }: { score: number }) {
+  const [displayScore, setDisplayScore] = useState(0)
+
+  useEffect(() => {
+    let start = 0
+    const duration = 800
+    const stepTime = 16
+    const steps = duration / stepTime
+    const increment = score / steps
+    const timer = setInterval(() => {
+      start += increment
+      if (start >= score) {
+        setDisplayScore(score)
+        clearInterval(timer)
+      } else {
+        setDisplayScore(Math.round(start))
+      }
+    }, stepTime)
+
+    return () => clearInterval(timer)
+  }, [score])
+
+  return <span className="text-2xl font-black">{displayScore}</span>
+}
+
+function SubScoreBar({ label, score, color }: { label: string; score: number; color: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="w-16 shrink-0 text-right text-xs text-zinc-500">{label}</span>
+      <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${(score / 5) * 100}%` }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className={`h-full rounded-full ${color}`}
+        />
+      </div>
+      <span className="w-6 font-mono text-xs text-zinc-400">{score}/5</span>
+    </div>
+  )
+}
+
+function ErrorTag({ type }: { type: string }) {
+  const config: Record<string, { label: string; color: string }> = {
+    grammar: { label: "语法", color: "border-red-500/20 bg-red-500/10 text-red-400" },
+    word_usage: { label: "用词", color: "border-amber-500/20 bg-amber-500/10 text-amber-400" },
+    naturalness: { label: "自然度", color: "border-blue-500/20 bg-blue-500/10 text-blue-400" },
+    spelling: { label: "拼写", color: "border-purple-500/20 bg-purple-500/10 text-purple-400" },
+  }
+
+  const item = config[type] || config.grammar
+  return (
+    <span className={`rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase ${item.color}`}>
+      {item.label}
+    </span>
+  )
 }
 
 function resetViewState(setters: {
@@ -912,16 +1027,44 @@ export default function StudyClient({
       )}
 
       {status === "result" && result && evaluation && (
-        <div className="glass-panel rounded-3xl p-8">
-          <div className="mb-4 flex items-start justify-between gap-4">
+        <div
+          className={`glass-panel relative overflow-hidden rounded-3xl p-8 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] ${
+            evaluation.score >= 80
+              ? "score-glow-green"
+              : evaluation.score >= 60
+                ? "score-glow-yellow"
+                : "score-glow-red"
+          }`}
+        >
+          <div
+            className={`absolute left-0 right-0 top-0 h-1.5 ${
+              evaluation.score >= 80
+                ? "bg-gradient-to-r from-green-400 via-emerald-500 to-green-600"
+                : evaluation.score >= 60
+                  ? "bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500"
+                  : "bg-gradient-to-r from-red-400 via-rose-500 to-red-600"
+            }`}
+          />
+
+          <div className="mb-6 mt-2 flex items-start justify-between gap-4">
             <div>
-              <h3 className="text-xl font-bold text-white">AI 评估结果</h3>
+              <h3 className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-xl font-bold text-transparent">
+                AI 评估结果
+              </h3>
               <p className="mt-2 rounded-lg border border-white/5 bg-black/20 p-3 text-sm italic text-zinc-400">
                 &quot;{sentence}&quot;
               </p>
             </div>
-            <div className="rounded-full border border-white/10 px-4 py-3 text-2xl font-black text-white">
-              {evaluation.score}
+            <div
+              className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-[3px] shadow-lg ${
+                evaluation.score >= 80
+                  ? "border-green-500/40 bg-green-500/10 text-green-400 shadow-green-500/20"
+                  : evaluation.score >= 60
+                    ? "border-yellow-500/40 bg-yellow-500/10 text-yellow-400 shadow-yellow-500/20"
+                    : "border-red-500/40 bg-red-500/10 text-red-400 shadow-red-500/20"
+              }`}
+            >
+              <AnimatedScore score={evaluation.score} />
             </div>
           </div>
 
@@ -946,21 +1089,127 @@ export default function StudyClient({
             </div>
           )}
 
+          <div className="mb-5 space-y-3 rounded-2xl border border-white/8 bg-black/20 p-4">
+            <SubScoreBar label="语法" score={evaluation.grammarScore} color="bg-red-400" />
+            <SubScoreBar label="用词" score={evaluation.wordUsageScore} color="bg-amber-400" />
+            <SubScoreBar label="自然度" score={evaluation.naturalness} color="bg-blue-400" />
+          </div>
+
+          <div className="mb-4 rounded-xl border border-emerald-500/[0.12] bg-emerald-500/[0.06] p-4">
+            <div className="mb-2 flex items-center gap-2 text-sm font-medium text-emerald-300">
+              <CheckCircle2 className="h-4 w-4" />
+              点评亮点
+            </div>
+            <p className="text-sm leading-7 text-emerald-100">{evaluation.praise || "继续保持，已经有不错的句子基础了。"}</p>
+          </div>
+
           {evaluation.correctedSentence && (
-            <div className="mb-3 rounded-xl border border-emerald-500/[0.12] bg-emerald-500/[0.06] p-4 text-sm text-emerald-200">
-              修正后：{evaluation.correctedSentence}
+            <div className="mb-4 rounded-xl border border-emerald-500/[0.12] bg-emerald-500/[0.06] p-4">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-xs font-medium text-emerald-300">
+                  <PenLine className="h-3.5 w-3.5" />
+                  修正后的句子
+                </div>
+                <button
+                  type="button"
+                  onClick={() => playAudio(evaluation.correctedSentence)}
+                  className="p-1 text-emerald-300/70 transition-colors hover:text-emerald-300"
+                  title="朗读句子"
+                >
+                  <Volume2 className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="text-sm italic leading-relaxed text-emerald-100">
+                &quot;{evaluation.correctedSentence}&quot;
+              </p>
+            </div>
+          )}
+
+          {evaluation.errors.length > 0 && (
+            <div className="mb-4 space-y-2">
+              {evaluation.errors.map((error, index) => (
+                <div
+                  key={`${error.type}-${error.original}-${index}`}
+                  className="rounded-xl border border-white/8 bg-white/[0.03] p-4"
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    <ErrorTag type={error.type} />
+                    <code className="rounded bg-black/25 px-2 py-0.5 text-xs text-zinc-300">
+                      {error.original}
+                    </code>
+                    <span className="text-zinc-600">→</span>
+                    <code className="rounded bg-black/25 px-2 py-0.5 text-xs text-emerald-300">
+                      {error.correction}
+                    </code>
+                  </div>
+                  <p className="text-sm leading-7 text-zinc-300">{error.explanation}</p>
+                </div>
+              ))}
             </div>
           )}
 
           {evaluation.suggestion && (
-            <div className="mb-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-zinc-300">
-              建议：{evaluation.suggestion}
+            <div className="mb-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-100">
+                <Lightbulb className="h-4 w-4 text-amber-300" />
+                下一步建议
+              </div>
+              <p className="text-sm leading-7 text-zinc-300">{evaluation.suggestion}</p>
             </div>
           )}
 
-          {evaluation.polishedSentence && (
-            <div className="mb-3 rounded-xl border border-indigo-500/[0.12] bg-indigo-500/[0.06] p-4 text-sm text-indigo-200">
-              润色：{evaluation.polishedSentence}
+          {(evaluation.advancedExpressions.length > 0 || evaluation.polishedSentence) && (
+            <div className="mb-4 overflow-hidden rounded-2xl border border-indigo-500/[0.12] bg-gradient-to-br from-indigo-500/[0.06] to-purple-500/[0.04]">
+              <div className="flex items-center gap-2 border-b border-indigo-500/[0.08] bg-indigo-500/[0.04] px-4 py-3">
+                <GraduationCap className="h-4 w-4 text-indigo-300" />
+                <span className="text-xs font-semibold tracking-wide text-indigo-200">高阶润色</span>
+                <span className="ml-auto text-[10px] text-indigo-300/60">学更自然的表达</span>
+              </div>
+
+              <div className="space-y-3 p-4">
+                {evaluation.advancedExpressions.map((expression, index) => (
+                  <div
+                    key={`${expression.original}-${expression.advanced}-${index}`}
+                    className="rounded-xl border border-white/[0.04] bg-black/20 p-3"
+                  >
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <span className="rounded bg-white/[0.04] px-2 py-0.5 font-mono text-sm text-zinc-300">
+                        {expression.original}
+                      </span>
+                      <span className="text-zinc-600">→</span>
+                      <span className="rounded bg-indigo-500/10 px-2 py-0.5 font-mono text-sm text-indigo-200">
+                        {expression.advanced}
+                      </span>
+                    </div>
+                    <p className="text-sm leading-7 text-zinc-300">{expression.explanation}</p>
+                    {expression.example && (
+                      <p className="mt-2 text-sm italic text-indigo-100/85">&quot;{expression.example}&quot;</p>
+                    )}
+                  </div>
+                ))}
+
+                {evaluation.polishedSentence && (
+                  <div className="rounded-xl border border-indigo-500/[0.1] bg-gradient-to-r from-indigo-500/[0.06] to-purple-500/[0.06] p-4">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-xs font-medium text-purple-200">
+                        <Wand2 className="h-3.5 w-3.5 text-purple-300" />
+                        母语者级润色
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => playAudio(evaluation.polishedSentence)}
+                        className="p-1 text-purple-300/70 transition-colors hover:text-purple-300"
+                        title="朗读句子"
+                      >
+                        <Volume2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <p className="text-sm italic leading-relaxed text-indigo-100">
+                      &quot;{evaluation.polishedSentence}&quot;
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -988,8 +1237,9 @@ export default function StudyClient({
           )}
 
           <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-xs text-zinc-500">
-              下次复习：{mounted ? new Date(result.nextSrs.nextReviewDate).toLocaleDateString("zh-CN") : "..."} | EF {result.nextSrs.easeFactor}
+            <div className="flex flex-col text-xs text-zinc-500">
+              <span>下次复习：{mounted ? new Date(result.nextSrs.nextReviewDate).toLocaleDateString("zh-CN") : "..."}</span>
+              <span>当前难度系数：{result.nextSrs.easeFactor}</span>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
