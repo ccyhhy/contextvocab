@@ -177,6 +177,24 @@ function getStudyViewLabel(view: StudyView) {
   }
 }
 
+function getPlanStatusLabel(status: StudyLibrary["planStatus"]) {
+  switch (status) {
+    case "active":
+      return "进行中"
+    case "paused":
+      return "已暂停"
+    case "completed":
+      return "已完成"
+    case "not_started":
+    default:
+      return "未开始"
+  }
+}
+
+function shouldHighlightPriority(reason: StudyBatchItem["priorityReason"]) {
+  return reason === "leech_due" || reason === "overdue" || reason === "weak_due"
+}
+
 function getSentenceHelpItemSourceLabel(source: SentenceHelpItem["source"]) {
   switch (source) {
     case "dictionary_example":
@@ -1321,47 +1339,38 @@ export default function StudyClient({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="glass-panel rounded-2xl p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Current Library</p>
-          <p className="mt-2 text-lg font-semibold text-white">
-            {selectedLibrary?.name ?? "全部词库"}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500">
-            {selectedLibrary
-              ? `剩余未学 ${selectedLibrary.remainingCount} · 已激活 ${selectedLibrary.activeCount}`
-              : "聚合视图会优先处理全局待复习单词。"}
-          </p>
-        </div>
-        <div className="glass-panel rounded-2xl p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Smart View</p>
-          <p className="mt-2 text-lg font-semibold text-white">{getStudyViewLabel(studyView)}</p>
-          <p className="mt-1 text-xs text-zinc-500">
-            {studyView === "all" ? "允许新词和复习混排。" : "当前视图只拉取复习词，不引入新词。"}
-          </p>
-        </div>
-        <div className="glass-panel rounded-2xl p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Plan Snapshot</p>
-          <p className="mt-2 text-lg font-semibold text-white">
-            {selectedLibrary ? `${selectedLibrary.dueCount} 待复习` : `${queuedWords.length + (currentWord ? 1 : 0)} 当前队列`}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500">
-            {selectedLibrary
-              ? `词库词数 ${selectedLibrary.wordCount} · 状态 ${selectedLibrary.planStatus}`
-              : "全部词库模式下按全局复习状态调度。"}
-          </p>
+      <div className="glass-panel rounded-2xl px-4 py-3">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-zinc-300">
+          <span className="text-zinc-500">词库</span>
+          <span className="font-medium text-white">{selectedLibrary?.name ?? "全部词库"}</span>
+          <span className="text-zinc-500">视图</span>
+          <span>{getStudyViewLabel(studyView)}</span>
+          {selectedLibrary ? (
+            <>
+              <span className="text-zinc-500">计划</span>
+              <span>{getPlanStatusLabel(selectedLibrary.planStatus)}</span>
+              <span className="text-zinc-500">待复习</span>
+              <span>{selectedLibrary.dueCount}</span>
+              <span className="text-zinc-500">未学</span>
+              <span>{selectedLibrary.remainingCount}</span>
+            </>
+          ) : (
+            <>
+              <span className="text-zinc-500">当前队列</span>
+              <span>{queuedWords.length + (currentWord ? 1 : 0)}</span>
+            </>
+          )}
         </div>
       </div>
 
       <div className={`glass-panel rounded-3xl p-8 ${loadingNext ? "pointer-events-none opacity-50 blur-sm" : ""}`}>
         <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300">
-              {getPriorityLabel(currentWord.priorityReason)}
-            </span>
-            <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-400">
-              {currentWord.words.tags || "词汇"}
-            </span>
+          <div className="flex min-h-8 items-center gap-2">
+            {shouldHighlightPriority(currentWord.priorityReason) ? (
+              <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300">
+                {getPriorityLabel(currentWord.priorityReason)}
+              </span>
+            ) : null}
           </div>
 
           <button
@@ -1380,14 +1389,23 @@ export default function StudyClient({
         </div>
 
         <div className="mb-4 flex items-center gap-4">
-          <h1 className="text-5xl font-extrabold text-white">{currentWord.words.word}</h1>
-          <button
-            type="button"
-            onClick={() => playAudio(currentWord.words.word)}
-            className="text-zinc-500 transition-colors hover:text-blue-400"
-          >
-            <Volume2 className="h-6 w-6" />
-          </button>
+          <div className="min-w-0">
+            <div className="flex items-center gap-4">
+              <h1 className="text-5xl font-extrabold text-white">{currentWord.words.word}</h1>
+              <button
+                type="button"
+                onClick={() => playAudio(currentWord.words.word)}
+                className="text-zinc-500 transition-colors hover:text-blue-400"
+              >
+                <Volume2 className="h-6 w-6" />
+              </button>
+            </div>
+            {currentWord.words.phonetic ? (
+              <p className="mt-2 text-base font-medium tracking-[0.08em] text-blue-200/80">
+                {currentWord.words.phonetic}
+              </p>
+            ) : null}
+          </div>
         </div>
 
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 text-zinc-300">
@@ -1396,6 +1414,10 @@ export default function StudyClient({
             <span>{currentWord.words.definition}</span>
           </p>
         </div>
+
+        {currentWord.words.tags ? (
+          <p className="mt-3 text-xs text-zinc-500">标签：{currentWord.words.tags}</p>
+        ) : null}
       </div>
 
       {status !== "result" && (
