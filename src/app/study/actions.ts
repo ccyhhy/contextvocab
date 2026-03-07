@@ -96,11 +96,23 @@ export interface StudyLibrary {
 export interface SentenceHelpItem {
   sentence: string
   cue: string
+  source: 'ai' | 'dictionary_example'
 }
 
 export interface SentenceHelpResult {
   items: SentenceHelpItem[]
-  modelLabel: string
+  sourceType: 'ai' | 'fallback' | 'unavailable'
+  providerLabel: string
+  modelName: string | null
+  fallbackReason:
+    | 'no_hint_config'
+    | 'request_failed'
+    | 'empty_content'
+    | 'parse_error'
+    | 'validation_failed'
+    | 'request_exception'
+    | null
+  sourceLabel: string
 }
 
 export interface GetStudyBatchParams {
@@ -300,14 +312,20 @@ function extractJsonObject(content: string) {
   return match?.[0] ?? trimmed
 }
 
-function formatModelLabel(model: string, apiBase: string) {
-  const provider = apiBase.includes('bigmodel.cn')
-    ? '智谱'
-    : apiBase.includes('openai.com')
-      ? 'OpenAI'
-      : 'Custom'
+function getModelProviderLabel(apiBase: string) {
+  if (apiBase.includes('bigmodel.cn')) {
+    return '智谱'
+  }
 
-  return `${provider} / ${model}`
+  if (apiBase.includes('openai.com')) {
+    return 'OpenAI'
+  }
+
+  return 'Custom'
+}
+
+function formatModelLabel(model: string, apiBase: string) {
+  return `${getModelProviderLabel(apiBase)} / ${model}`
 }
 
 function makeErrorResult(message: string): EvaluationResult {
@@ -388,125 +406,29 @@ function parseEvaluationJson(content: string, fallbackSentence: string): Evaluat
   return normalizeEvaluation(parsed, fallbackSentence)
 }
 
-function inferPartOfSpeech(definition?: string | null) {
-  const normalized = (definition || '').toLowerCase()
-  if (normalized.includes('adj.')) return 'adjective'
-  if (normalized.includes('adv.')) return 'adverb'
-  if (normalized.includes('vt.') || normalized.includes('vi.') || normalized.includes('v.')) {
-    return 'verb'
-  }
-  if (normalized.includes('n.')) return 'noun'
-  return 'unknown'
-}
-
-function capitalizeWord(word: string) {
-  if (!word) return word
-  return word.charAt(0).toUpperCase() + word.slice(1)
-}
-
-function buildFallbackSentenceHelp(word: string, definition?: string | null, example?: string | null) {
-  const pos = inferPartOfSpeech(definition)
-  const capitalizedWord = capitalizeWord(word)
-  const suggestions: SentenceHelpItem[] = []
-
-  if (example) {
-    suggestions.push({
-      sentence: example,
-      cue: '先参考词库自带例句，再改成你自己的情境。',
-    })
+function buildDictionaryExampleSentenceHelp(example?: string | null): SentenceHelpItem[] {
+  const trimmed = example?.trim()
+  if (!trimmed) {
+    return []
   }
 
-  const byPos: Record<string, SentenceHelpItem[]> = {
-    verb: [
-      {
-        sentence: `We need to ${word} the problem before it gets worse.`,
-        cue: '把它当动作，用“谁要做这件事”来造句。',
-      },
-      {
-        sentence: `She tried to ${word} her ideas clearly in the meeting.`,
-        cue: '放进工作或沟通场景，句子会更自然。',
-      },
-      {
-        sentence: `It is hard to ${word} the change without more support.`,
-        cue: '不会写复杂句时，可以先用 It is hard to... 结构。',
-      },
-    ],
-    noun: [
-      {
-        sentence: `The ${word} became a serious problem for our team.`,
-        cue: '名词最稳的写法是“the + 单词 + became/is + 描述”。',
-      },
-      {
-        sentence: `${capitalizedWord} plays an important role in daily life.`,
-        cue: '如果这个词是抽象概念，用 plays an important role 很容易起句。',
-      },
-      {
-        sentence: `I noticed the ${word} when I read the report.`,
-        cue: '也可以写“我在某个场景里注意到它”。',
-      },
-    ],
-    adjective: [
-      {
-        sentence: `It was a ${word} decision, but it solved the problem.`,
-        cue: '形容词可以直接修饰 decision, plan, situation 这类高频名词。',
-      },
-      {
-        sentence: `The new rule made the process more ${word}.`,
-        cue: '用 make ... more + 形容词，是很稳的句型。',
-      },
-      {
-        sentence: `We faced a ${word} situation at work yesterday.`,
-        cue: '也可以把它放进“situation/problem/plan”这类通用场景。',
-      },
-    ],
-    adverb: [
-      {
-        sentence: `She answered ${word} when the teacher asked the question.`,
-        cue: '副词一般修饰动作，先想“谁做了什么，做得怎么样”。',
-      },
-      {
-        sentence: `He spoke ${word} during the interview.`,
-        cue: '把副词接在 spoke, worked, reacted, responded 后面最容易。',
-      },
-      {
-        sentence: `They worked ${word} to finish the project on time.`,
-        cue: '也可以放进努力、反应、说话这类常见动作里。',
-      },
-    ],
-    unknown: [
-      {
-        sentence: `I used ${word} in a real conversation today.`,
-        cue: '如果词性不清楚，先参考词义，再把句子改成具体场景。',
-      },
-      {
-        sentence: `This example helped me understand ${word} better.`,
-        cue: '先写一条简单句，再替换成更具体的人物和场景。',
-      },
-      {
-        sentence: `${capitalizedWord} is easier to remember in a real situation.`,
-        cue: '不知道怎么展开时，先围绕 situation / conversation / work 来写。',
-      },
-    ],
-  }
-
-  for (const item of byPos[pos] ?? byPos.unknown) {
-    if (!suggestions.some((existing) => existing.sentence === item.sentence)) {
-      suggestions.push(item)
-    }
-  }
-
-  return suggestions.slice(0, 4)
+  return [
+    {
+      sentence: trimmed,
+      cue: '这是一条例句库里已有的句子。你可以先照着改写，再换成自己的场景。',
+      source: 'dictionary_example',
+    },
+  ]
 }
 
 function normalizeSentenceHelp(
   payload: SentenceHelpPayload,
-  word: string,
-  fallback: SentenceHelpItem[]
-) {
+  word: string
+): SentenceHelpItem[] {
   const items = Array.isArray(payload.hints) ? (payload.hints as SentenceHelpItemPayload[]) : []
   const normalizedWord = word.trim().toLowerCase()
 
-  const normalized = items
+  return items
     .map((item) => ({
       sentence: sanitizeText(item.sentence).trim(),
       cue: sanitizeText(item.cue).trim(),
@@ -523,18 +445,60 @@ function normalizeSentenceHelp(
     .map((item) => ({
       sentence: item.sentence,
       cue: item.cue || '先照着写，再把人物、时间或场景替换成你自己的。',
+      source: 'ai' as const,
     }))
+    .slice(0, 4)
+}
 
-  if (normalized.length > 0) {
+function getSentenceHelpFallbackReasonText(
+  reason: NonNullable<SentenceHelpResult['fallbackReason']>,
+  remoteModelLabel: string
+) {
+  switch (reason) {
+    case 'no_hint_config':
+      return '未配置提示模型'
+    case 'request_failed':
+      return `${remoteModelLabel} 请求失败`
+    case 'empty_content':
+      return `${remoteModelLabel} 未返回可用内容`
+    case 'parse_error':
+      return `${remoteModelLabel} 返回格式异常`
+    case 'validation_failed':
+      return `${remoteModelLabel} 返回的句子未通过校验`
+    case 'request_exception':
+      return `${remoteModelLabel} 请求异常`
+    default:
+      return '提示来源未知'
+  }
+}
+
+function buildSentenceHelpFallbackResult(args: {
+  reason: NonNullable<SentenceHelpResult['fallbackReason']>
+  remoteModelLabel: string
+  providerLabel: string
+  modelName: string | null
+  dictionaryExampleItems: SentenceHelpItem[]
+}): SentenceHelpResult {
+  const reasonText = getSentenceHelpFallbackReasonText(args.reason, args.remoteModelLabel)
+
+  if (args.dictionaryExampleItems.length > 0) {
     return {
-      items: normalized.slice(0, 4),
-      usedFallback: false,
+      items: args.dictionaryExampleItems,
+      sourceType: 'fallback',
+      providerLabel: args.providerLabel,
+      modelName: args.modelName,
+      fallbackReason: args.reason,
+      sourceLabel: `来源：词库例句（${reasonText}）`,
     }
   }
 
   return {
-    items: fallback,
-    usedFallback: true,
+    items: [],
+    sourceType: 'unavailable',
+    providerLabel: args.providerLabel,
+    modelName: args.modelName,
+    fallbackReason: args.reason,
+    sourceLabel: `来源：${reasonText}，且当前词条没有可用例句`,
   }
 }
 
@@ -1411,11 +1375,18 @@ export async function generateSentenceHelp(
     process.env.OPENAI_API_BASE ||
     'https://api.openai.com/v1'
   const model = process.env.OPENAI_HINT_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini'
+  const providerLabel = getModelProviderLabel(apiBase)
   const remoteModelLabel = formatModelLabel(model, apiBase)
-  const fallback = buildFallbackSentenceHelp(word, definition, example)
+  const dictionaryExampleItems = buildDictionaryExampleSentenceHelp(example)
 
   if (!apiKey) {
-    return { items: fallback, modelLabel: '本地兜底' }
+    return buildSentenceHelpFallbackResult({
+      reason: 'no_hint_config',
+      remoteModelLabel,
+      providerLabel: 'Local',
+      modelName: null,
+      dictionaryExampleItems,
+    })
   }
 
   try {
@@ -1464,27 +1435,70 @@ export async function generateSentenceHelp(
     })
 
     if (!response.ok) {
-      return { items: fallback, modelLabel: `${remoteModelLabel} -> 本地兜底` }
+      return buildSentenceHelpFallbackResult({
+        reason: 'request_failed',
+        remoteModelLabel,
+        providerLabel,
+        modelName: model,
+        dictionaryExampleItems,
+      })
     }
 
     const data = await response.json()
     const content = data.choices?.[0]?.message?.content
     if (typeof content !== 'string' || !content.trim()) {
-      return { items: fallback, modelLabel: `${remoteModelLabel} -> 本地兜底` }
+      return buildSentenceHelpFallbackResult({
+        reason: 'empty_content',
+        remoteModelLabel,
+        providerLabel,
+        modelName: model,
+        dictionaryExampleItems,
+      })
     }
 
-    const parsed = JSON.parse(extractJsonObject(content)) as SentenceHelpPayload
-    const normalized = normalizeSentenceHelp(parsed, word, fallback)
+    let parsed: SentenceHelpPayload
+    try {
+      parsed = JSON.parse(extractJsonObject(content)) as SentenceHelpPayload
+    } catch (error) {
+      console.error('Failed to parse sentence help JSON:', error)
+      return buildSentenceHelpFallbackResult({
+        reason: 'parse_error',
+        remoteModelLabel,
+        providerLabel,
+        modelName: model,
+        dictionaryExampleItems,
+      })
+    }
+
+    const normalized = normalizeSentenceHelp(parsed, word)
+
+    if (normalized.length === 0) {
+      return buildSentenceHelpFallbackResult({
+        reason: 'validation_failed',
+        remoteModelLabel,
+        providerLabel,
+        modelName: model,
+        dictionaryExampleItems,
+      })
+    }
 
     return {
-      items: normalized.items,
-      modelLabel: normalized.usedFallback
-        ? `${remoteModelLabel} -> 本地兜底`
-        : remoteModelLabel,
+      items: normalized,
+      sourceType: 'ai',
+      providerLabel,
+      modelName: model,
+      fallbackReason: null,
+      sourceLabel: `来源：${remoteModelLabel}`,
     }
   } catch (error) {
     console.error('Failed to generate sentence help:', error)
-    return { items: fallback, modelLabel: `${remoteModelLabel} -> 本地兜底` }
+    return buildSentenceHelpFallbackResult({
+      reason: 'request_exception',
+      remoteModelLabel,
+      providerLabel,
+      modelName: model,
+      dictionaryExampleItems,
+    })
   }
 }
 

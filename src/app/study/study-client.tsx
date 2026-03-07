@@ -177,6 +177,16 @@ function getStudyViewLabel(view: StudyView) {
   }
 }
 
+function getSentenceHelpItemSourceLabel(source: SentenceHelpItem["source"]) {
+  switch (source) {
+    case "dictionary_example":
+      return "词库例句"
+    case "ai":
+    default:
+      return "AI生成"
+  }
+}
+
 function AnimatedScore({ score }: { score: number }) {
   const [displayScore, setDisplayScore] = useState(0)
 
@@ -357,7 +367,7 @@ export default function StudyClient({
   const [mounted, setMounted] = useState(false)
   const [sentenceHelpItems, setSentenceHelpItems] = useState<SentenceHelpItem[]>([])
   const [sentenceHelpState, setSentenceHelpState] = useState<SentenceHelpState>("idle")
-  const [sentenceHelpModelLabel, setSentenceHelpModelLabel] = useState("")
+  const [sentenceHelpSourceLabel, setSentenceHelpSourceLabel] = useState("")
 
   const queueContextRef = useRef(0)
   const requeuedNewWordIdsRef = useRef<Set<string>>(new Set())
@@ -443,12 +453,14 @@ export default function StudyClient({
     const cached = sentenceHelpCacheRef.current[currentWord.word_id]
     if (cached) {
       setSentenceHelpItems(cached.items)
-      setSentenceHelpModelLabel(cached.modelLabel)
+      setSentenceHelpSourceLabel(cached.sourceLabel)
       setSentenceHelpState("ready")
       return
     }
 
     let cancelled = false
+    setSentenceHelpItems([])
+    setSentenceHelpSourceLabel("来源：正在请求提示...")
     setSentenceHelpState("loading")
 
     void generateSentenceHelp(
@@ -462,14 +474,14 @@ export default function StudyClient({
         if (cancelled) return
         sentenceHelpCacheRef.current[currentWord.word_id] = result
         setSentenceHelpItems(result.items)
-        setSentenceHelpModelLabel(result.modelLabel)
+        setSentenceHelpSourceLabel(result.sourceLabel)
         setSentenceHelpState("ready")
       })
       .catch((error) => {
         console.error(error)
         if (cancelled) return
         setSentenceHelpItems([])
-        setSentenceHelpModelLabel("")
+        setSentenceHelpSourceLabel("来源：提示请求异常")
         setSentenceHelpState("ready")
       })
 
@@ -1451,9 +1463,9 @@ export default function StudyClient({
             <div>
               <div className="font-medium text-white">先填一个最短可用句子</div>
               <p className="mt-1 text-xs text-zinc-400">点任意一条会直接填入输入框，你可以再改。</p>
-              {sentenceHelpModelLabel && (
-                <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-amber-300/70">
-                  Hint Model {sentenceHelpModelLabel}
+              {sentenceHelpSourceLabel && (
+                <p className="mt-1 text-[11px] tracking-[0.12em] text-amber-300/70">
+                  {sentenceHelpSourceLabel}
                 </p>
               )}
             </div>
@@ -1486,7 +1498,12 @@ export default function StudyClient({
                 onClick={() => applySentenceHelp(item.sentence)}
                 className="block w-full rounded-xl border border-white/10 px-3 py-3 text-left hover:bg-white/5"
               >
-                <div className="text-sm leading-relaxed text-zinc-100">{item.sentence}</div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="text-sm leading-relaxed text-zinc-100">{item.sentence}</div>
+                  <span className="shrink-0 rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-1 text-[10px] font-medium text-amber-100">
+                    {getSentenceHelpItemSourceLabel(item.source)}
+                  </span>
+                </div>
                 <div className="mt-1 text-xs leading-6 text-amber-200/80">{item.cue}</div>
               </button>
             ))}
