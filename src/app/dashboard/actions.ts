@@ -1,6 +1,9 @@
 'use server'
 
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { requireActionSession } from '@/lib/supabase/user'
+
+const DASHBOARD_PAGE_SIZE = 1000
 
 export interface DashboardStats {
   totalStudied: number
@@ -36,6 +39,10 @@ interface SentenceDateRow {
   created_at: string
 }
 
+interface WordIdRow {
+  word_id?: string | null
+}
+
 type JoinedWord = { word: string } | Array<{ word: string }> | null
 
 interface RecentActivityRow {
@@ -56,29 +63,84 @@ function readJoinedWord(words: JoinedWord): string {
   return words?.word ?? 'Unknown'
 }
 
+function getTodayDateString() {
+  return new Date().toISOString().split('T')[0]
+}
+
+async function getAllWordIdsByTable(
+  supabase: SupabaseClient,
+  table: 'user_words' | 'user_library_words' | 'sentences',
+  userId: string
+) {
+  const wordIds: string[] = []
+  let from = 0
+
+  while (true) {
+    const to = from + DASHBOARD_PAGE_SIZE - 1
+    const { data, error } = await supabase
+      .from(table)
+      .select('word_id')
+      .eq('user_id', userId)
+      .range(from, to)
+
+    if (error) {
+      console.error(`Failed to load word ids from ${table}:`, error)
+      return wordIds
+    }
+
+    const rows = (data ?? []) as WordIdRow[]
+    wordIds.push(
+      ...rows
+        .map((row) => row.word_id)
+        .filter((wordId): wordId is string => typeof wordId === 'string')
+    )
+
+    if (rows.length < DASHBOARD_PAGE_SIZE) {
+      break
+    }
+
+    from += DASHBOARD_PAGE_SIZE
+  }
+
+  return wordIds
+}
+
+async function getStartedWordCount(supabase: SupabaseClient, userId: string) {
+  const [userWordIds, userLibraryWordIds, sentenceWordIds] = await Promise.all([
+    getAllWordIdsByTable(supabase, 'user_words', userId),
+    getAllWordIdsByTable(supabase, 'user_library_words', userId),
+    getAllWordIdsByTable(supabase, 'sentences', userId),
+  ])
+
+  return new Set([...userWordIds, ...userLibraryWordIds, ...sentenceWordIds]).size
+}
+
 export async function getDashboardStats(): Promise<DashboardStats> {
   const { supabase, user } = await requireActionSession()
   const userId = user.id
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayDateString()
 
-  // Total studied words
-  const { count: totalStudied } = await supabase
-    .from('user_words')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
+  const [{ count: dueToday }, scoreResult, sentenceDatesResult, totalStudied] = await Promise.all([
+    supabase
+      .from('user_words')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .lte('next_review_date', today),
+    supabase
+      .from('sentences')
+      .select('ai_score, attempt_status, usage_quality, uses_word_in_context, is_meta_sentence')
+      .eq('user_id', userId),
+    supabase
+      .from('sentences')
+      .select('created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(365),
+    getStartedWordCount(supabase, userId),
+  ])
 
-  // Due today
-  const { count: dueToday } = await supabase
-    .from('user_words')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .lte('next_review_date', today)
-
-  // Average score from sentences
-  const { data: scoreData } = await supabase
-    .from('sentences')
-    .select('ai_score, attempt_status, usage_quality, uses_word_in_context, is_meta_sentence')
-    .eq('user_id', userId)
+  const scoreData = scoreResult.data as SentenceScoreRow[] | null
+  const sentenceDates = sentenceDatesResult.data as SentenceDateRow[] | null
 
   let averageScore = 0
   const totalSentences = scoreData?.length || 0
@@ -86,50 +148,42 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   let weakUsageCount = 0
   let metaSentenceCount = 0
   let needsHelpCount = 0
-  if (scoreData && scoreData.length > 0) {
-    const rows = scoreData as SentenceScoreRow[]
-    const sum = rows.reduce((acc, row) => acc + (row.ai_score ?? 0), 0)
-    averageScore = Math.round(sum / scoreData.length)
-    contextualUsageCount = rows.filter((row) => row.uses_word_in_context === true).length
-    weakUsageCount = rows.filter((row) => row.usage_quality === 'weak').length
-    metaSentenceCount = rows.filter((row) => row.is_meta_sentence === true).length
-    needsHelpCount = rows.filter((row) => row.attempt_status === 'needs_help').length
-  }
 
-  // Streak: count consecutive days with at least one sentence, going backwards from today
-  const { data: sentenceDates } = await supabase
-    .from('sentences')
-    .select('created_at')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(365)
+  if (scoreData && scoreData.length > 0) {
+    const scoredRows = scoreData.filter((row) => typeof row.ai_score === 'number')
+    const sum = scoredRows.reduce((acc, row) => acc + (row.ai_score ?? 0), 0)
+    averageScore = scoredRows.length > 0 ? Math.round(sum / scoredRows.length) : 0
+    contextualUsageCount = scoreData.filter((row) => row.uses_word_in_context === true).length
+    weakUsageCount = scoreData.filter((row) => row.usage_quality === 'weak').length
+    metaSentenceCount = scoreData.filter((row) => row.is_meta_sentence === true).length
+    needsHelpCount = scoreData.filter((row) => row.attempt_status === 'needs_help').length
+  }
 
   let streakDays = 0
   if (sentenceDates && sentenceDates.length > 0) {
-    const rows = sentenceDates as SentenceDateRow[]
     const uniqueDays = new Set(
-      rows.map((row) => new Date(row.created_at).toISOString().split('T')[0])
+      sentenceDates.map((row) => new Date(row.created_at).toISOString().split('T')[0])
     )
     const checkDate = new Date()
-    // If no sentence today, check if yesterday had one (allow checking from yesterday)
     const todayStr = checkDate.toISOString().split('T')[0]
+
     if (!uniqueDays.has(todayStr)) {
       checkDate.setDate(checkDate.getDate() - 1)
     }
-    
-    for (let i = 0; i < 365; i++) {
+
+    for (let i = 0; i < 365; i += 1) {
       const dateStr = checkDate.toISOString().split('T')[0]
-      if (uniqueDays.has(dateStr)) {
-        streakDays++
-        checkDate.setDate(checkDate.getDate() - 1)
-      } else {
+      if (!uniqueDays.has(dateStr)) {
         break
       }
+
+      streakDays += 1
+      checkDate.setDate(checkDate.getDate() - 1)
     }
   }
 
   return {
-    totalStudied: totalStudied || 0,
+    totalStudied,
     dueToday: dueToday || 0,
     averageScore,
     totalSentences,
@@ -152,7 +206,9 @@ export async function getRecentActivity(limit: number = 10): Promise<RecentActiv
     .order('created_at', { ascending: false })
     .limit(limit)
 
-  if (error || !data) return []
+  if (error || !data) {
+    return []
+  }
 
   return (data as RecentActivityRow[]).map((row) => ({
     id: row.id,

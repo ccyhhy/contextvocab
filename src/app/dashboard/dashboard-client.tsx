@@ -1,8 +1,8 @@
 "use client"
 
+import Link from "next/link"
 import { motion } from "framer-motion"
 import { ArrowRight, BookOpen, CalendarCheck, Clock, Flame, Trophy } from "lucide-react"
-import Link from "next/link"
 import type { DashboardStats, RecentActivity } from "./actions"
 
 function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
@@ -28,7 +28,9 @@ function ScoreBadge({ score }: { score: number }) {
         : "text-red-400 bg-red-500/10 border-red-500/20"
 
   return (
-    <span className={`inline-flex h-8 w-12 items-center justify-center rounded-full border text-xs font-bold ${color}`}>
+    <span
+      className={`inline-flex h-8 w-12 items-center justify-center rounded-full border text-xs font-bold ${color}`}
+    >
       {score}
     </span>
   )
@@ -78,15 +80,27 @@ function formatTimeAgo(dateStr: string) {
   const diffMs = now.getTime() - date.getTime()
   const diffMin = Math.floor(diffMs / 60000)
 
-  if (diffMin < 1) return "刚刚"
-  if (diffMin < 60) return `${diffMin} 分钟前`
+  if (diffMin < 1) {
+    return "刚刚"
+  }
+
+  if (diffMin < 60) {
+    return `${diffMin} 分钟前`
+  }
 
   const diffHr = Math.floor(diffMin / 60)
-  if (diffHr < 24) return `${diffHr} 小时前`
+  if (diffHr < 24) {
+    return `${diffHr} 小时前`
+  }
 
   const diffDay = Math.floor(diffHr / 24)
-  if (diffDay === 1) return "昨天"
-  if (diffDay < 30) return `${diffDay} 天前`
+  if (diffDay === 1) {
+    return "昨天"
+  }
+
+  if (diffDay < 30) {
+    return `${diffDay} 天前`
+  }
 
   return date.toLocaleDateString("zh-CN")
 }
@@ -157,7 +171,9 @@ export default function DashboardClient({
               transition={{ duration: 0.4, delay: index * 0.08 }}
               className="glass-panel group relative overflow-hidden rounded-2xl p-5 transition-all hover:border-white/[0.12] sm:p-6"
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.bgGlow} opacity-0 transition-opacity group-hover:opacity-100`} />
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${card.bgGlow} opacity-0 transition-opacity group-hover:opacity-100`}
+              />
               <div className="relative z-10">
                 <div className="mb-3 flex items-center gap-2">
                   <Icon className={`h-4 w-4 ${card.color}`} />
