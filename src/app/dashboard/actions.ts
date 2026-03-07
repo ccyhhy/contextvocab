@@ -67,15 +67,29 @@ function getTodayDateString() {
   return new Date().toISOString().split('T')[0]
 }
 
-async function getAllWordIdsByQuery(
-  query: ReturnType<SupabaseClient['from']>
+async function getAllWordIdsByTable(
+  supabase: SupabaseClient,
+  table: 'user_words' | 'sentences',
+  userId: string,
+  options?: {
+    reviewedOnly?: boolean
+  }
 ) {
   const wordIds: string[] = []
   let from = 0
 
   while (true) {
     const to = from + DASHBOARD_PAGE_SIZE - 1
-    const { data, error } = await query.select('word_id').range(from, to)
+    let query = supabase
+      .from(table)
+      .select('word_id')
+      .eq('user_id', userId)
+
+    if (options?.reviewedOnly && table === 'user_words') {
+      query = query.not('last_reviewed_at', 'is', null)
+    }
+
+    const { data, error } = await query.range(from, to)
 
     if (error) {
       console.error('Failed to load word ids for dashboard stats:', error)
@@ -101,17 +115,8 @@ async function getAllWordIdsByQuery(
 
 async function getStartedWordCount(supabase: SupabaseClient, userId: string) {
   const [reviewedWordIds, sentenceWordIds] = await Promise.all([
-    getAllWordIdsByQuery(
-      supabase
-        .from('user_words')
-        .eq('user_id', userId)
-        .not('last_reviewed_at', 'is', null)
-    ),
-    getAllWordIdsByQuery(
-      supabase
-        .from('sentences')
-        .eq('user_id', userId)
-    ),
+    getAllWordIdsByTable(supabase, 'user_words', userId, { reviewedOnly: true }),
+    getAllWordIdsByTable(supabase, 'sentences', userId),
   ])
 
   return new Set([...reviewedWordIds, ...sentenceWordIds]).size
