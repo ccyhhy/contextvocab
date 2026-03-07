@@ -44,6 +44,7 @@ type SentenceHelpState = "idle" | "loading" | "ready"
 interface SpeechConfig {
   ttsRate: number
   ttsPitch: number
+  voiceURI: string
 }
 
 interface StreamEvent {
@@ -51,8 +52,96 @@ interface StreamEvent {
   error?: string
 }
 
-const DEFAULT_SPEECH_CONFIG: SpeechConfig = { ttsRate: 1, ttsPitch: 1 }
+const DEFAULT_SPEECH_CONFIG: SpeechConfig = { ttsRate: 0.9, ttsPitch: 1, voiceURI: "" }
 const SPEECH_CONFIG_STORAGE_KEY = "contextvocab-speech-config"
+const DEFAULT_PREVIEW_SENTENCE = "The quick brown fox jumps over the lazy dog."
+
+function normalizeSpeechConfig(value: unknown): SpeechConfig {
+  if (typeof value !== "object" || value === null) {
+    return DEFAULT_SPEECH_CONFIG
+  }
+
+  const config = value as Partial<SpeechConfig>
+  return {
+    ttsRate:
+      typeof config.ttsRate === "number" && Number.isFinite(config.ttsRate)
+        ? config.ttsRate
+        : DEFAULT_SPEECH_CONFIG.ttsRate,
+    ttsPitch:
+      typeof config.ttsPitch === "number" && Number.isFinite(config.ttsPitch)
+        ? config.ttsPitch
+        : DEFAULT_SPEECH_CONFIG.ttsPitch,
+    voiceURI: typeof config.voiceURI === "string" ? config.voiceURI : DEFAULT_SPEECH_CONFIG.voiceURI,
+  }
+}
+
+function scoreVoice(voice: SpeechSynthesisVoice) {
+  const name = voice.name.toLowerCase()
+  const lang = voice.lang.toLowerCase()
+
+  if (!lang.startsWith("en")) return -1
+
+  let score = 0
+  if (voice.default) score += 5
+  if (lang === "en-us") score += 4
+  if (lang === "en-gb") score += 3
+  if (name.includes("natural")) score += 6
+  if (name.includes("neural")) score += 6
+  if (name.includes("enhanced")) score += 5
+  if (name.includes("premium")) score += 5
+  if (name.includes("aria")) score += 6
+  if (name.includes("jenny")) score += 6
+  if (name.includes("guy")) score += 4
+  if (name.includes("samantha")) score += 5
+  if (name.includes("ava")) score += 4
+  if (name.includes("serena")) score += 4
+  if (name.includes("google")) score += 3
+  if (name.includes("microsoft")) score += 2
+
+  return score
+}
+
+function pickPreferredVoice(voices: SpeechSynthesisVoice[]) {
+  const englishVoices = voices.filter((voice) => voice.lang.toLowerCase().startsWith("en"))
+  if (englishVoices.length === 0) return null
+
+  return [...englishVoices].sort((left, right) => scoreVoice(right) - scoreVoice(left))[0] ?? null
+}
+
+function splitSpeechText(text: string) {
+  const normalized = text.replace(/\s+/g, " ").trim()
+  if (!normalized) return []
+
+  const rawSegments = normalized.match(/[^.!?;:,]+[.!?;:,]?/g) ?? [normalized]
+  const segments: string[] = []
+
+  for (const segment of rawSegments) {
+    const trimmed = segment.trim()
+    if (!trimmed) continue
+
+    if (trimmed.length <= 120) {
+      segments.push(trimmed)
+      continue
+    }
+
+    const words = trimmed.split(" ")
+    let current = ""
+    for (const word of words) {
+      const candidate = current ? `${current} ${word}` : word
+      if (candidate.length > 120 && current) {
+        segments.push(current)
+        current = word
+      } else {
+        current = candidate
+      }
+    }
+    if (current) {
+      segments.push(current)
+    }
+  }
+
+  return segments
+}
 
 function getPriorityLabel(reason: StudyBatchItem["priorityReason"]) {
   switch (reason) {
@@ -241,6 +330,7 @@ export default function StudyClient({
   const [skippedWordIds, setSkippedWordIds] = useState<string[]>([])
   const [showSettings, setShowSettings] = useState(false)
   const [speechConfig, setSpeechConfig] = useState<SpeechConfig>(DEFAULT_SPEECH_CONFIG)
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([])
   const [mounted, setMounted] = useState(false)
   const [sentenceHelpItems, setSentenceHelpItems] = useState<SentenceHelpItem[]>([])
   const [sentenceHelpState, setSentenceHelpState] = useState<SentenceHelpState>("idle")
@@ -249,6 +339,7 @@ export default function StudyClient({
   const queueContextRef = useRef(0)
   const requeuedNewWordIdsRef = useRef<Set<string>>(new Set())
   const speechConfigRef = useRef<SpeechConfig>(DEFAULT_SPEECH_CONFIG)
+  const activeSpeechTokenRef = useRef(0)
   const sentenceInputRef = useRef<HTMLTextAreaElement | null>(null)
   const sentenceHelpCacheRef = useRef<Record<string, SentenceHelpResult>>({})
 
@@ -265,13 +356,57 @@ export default function StudyClient({
     const saved = localStorage.getItem(SPEECH_CONFIG_STORAGE_KEY)
     if (saved) {
       try {
-        const parsed = JSON.parse(saved) as SpeechConfig
+        const parsed = normalizeSpeechConfig(JSON.parse(saved))
         speechConfigRef.current = parsed
         setSpeechConfig(parsed)
       } catch {
         speechConfigRef.current = DEFAULT_SPEECH_CONFIG
         setSpeechConfig(DEFAULT_SPEECH_CONFIG)
       }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      return
+    }
+
+    const synth = window.speechSynthesis
+
+    const loadVoices = () => {
+      const voices = synth.getVoices()
+      const englishVoices = voices.filter((voice) => voice.lang.toLowerCase().startsWith("en"))
+      setAvailableVoices(englishVoices)
+
+      const preferredVoice = pickPreferredVoice(englishVoices)
+      if (!preferredVoice) {
+        return
+      }
+
+      const currentConfig = speechConfigRef.current
+      const hasMatchingVoice =
+        currentConfig.voiceURI &&
+        englishVoices.some((voice) => voice.voiceURI === currentConfig.voiceURI)
+
+      if (hasMatchingVoice) {
+        return
+      }
+
+      updateSpeechConfig((current) => ({
+        ...current,
+        voiceURI: preferredVoice.voiceURI,
+      }))
+    }
+
+    loadVoices()
+    synth.addEventListener?.("voiceschanged", loadVoices)
+    synth.onvoiceschanged = loadVoices
+
+    return () => {
+      synth.cancel()
+      activeSpeechTokenRef.current += 1
+      synth.onvoiceschanged = null
+      synth.removeEventListener?.("voiceschanged", loadVoices)
     }
   }, [])
 
@@ -321,12 +456,42 @@ export default function StudyClient({
   const playAudio = (text: string) => {
     if (typeof window === "undefined" || !window.speechSynthesis) return
     const config = speechConfigRef.current
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = "en-US"
-    utterance.rate = config.ttsRate
-    utterance.pitch = config.ttsPitch
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(utterance)
+    const synth = window.speechSynthesis
+    const voice =
+      availableVoices.find((item) => item.voiceURI === config.voiceURI) ??
+      pickPreferredVoice(availableVoices)
+    const segments = splitSpeechText(text)
+
+    if (segments.length === 0) {
+      return
+    }
+
+    activeSpeechTokenRef.current += 1
+    const token = activeSpeechTokenRef.current
+    synth.cancel()
+
+    const speakSegment = (index: number) => {
+      if (token !== activeSpeechTokenRef.current || index >= segments.length) {
+        return
+      }
+
+      const utterance = new SpeechSynthesisUtterance(segments[index])
+      utterance.lang = voice?.lang || "en-US"
+      utterance.rate = config.ttsRate
+      utterance.pitch = config.ttsPitch
+      if (voice) {
+        utterance.voice = voice
+      }
+      utterance.onend = () => {
+        speakSegment(index + 1)
+      }
+      utterance.onerror = () => {
+        activeSpeechTokenRef.current += 1
+      }
+      synth.speak(utterance)
+    }
+
+    speakSegment(0)
   }
 
   const applySentenceHelp = (text: string) => {
@@ -910,12 +1075,39 @@ export default function StudyClient({
 
               <div className="space-y-4">
                 <label className="block text-sm text-zinc-300">
+                  音色
+                </label>
+                <select
+                  value={speechConfig.voiceURI}
+                  onChange={(event) =>
+                    updateSpeechConfig((current) => ({
+                      ...current,
+                      voiceURI: event.target.value,
+                    }))
+                  }
+                  className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-200"
+                >
+                  {availableVoices.length === 0 ? (
+                    <option value="">当前浏览器还没加载可用英语音色</option>
+                  ) : (
+                    availableVoices.map((voice) => (
+                      <option key={voice.voiceURI} value={voice.voiceURI}>
+                        {voice.name} ({voice.lang})
+                      </option>
+                    ))
+                  )}
+                </select>
+                <p className="text-xs leading-6 text-zinc-500">
+                  不同浏览器和系统的音色差异很大。优先选听起来更清晰、停顿更自然的英语音色。
+                </p>
+
+                <label className="block text-sm text-zinc-300">
                   语速 {speechConfig.ttsRate.toFixed(1)}x
                 </label>
                 <input
                   type="range"
-                  min="0.5"
-                  max="2"
+                  min="0.6"
+                  max="1.4"
                   step="0.1"
                   value={speechConfig.ttsRate}
                   onChange={(event) =>
@@ -933,7 +1125,7 @@ export default function StudyClient({
                 <input
                   type="range"
                   min="0.5"
-                  max="2"
+                  max="1.5"
                   step="0.1"
                   value={speechConfig.ttsPitch}
                   onChange={(event) =>
@@ -948,10 +1140,10 @@ export default function StudyClient({
                 <div className="flex justify-between">
                   <button
                     type="button"
-                    onClick={() => playAudio(currentWord.words.word)}
+                    onClick={() => playAudio(DEFAULT_PREVIEW_SENTENCE)}
                     className="rounded-md border border-white/10 px-3 py-2 text-sm text-zinc-300"
                   >
-                    试听
+                    试听句子
                   </button>
                   <button
                     type="button"
