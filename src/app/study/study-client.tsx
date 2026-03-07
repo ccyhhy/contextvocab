@@ -32,6 +32,7 @@ import {
   toggleFavoriteWord,
   type EvaluationResult,
   type SentenceHelpItem,
+  type SentenceHelpResult,
   type StudyBatchItem,
 } from "./actions"
 
@@ -243,12 +244,13 @@ export default function StudyClient({
   const [mounted, setMounted] = useState(false)
   const [sentenceHelpItems, setSentenceHelpItems] = useState<SentenceHelpItem[]>([])
   const [sentenceHelpState, setSentenceHelpState] = useState<SentenceHelpState>("idle")
+  const [sentenceHelpModelLabel, setSentenceHelpModelLabel] = useState("")
 
   const queueContextRef = useRef(0)
   const requeuedNewWordIdsRef = useRef<Set<string>>(new Set())
   const speechConfigRef = useRef<SpeechConfig>(DEFAULT_SPEECH_CONFIG)
   const sentenceInputRef = useRef<HTMLTextAreaElement | null>(null)
-  const sentenceHelpCacheRef = useRef<Record<string, SentenceHelpItem[]>>({})
+  const sentenceHelpCacheRef = useRef<Record<string, SentenceHelpResult>>({})
 
   const updateSpeechConfig = (updater: (current: SpeechConfig) => SpeechConfig) => {
     setSpeechConfig((current) => {
@@ -280,7 +282,8 @@ export default function StudyClient({
 
     const cached = sentenceHelpCacheRef.current[currentWord.word_id]
     if (cached) {
-      setSentenceHelpItems(cached)
+      setSentenceHelpItems(cached.items)
+      setSentenceHelpModelLabel(cached.modelLabel)
       setSentenceHelpState("ready")
       return
     }
@@ -295,16 +298,18 @@ export default function StudyClient({
       currentWord.words.tags || "",
       currentWord.words.example || null
     )
-      .then((items) => {
+      .then((result) => {
         if (cancelled) return
-        sentenceHelpCacheRef.current[currentWord.word_id] = items
-        setSentenceHelpItems(items)
+        sentenceHelpCacheRef.current[currentWord.word_id] = result
+        setSentenceHelpItems(result.items)
+        setSentenceHelpModelLabel(result.modelLabel)
         setSentenceHelpState("ready")
       })
       .catch((error) => {
         console.error(error)
         if (cancelled) return
         setSentenceHelpItems([])
+        setSentenceHelpModelLabel("")
         setSentenceHelpState("ready")
       })
 
@@ -1114,6 +1119,11 @@ export default function StudyClient({
             <div>
               <div className="font-medium text-white">先填一个最短可用句子</div>
               <p className="mt-1 text-xs text-zinc-400">点任意一条会直接填入输入框，你可以再改。</p>
+              {sentenceHelpModelLabel && (
+                <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-amber-300/70">
+                  Hint Model {sentenceHelpModelLabel}
+                </p>
+              )}
             </div>
             <button
               type="button"
@@ -1180,6 +1190,9 @@ export default function StudyClient({
           <div className="flex items-start justify-between mb-6 mt-2">
             <div>
               <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400 mb-2">AI 评估结果</h3>
+              <p className="mb-2 text-[11px] uppercase tracking-[0.18em] text-blue-300/70">
+                Eval Model {result.evaluationModelLabel}
+              </p>
               <p className="text-sm text-zinc-400 italic bg-black/20 p-3 rounded-lg border border-white/5 line-clamp-2">&quot; {sentence} &quot;</p>
             </div>
 

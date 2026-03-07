@@ -70,6 +70,11 @@ export interface SentenceHelpItem {
   cue: string
 }
 
+export interface SentenceHelpResult {
+  items: SentenceHelpItem[]
+  modelLabel: string
+}
+
 export interface GetStudyBatchParams {
   tag?: string
   skippedWordIds?: string[]
@@ -194,6 +199,16 @@ function extractJsonObject(content: string) {
 
   const match = trimmed.match(/\{[\s\S]*\}/)
   return match?.[0] ?? trimmed
+}
+
+function formatModelLabel(model: string, apiBase: string) {
+  const provider = apiBase.includes('bigmodel.cn')
+    ? '智谱'
+    : apiBase.includes('openai.com')
+      ? 'OpenAI'
+      : 'Custom'
+
+  return `${provider} / ${model}`
 }
 
 function makeErrorResult(message: string): EvaluationResult {
@@ -918,14 +933,18 @@ export async function generateSentenceHelp(
   definition: string,
   tags?: string,
   example?: string | null
-): Promise<SentenceHelpItem[]> {
+): Promise<SentenceHelpResult> {
+  const apiKey = process.env.OPENAI_HINT_API_KEY || process.env.OPENAI_API_KEY
+  const apiBase =
+    process.env.OPENAI_HINT_API_BASE ||
+    process.env.OPENAI_API_BASE ||
+    'https://api.openai.com/v1'
+  const model = process.env.OPENAI_HINT_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini'
+  const modelLabel = formatModelLabel(model, apiBase)
   const fallback = buildFallbackSentenceHelp(word, definition, example)
-  const apiKey = process.env.OPENAI_API_KEY
-  const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini'
 
   if (!apiKey) {
-    return fallback
+    return { items: fallback, modelLabel: `${modelLabel} (fallback)` }
   }
 
   try {
@@ -974,20 +993,23 @@ export async function generateSentenceHelp(
     })
 
     if (!response.ok) {
-      return fallback
+      return { items: fallback, modelLabel: `${modelLabel} (fallback)` }
     }
 
     const data = await response.json()
     const content = data.choices?.[0]?.message?.content
     if (typeof content !== 'string' || !content.trim()) {
-      return fallback
+      return { items: fallback, modelLabel: `${modelLabel} (fallback)` }
     }
 
     const parsed = JSON.parse(extractJsonObject(content)) as SentenceHelpPayload
-    return normalizeSentenceHelp(parsed, word, fallback)
+    return {
+      items: normalizeSentenceHelp(parsed, word, fallback),
+      modelLabel,
+    }
   } catch (error) {
     console.error('Failed to generate sentence help:', error)
-    return fallback
+    return { items: fallback, modelLabel: `${modelLabel} (fallback)` }
   }
 }
 
@@ -1231,7 +1253,17 @@ export async function submitSentence(
     .select()
     .single()
 
-  return { evaluation, nextSrs, savedSentence }
+  const evaluationModel =
+    process.env.OPENAI_MODEL || 'gpt-4o-mini'
+  const evaluationApiBase =
+    process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+
+  return {
+    evaluation,
+    nextSrs,
+    savedSentence,
+    evaluationModelLabel: formatModelLabel(evaluationModel, evaluationApiBase),
+  }
 }
 
 export async function getFavoriteWordIds() {
