@@ -274,6 +274,27 @@ CREATE POLICY "Library words are readable"
     )
   );
 
+DROP POLICY IF EXISTS "Users can manage library words for their own libraries" ON public.library_words;
+CREATE POLICY "Users can manage library words for their own libraries"
+  ON public.library_words
+  FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM public.libraries
+      WHERE libraries.id = library_words.library_id
+        AND libraries.created_by = auth.uid()
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1
+      FROM public.libraries
+      WHERE libraries.id = library_words.library_id
+        AND libraries.created_by = auth.uid()
+    )
+  );
+
 DROP POLICY IF EXISTS "Users can manage their own user_words" ON public.user_words;
 CREATE POLICY "Users can manage their own user_words"
   ON public.user_words
