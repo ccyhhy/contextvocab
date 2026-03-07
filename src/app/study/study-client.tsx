@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
@@ -235,18 +235,14 @@ function SubScoreBar({ label, score, color }: { label: string; score: number; co
 
 function ErrorTag({ type }: { type: string }) {
   const config: Record<string, { label: string; color: string }> = {
-    grammar: { label: "语法", color: "border-red-500/20 bg-red-500/10 text-red-400" },
-    word_usage: { label: "用词", color: "border-amber-500/20 bg-amber-500/10 text-amber-400" },
-    naturalness: { label: "自然度", color: "border-blue-500/20 bg-blue-500/10 text-blue-400" },
-    spelling: { label: "拼写", color: "border-purple-500/20 bg-purple-500/10 text-purple-400" },
+    grammar: { label: "语法", color: "text-red-400 bg-red-500/10 border-red-500/20" },
+    word_usage: { label: "用词", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
+    naturalness: { label: "自然度", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
+    spelling: { label: "拼写", color: "text-purple-400 bg-purple-500/10 border-purple-500/20" },
   }
 
-  const item = config[type] || config.grammar
-  return (
-    <span className={`rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase ${item.color}`}>
-      {item.label}
-    </span>
-  )
+  const c = config[type] || config.grammar
+  return <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border ${c.color}`}>{c.label}</span>
 }
 
 function resetViewState(setters: {
@@ -501,7 +497,7 @@ export default function StudyClient({
 
   const submitCurrentSentence = async () => {
     if (!sentence.trim() || !currentWord) {
-      alert("请先写句子。")
+      alert("请先写一个句子。")
       return
     }
 
@@ -610,22 +606,6 @@ export default function StudyClient({
     await reloadStudyBatch(nextLibrary, nextMode, nextSkippedWordIds)
   }
 
-  const retryCurrentWord = () => {
-    resetViewState(
-      {
-        setSentence,
-        setResult,
-        setStatus,
-        setStreamPhase,
-        setStreamProgressChars,
-        setStreamSections,
-        setShowSentenceHelp,
-      },
-      { preserveSentence: true, keepSentenceHelp: true }
-    )
-    setShowSentenceHelp(true)
-  }
-
   const handleLibraryChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
     const nextLibrary = event.target.value as "All" | "CET-4" | "CET-6"
     setLibrary(nextLibrary)
@@ -680,6 +660,235 @@ export default function StudyClient({
     }
   }
 
+  const renderStreamingPreview = () => {
+    if (status !== "submitting") {
+      return null
+    }
+
+    const previewBlocks: Array<{
+      key: keyof VisibleFeedbackSections
+      title: string
+      placeholder: string
+    }> = [
+      { key: "overall", title: "总体判断", placeholder: "AI 正在形成整体结论..." },
+      { key: "issue", title: "主要问题", placeholder: "AI 正在定位最关键的问题..." },
+      { key: "tip", title: "改进建议", placeholder: "AI 正在生成可执行建议..." },
+      { key: "progress", title: "历史对比", placeholder: "AI 正在结合历史记录做对比..." },
+    ]
+    const hasAnyPreview = previewBlocks.some((block) => Boolean(streamSections[block.key]))
+
+    const phaseLabel =
+      streamPhase === "connecting"
+        ? "正在连接模型..."
+        : streamPhase === "structuring"
+          ? "正在整理结构化评分..."
+          : "AI 正在实时分析你的句子"
+
+    const phaseHint =
+      streamPhase === "structuring"
+        ? "文字点评已经生成，接下来会整理成最终评分卡。"
+        : "这部分内容是边生成边显示的，不需要等到整段结束。"
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        className="glass-panel w-full rounded-3xl p-6 sm:p-7 border border-blue-500/15 bg-gradient-to-br from-blue-500/[0.05] to-cyan-500/[0.03]"
+      >
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.25em] text-blue-300/70 font-semibold">Live Feedback</p>
+            <h3 className="text-lg font-semibold text-white mt-2">{phaseLabel}</h3>
+            <p className="text-sm text-zinc-400 mt-1">{phaseHint}</p>
+          </div>
+          <div className="shrink-0 rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300">
+            {streamProgressChars > 0 ? `${streamProgressChars} chars` : "waiting"}
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          {previewBlocks.map((block, index) => (
+            <motion.div
+              key={block.key}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className="rounded-2xl border border-white/8 bg-black/30 p-4 min-h-28"
+            >
+              <p className="text-xs font-semibold tracking-[0.18em] uppercase text-blue-300/75 mb-3">
+                {block.title}
+              </p>
+              {streamSections[block.key] ? (
+                <p className="whitespace-pre-wrap text-sm leading-7 text-zinc-200">
+                  {streamSections[block.key]}
+                </p>
+              ) : (
+                <p className="text-sm leading-7 text-zinc-500">{block.placeholder}</p>
+              )}
+            </motion.div>
+          ))}
+        </div>
+
+        {!hasAnyPreview && (
+          <motion.p
+            animate={{ opacity: [0.45, 1, 0.45] }}
+            transition={{ duration: 1.6, repeat: Infinity }}
+            className="text-sm leading-7 text-zinc-500 mt-4"
+          >
+            AI 已收到你的句子，正在生成第一轮分析...
+          </motion.p>
+        )}
+      </motion.div>
+    )
+  }
+
+  const renderEvaluation = (evaluation: EvaluationResult) => (
+    <div className="space-y-4">
+      <div className="space-y-2.5">
+        <SubScoreBar label="语法" score={evaluation.grammarScore} color="bg-gradient-to-r from-blue-500 to-blue-400" />
+        <SubScoreBar label="用词" score={evaluation.wordUsageScore} color="bg-gradient-to-r from-emerald-500 to-emerald-400" />
+        <SubScoreBar label="自然度" score={evaluation.naturalness} color="bg-gradient-to-r from-purple-500 to-purple-400" />
+      </div>
+
+      {evaluation.correctedSentence && evaluation.correctedSentence !== sentence && (
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="p-4 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/[0.12]"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium">
+              <PenLine className="w-3 h-3" />
+              修正后的句子
+            </div>
+            <button type="button" onClick={() => playAudio(evaluation.correctedSentence)} className="text-emerald-400/60 hover:text-emerald-400 transition-colors p-1" title="朗读句子">
+              <Volume2 className="w-4 h-4" />
+            </button>
+          </div>
+          <p className="text-sm text-emerald-200 italic leading-relaxed">&quot;{evaluation.correctedSentence}&quot;</p>
+        </motion.div>
+      )}
+
+      {evaluation.errors.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="space-y-2"
+        >
+          {evaluation.errors.map((err, i) => (
+            <div key={i} className="p-3 rounded-xl bg-red-500/[0.04] border border-red-500/[0.1] flex gap-3">
+              <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <ErrorTag type={err.type} />
+                  <span className="text-xs text-zinc-500">
+                    <span className="line-through text-red-400/70">{err.original}</span>
+                    <span className="mx-1.5">→</span>
+                    <span className="text-emerald-400">{err.correction}</span>
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400 leading-relaxed">{err.explanation}</p>
+              </div>
+            </div>
+          ))}
+        </motion.div>
+      )}
+
+      {evaluation.praise && (
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] flex gap-3"
+        >
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+          <p className="text-sm text-zinc-300 leading-relaxed">{evaluation.praise}</p>
+        </motion.div>
+      )}
+
+      {evaluation.suggestion && (
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9 }}
+          className="p-3 rounded-xl bg-amber-500/[0.04] border border-amber-500/[0.1] flex gap-3"
+        >
+          <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <p className="text-sm text-zinc-300 leading-relaxed">{evaluation.suggestion}</p>
+        </motion.div>
+      )}
+
+      {(evaluation.advancedExpressions.length > 0 || evaluation.polishedSentence) && (
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.0 }}
+          className="rounded-2xl bg-gradient-to-br from-indigo-500/[0.06] to-purple-500/[0.04] border border-indigo-500/[0.12] overflow-hidden"
+        >
+          <div className="px-4 py-3 border-b border-indigo-500/[0.08] bg-indigo-500/[0.04] flex items-center gap-2">
+            <GraduationCap className="w-4 h-4 text-indigo-400" />
+            <span className="text-xs font-semibold text-indigo-300 tracking-wide">高阶润色</span>
+            <span className="text-[10px] text-indigo-400/60 ml-auto">学习更地道的表达</span>
+          </div>
+
+          <div className="p-4 space-y-3">
+            {evaluation.advancedExpressions.map((expr, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -5 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.1 + i * 0.1 }}
+                className="p-3 rounded-xl bg-black/20 border border-white/[0.04] space-y-2"
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm text-zinc-400 bg-white/[0.04] px-2 py-0.5 rounded font-mono">{expr.original}</span>
+                  <span className="text-zinc-600">→</span>
+                  <span className="text-sm font-semibold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded">{expr.advanced}</span>
+                </div>
+                <p className="text-xs text-zinc-400 leading-relaxed">{expr.explanation}</p>
+                {expr.example && (
+                  <div className="flex items-start justify-between gap-2 pl-3 border-l-2 border-indigo-500/20">
+                    <p className="text-xs text-zinc-500 italic">
+                      {expr.example}
+                    </p>
+                    <button type="button" onClick={() => playAudio(expr.example)} className="text-indigo-400/50 hover:text-indigo-400 shrink-0 p-0.5" title="朗读例句">
+                      <Volume2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+
+            {evaluation.polishedSentence && (
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.3 }}
+                className="p-4 rounded-xl bg-gradient-to-r from-indigo-500/[0.06] to-purple-500/[0.06] border border-indigo-500/[0.1]"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Wand2 className="w-3.5 h-3.5 text-purple-400" />
+                    <span className="text-xs font-medium text-purple-300">母语者级润色</span>
+                  </div>
+                  <button type="button" onClick={() => playAudio(evaluation.polishedSentence)} className="text-purple-400/60 hover:text-purple-400 transition-colors p-1" title="朗读句子">
+                    <Volume2 className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-sm text-indigo-200 italic leading-relaxed">
+                  &quot;{evaluation.polishedSentence}&quot;
+                </p>
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
+      )}
+    </div>
+  )
+
   if (!currentWord) {
     return (
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
@@ -713,7 +922,7 @@ export default function StudyClient({
         </div>
 
         <div className="glass-panel rounded-3xl p-10 text-center text-zinc-300">
-          当前条件下没有可学习单词了。
+          当前条件下没有可学习的单词了。
         </div>
       </div>
     )
@@ -754,7 +963,7 @@ export default function StudyClient({
 
               <div className="space-y-4">
                 <label className="block text-sm text-zinc-300">
-                  速度 {speechConfig.ttsRate.toFixed(1)}x
+                  语速 {speechConfig.ttsRate.toFixed(1)}x
                 </label>
                 <input
                   type="range"
@@ -849,7 +1058,7 @@ export default function StudyClient({
         </div>
 
         <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">
-          Queue {queuedWords.length} {(loadingNext || refillingQueue) ? (loadingNext ? "loading" : "prefetch") : ""}
+          队列 {queuedWords.length} {(loadingNext || refillingQueue) ? (loadingNext ? "加载中" : "预取中") : ""}
         </div>
       </div>
 
@@ -1007,259 +1216,74 @@ export default function StudyClient({
         </div>
       )}
 
-      {status === "submitting" && (
-        <div className="glass-panel rounded-3xl border border-blue-500/15 bg-blue-500/[0.05] p-6">
-          <div className="mb-3 text-sm text-blue-300">
-            {streamPhase === "structuring" ? "正在整理结构化结果..." : "AI 正在实时分析你的句子"}
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {(["overall", "issue", "tip", "progress"] as const).map((key) => (
-              <div key={key} className="min-h-24 rounded-2xl border border-white/8 bg-black/30 p-4">
-                <div className="mb-2 text-xs uppercase tracking-[0.18em] text-blue-300/75">
-                  {key}
-                </div>
-                <div className="text-sm text-zinc-200">{streamSections[key] || "..."}</div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 text-xs text-zinc-500">{streamProgressChars} chars</div>
-        </div>
-      )}
+      <AnimatePresence>{renderStreamingPreview()}</AnimatePresence>
 
       {status === "result" && result && evaluation && (
-        <div
-          className={`glass-panel relative overflow-hidden rounded-3xl p-8 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] ${
-            evaluation.score >= 80
-              ? "score-glow-green"
-              : evaluation.score >= 60
-                ? "score-glow-yellow"
-                : "score-glow-red"
+        <motion.div
+          initial={{ opacity: 0, y: 30, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 30, scale: 0.96 }}
+          transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className={`glass-panel w-full rounded-3xl p-8 sm:p-10 border-t-0 relative overflow-hidden flex-shrink-0 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] ${
+            result.evaluation.score >= 80 ? 'score-glow-green' :
+            result.evaluation.score >= 60 ? 'score-glow-yellow' :
+            'score-glow-red'
           }`}
         >
-          <div
-            className={`absolute left-0 right-0 top-0 h-1.5 ${
-              evaluation.score >= 80
-                ? "bg-gradient-to-r from-green-400 via-emerald-500 to-green-600"
-                : evaluation.score >= 60
-                  ? "bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500"
-                  : "bg-gradient-to-r from-red-400 via-rose-500 to-red-600"
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className={`absolute top-0 left-0 right-0 h-1.5 origin-left ${
+              result.evaluation.score >= 80 ? 'bg-gradient-to-r from-green-400 via-emerald-500 to-green-600' :
+              result.evaluation.score >= 60 ? 'bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500' :
+              'bg-gradient-to-r from-red-400 via-rose-500 to-red-600'
             }`}
           />
 
-          <div className="mb-6 mt-2 flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between mb-6 mt-2">
             <div>
-              <h3 className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-xl font-bold text-transparent">
-                AI 评估结果
-              </h3>
-              <p className="mt-2 rounded-lg border border-white/5 bg-black/20 p-3 text-sm italic text-zinc-400">
-                &quot;{sentence}&quot;
-              </p>
+              <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400 mb-2">AI 评估结果</h3>
+              <p className="text-sm text-zinc-400 italic bg-black/20 p-3 rounded-lg border border-white/5 line-clamp-2">&quot; {sentence} &quot;</p>
             </div>
-            <div
-              className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-[3px] shadow-lg ${
-                evaluation.score >= 80
-                  ? "border-green-500/40 bg-green-500/10 text-green-400 shadow-green-500/20"
-                  : evaluation.score >= 60
-                    ? "border-yellow-500/40 bg-yellow-500/10 text-yellow-400 shadow-yellow-500/20"
-                    : "border-red-500/40 bg-red-500/10 text-red-400 shadow-red-500/20"
+
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ duration: 0.5, delay: 0.3, type: "spring", stiffness: 200 }}
+              className={`flex items-center justify-center shrink-0 h-20 w-20 rounded-full border-[3px] shadow-lg ${
+                result.evaluation.score >= 80 ? "border-green-500/40 text-green-400 bg-green-500/10 shadow-green-500/20" :
+                result.evaluation.score >= 60 ? "border-yellow-500/40 text-yellow-400 bg-yellow-500/10 shadow-yellow-500/20" :
+                "border-red-500/40 text-red-400 bg-red-500/10 shadow-red-500/20"
               }`}
             >
-              <AnimatedScore score={evaluation.score} />
-            </div>
+              <AnimatedScore score={result.evaluation.score} />
+            </motion.div>
           </div>
 
-          {evaluation.attemptStatus === "needs_help" && (
-            <div className="mb-4 flex gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/[0.06] p-4 text-sm text-zinc-300">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
-              <div>这次输入还没形成一个自然完整的例句。先用造句辅助搭一个短句骨架，再补上人物、时间或原因，会更容易写出来。</div>
-            </div>
-          )}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mb-6"
+          >
+            {renderEvaluation(result.evaluation)}
+          </motion.div>
 
-          {evaluation.isMetaSentence && (
-            <div className="mb-4 flex gap-3 rounded-2xl border border-orange-500/20 bg-orange-500/[0.06] p-4 text-sm text-zinc-300">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-300" />
-              <div>这句话更像是在谈这个词本身，还没有真正把它放进语境里使用。下面的修改版可以作为一个更自然的表达方向。</div>
-            </div>
-          )}
-
-          {evaluation.usageQuality === "weak" && !evaluation.isMetaSentence && evaluation.attemptStatus === "valid" && (
-            <div className="mb-4 flex gap-3 rounded-2xl border border-blue-500/20 bg-blue-500/[0.06] p-4 text-sm text-zinc-300">
-              <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-blue-300" />
-              <div>这句话已经成句了，但语境还偏薄。给它补上人物、时间、原因或结果，表达会更自然，学习价值也会更高。</div>
-            </div>
-          )}
-
-          <div className="mb-5 space-y-3 rounded-2xl border border-white/8 bg-black/20 p-4">
-            <SubScoreBar label="语法" score={evaluation.grammarScore} color="bg-red-400" />
-            <SubScoreBar label="用词" score={evaluation.wordUsageScore} color="bg-amber-400" />
-            <SubScoreBar label="自然度" score={evaluation.naturalness} color="bg-blue-400" />
-          </div>
-
-          <div className="mb-4 rounded-xl border border-emerald-500/[0.12] bg-emerald-500/[0.06] p-4">
-            <div className="mb-2 flex items-center gap-2 text-sm font-medium text-emerald-300">
-              <CheckCircle2 className="h-4 w-4" />
-              点评亮点
-            </div>
-            <p className="text-sm leading-7 text-emerald-100">{evaluation.praise || "继续保持，已经有不错的句子基础了。"}</p>
-          </div>
-
-          {evaluation.correctedSentence && (
-            <div className="mb-4 rounded-xl border border-emerald-500/[0.12] bg-emerald-500/[0.06] p-4">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-xs font-medium text-emerald-300">
-                  <PenLine className="h-3.5 w-3.5" />
-                  修正后的句子
-                </div>
-                <button
-                  type="button"
-                  onClick={() => playAudio(evaluation.correctedSentence)}
-                  className="p-1 text-emerald-300/70 transition-colors hover:text-emerald-300"
-                  title="朗读句子"
-                >
-                  <Volume2 className="h-4 w-4" />
-                </button>
-              </div>
-              <p className="text-sm italic leading-relaxed text-emerald-100">
-                &quot;{evaluation.correctedSentence}&quot;
-              </p>
-            </div>
-          )}
-
-          {evaluation.errors.length > 0 && (
-            <div className="mb-4 space-y-2">
-              {evaluation.errors.map((error, index) => (
-                <div
-                  key={`${error.type}-${error.original}-${index}`}
-                  className="rounded-xl border border-white/8 bg-white/[0.03] p-4"
-                >
-                  <div className="mb-2 flex items-center gap-2">
-                    <ErrorTag type={error.type} />
-                    <code className="rounded bg-black/25 px-2 py-0.5 text-xs text-zinc-300">
-                      {error.original}
-                    </code>
-                    <span className="text-zinc-600">→</span>
-                    <code className="rounded bg-black/25 px-2 py-0.5 text-xs text-emerald-300">
-                      {error.correction}
-                    </code>
-                  </div>
-                  <p className="text-sm leading-7 text-zinc-300">{error.explanation}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {evaluation.suggestion && (
-            <div className="mb-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-100">
-                <Lightbulb className="h-4 w-4 text-amber-300" />
-                下一步建议
-              </div>
-              <p className="text-sm leading-7 text-zinc-300">{evaluation.suggestion}</p>
-            </div>
-          )}
-
-          {(evaluation.advancedExpressions.length > 0 || evaluation.polishedSentence) && (
-            <div className="mb-4 overflow-hidden rounded-2xl border border-indigo-500/[0.12] bg-gradient-to-br from-indigo-500/[0.06] to-purple-500/[0.04]">
-              <div className="flex items-center gap-2 border-b border-indigo-500/[0.08] bg-indigo-500/[0.04] px-4 py-3">
-                <GraduationCap className="h-4 w-4 text-indigo-300" />
-                <span className="text-xs font-semibold tracking-wide text-indigo-200">高阶润色</span>
-                <span className="ml-auto text-[10px] text-indigo-300/60">学更自然的表达</span>
-              </div>
-
-              <div className="space-y-3 p-4">
-                {evaluation.advancedExpressions.map((expression, index) => (
-                  <div
-                    key={`${expression.original}-${expression.advanced}-${index}`}
-                    className="rounded-xl border border-white/[0.04] bg-black/20 p-3"
-                  >
-                    <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <span className="rounded bg-white/[0.04] px-2 py-0.5 font-mono text-sm text-zinc-300">
-                        {expression.original}
-                      </span>
-                      <span className="text-zinc-600">→</span>
-                      <span className="rounded bg-indigo-500/10 px-2 py-0.5 font-mono text-sm text-indigo-200">
-                        {expression.advanced}
-                      </span>
-                    </div>
-                    <p className="text-sm leading-7 text-zinc-300">{expression.explanation}</p>
-                    {expression.example && (
-                      <p className="mt-2 text-sm italic text-indigo-100/85">&quot;{expression.example}&quot;</p>
-                    )}
-                  </div>
-                ))}
-
-                {evaluation.polishedSentence && (
-                  <div className="rounded-xl border border-indigo-500/[0.1] bg-gradient-to-r from-indigo-500/[0.06] to-purple-500/[0.06] p-4">
-                    <div className="mb-2 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-xs font-medium text-purple-200">
-                        <Wand2 className="h-3.5 w-3.5 text-purple-300" />
-                        母语者级润色
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => playAudio(evaluation.polishedSentence)}
-                        className="p-1 text-purple-300/70 transition-colors hover:text-purple-300"
-                        title="朗读句子"
-                      >
-                        <Volume2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <p className="text-sm italic leading-relaxed text-indigo-100">
-                      &quot;{evaluation.polishedSentence}&quot;
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {(evaluation.attemptStatus === "needs_help" ||
-            evaluation.isMetaSentence ||
-            evaluation.usageQuality === "weak") && (
-            <div className="mb-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-zinc-300">
-              <div className="mb-2 font-medium text-white">下一句可以直接从这些骨架开始：</div>
-              <div className="space-y-2">
-                {coachingSkeletons.map((skeleton) => (
-                  <button
-                    key={`result-${skeleton}`}
-                    type="button"
-                    onClick={() => {
-                      setSentence(skeleton)
-                      retryCurrentWord()
-                    }}
-                    className="block w-full rounded-lg border border-white/10 px-3 py-2 text-left hover:bg-white/5"
-                  >
-                    {skeleton}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-white/10 gap-4">
             <div className="flex flex-col text-xs text-zinc-500">
-              <span>下次复习：{mounted ? new Date(result.nextSrs.nextReviewDate).toLocaleDateString("zh-CN") : "..."}</span>
+              <span>下次复习：{mounted ? new Date(result.nextSrs.nextReviewDate).toLocaleDateString("zh-CN") : '...'}</span>
               <span>当前难度系数：{result.nextSrs.easeFactor}</span>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <button
-                type="button"
-                onClick={retryCurrentWord}
-                className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-zinc-200"
-              >
-                {evaluation.attemptStatus === "needs_help" ? "打开造句辅助，再试一次" : "参考修改后再试一次"}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleNext(library)}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 px-5 py-3 text-sm text-white"
-              >
-                下一个单词
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
+            <button
+              onClick={() => handleNext(library)}
+              className="group flex items-center justify-center gap-2 rounded-xl bg-white/10 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-white/20 w-full sm:w-auto"
+            >
+              下一个单词
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </button>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   )
