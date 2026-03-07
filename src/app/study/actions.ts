@@ -411,7 +411,17 @@ function normalizeSentenceHelp(
       cue: item.cue || '先照着写，再把人物、时间或场景替换成你自己的。',
     }))
 
-  return normalized.length > 0 ? normalized.slice(0, 4) : fallback
+  if (normalized.length > 0) {
+    return {
+      items: normalized.slice(0, 4),
+      usedFallback: false,
+    }
+  }
+
+  return {
+    items: fallback,
+    usedFallback: true,
+  }
 }
 
 function buildSystemPrompt(word: string, definition: string, tags?: string, learningHistory?: string[]) {
@@ -940,11 +950,11 @@ export async function generateSentenceHelp(
     process.env.OPENAI_API_BASE ||
     'https://api.openai.com/v1'
   const model = process.env.OPENAI_HINT_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini'
-  const modelLabel = formatModelLabel(model, apiBase)
+  const remoteModelLabel = formatModelLabel(model, apiBase)
   const fallback = buildFallbackSentenceHelp(word, definition, example)
 
   if (!apiKey) {
-    return { items: fallback, modelLabel: `${modelLabel} (fallback)` }
+    return { items: fallback, modelLabel: '本地兜底' }
   }
 
   try {
@@ -993,23 +1003,27 @@ export async function generateSentenceHelp(
     })
 
     if (!response.ok) {
-      return { items: fallback, modelLabel: `${modelLabel} (fallback)` }
+      return { items: fallback, modelLabel: `${remoteModelLabel} -> 本地兜底` }
     }
 
     const data = await response.json()
     const content = data.choices?.[0]?.message?.content
     if (typeof content !== 'string' || !content.trim()) {
-      return { items: fallback, modelLabel: `${modelLabel} (fallback)` }
+      return { items: fallback, modelLabel: `${remoteModelLabel} -> 本地兜底` }
     }
 
     const parsed = JSON.parse(extractJsonObject(content)) as SentenceHelpPayload
+    const normalized = normalizeSentenceHelp(parsed, word, fallback)
+
     return {
-      items: normalizeSentenceHelp(parsed, word, fallback),
-      modelLabel,
+      items: normalized.items,
+      modelLabel: normalized.usedFallback
+        ? `${remoteModelLabel} -> 本地兜底`
+        : remoteModelLabel,
     }
   } catch (error) {
     console.error('Failed to generate sentence help:', error)
-    return { items: fallback, modelLabel: `${modelLabel} (fallback)` }
+    return { items: fallback, modelLabel: `${remoteModelLabel} -> 本地兜底` }
   }
 }
 
