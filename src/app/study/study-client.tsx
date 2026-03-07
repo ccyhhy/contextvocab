@@ -366,14 +366,26 @@ export default function StudyClient({
 
   const queueContextRef = useRef(0)
   const requeuedNewWordIdsRef = useRef<Set<string>>(new Set())
+  const speechConfigRef = useRef<SpeechConfig>(DEFAULT_SPEECH_CONFIG)
+
+  const updateSpeechConfig = (updater: (current: SpeechConfig) => SpeechConfig) => {
+    setSpeechConfig((current) => {
+      const next = updater(current)
+      speechConfigRef.current = next
+      return next
+    })
+  }
 
   useEffect(() => {
     setMounted(true)
     const saved = localStorage.getItem(SPEECH_CONFIG_STORAGE_KEY)
     if (saved) {
       try {
-        setSpeechConfig(JSON.parse(saved) as SpeechConfig)
+        const parsed = JSON.parse(saved) as SpeechConfig
+        speechConfigRef.current = parsed
+        setSpeechConfig(parsed)
       } catch {
+        speechConfigRef.current = DEFAULT_SPEECH_CONFIG
         setSpeechConfig(DEFAULT_SPEECH_CONFIG)
       }
     }
@@ -381,10 +393,11 @@ export default function StudyClient({
 
   const playAudio = (text: string) => {
     if (typeof window === "undefined" || !window.speechSynthesis) return
+    const config = speechConfigRef.current
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.lang = "en-US"
-    utterance.rate = speechConfig.ttsRate
-    utterance.pitch = speechConfig.ttsPitch
+    utterance.rate = config.ttsRate
+    utterance.pitch = config.ttsPitch
     window.speechSynthesis.cancel()
     window.speechSynthesis.speak(utterance)
   }
@@ -972,7 +985,7 @@ export default function StudyClient({
                   step="0.1"
                   value={speechConfig.ttsRate}
                   onChange={(event) =>
-                    setSpeechConfig((current) => ({
+                    updateSpeechConfig((current) => ({
                       ...current,
                       ttsRate: Number(event.target.value),
                     }))
@@ -990,7 +1003,7 @@ export default function StudyClient({
                   step="0.1"
                   value={speechConfig.ttsPitch}
                   onChange={(event) =>
-                    setSpeechConfig((current) => ({
+                    updateSpeechConfig((current) => ({
                       ...current,
                       ttsPitch: Number(event.target.value),
                     }))
