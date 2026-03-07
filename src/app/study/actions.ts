@@ -6,34 +6,70 @@ import {
   buildEvaluationUserPrompt,
   extractEvaluationJson,
 } from '@/lib/evaluation-format'
-import { calculateNextReview } from '@/lib/srs'
+import { calculateNextReview, type ReviewBucket } from '@/lib/srs'
+import {
+  buildStudyMixPlan,
+  getStudyPriorityReason,
+  sortDueCandidates,
+  type StudyPriorityReason,
+} from '@/lib/study-scheduler'
 import { requireActionSession } from '@/lib/supabase/user'
 
-export interface EvaluationResult {
-  score: number           // 0-100 overall score
-  correctedSentence: string  // AI-corrected version
-  errors: ErrorItem[]     // Specific error annotations
-  praise: string          // What the student did well
-  suggestion: string      // Actionable tip for improvement
-  naturalness: number     // 1-5 how natural it sounds
-  grammarScore: number    // 1-5 grammar correctness
-  wordUsageScore: number  // 1-5 target word usage accuracy
-  advancedExpressions: AdvancedExpression[] // Advanced vocabulary upgrades
-  polishedSentence: string // Rewritten sentence using advanced expressions
-}
+export type AttemptStatus = 'valid' | 'needs_help'
+export type UsageQuality = 'strong' | 'weak' | 'meta' | 'invalid'
 
 export interface AdvancedExpression {
-  original: string     // The word/phrase in the student's sentence
-  advanced: string     // A more advanced alternative
-  explanation: string  // Why this is better (in Chinese)
-  example: string      // A short example sentence using the advanced word
+  original: string
+  advanced: string
+  explanation: string
+  example: string
 }
 
 export interface ErrorItem {
-  type: string       // 'grammar' | 'word_usage' | 'naturalness' | 'spelling'
-  original: string   // The problematic fragment
-  correction: string // The corrected fragment
-  explanation: string // Why it's wrong (in Chinese)
+  type: string
+  original: string
+  correction: string
+  explanation: string
+}
+
+export interface EvaluationResult {
+  score: number
+  correctedSentence: string
+  errors: ErrorItem[]
+  praise: string
+  suggestion: string
+  naturalness: number
+  grammarScore: number
+  wordUsageScore: number
+  advancedExpressions: AdvancedExpression[]
+  polishedSentence: string
+  attemptStatus: AttemptStatus
+  usageQuality: UsageQuality
+  usesWordInContext: boolean
+  isMetaSentence: boolean
+}
+
+export interface StudyWordInfo {
+  word: string
+  definition?: string | null
+  tags?: string | null
+  phonetic?: string | null
+  example?: string | null
+}
+
+export interface StudyBatchItem {
+  id: string
+  word_id: string
+  words: StudyWordInfo
+  isNew: boolean
+  priorityReason: StudyPriorityReason
+}
+
+export interface GetStudyBatchParams {
+  tag?: string
+  skippedWordIds?: string[]
+  favoritesOnly?: boolean
+  batchSize?: number
 }
 
 interface EvaluationPayload {
@@ -47,6 +83,10 @@ interface EvaluationPayload {
   wordUsageScore?: unknown
   advancedExpressions?: unknown
   polishedSentence?: unknown
+  attemptStatus?: unknown
+  usageQuality?: unknown
+  usesWordInContext?: unknown
+  isMetaSentence?: unknown
 }
 
 interface ErrorPayload {
@@ -67,11 +107,26 @@ interface WordRecord {
   id: string
 }
 
+interface WordRow extends WordRecord {
+  word: string
+  definition?: string | null
+  tags?: string | null
+  phonetic?: string | null
+  example?: string | null
+}
+
 interface UserWordRecord {
   id: string
+  word_id: string
   repetitions: number
   interval: number
   ease_factor: number
+  next_review_date?: string | null
+  last_score?: number | null
+  last_reviewed_at?: string | null
+  consecutive_failures?: number | null
+  lapse_count?: number | null
+  words?: WordRow | WordRow[] | null
 }
 
 interface PastSentenceRow {
@@ -83,168 +138,34 @@ interface FavoriteRow {
 }
 
 let favoriteColumnSupported: boolean | null = null
-
 let pickUnstudiedWordRpcSupported: boolean | null = null
 
-function sanitizeText(value: unknown): string {
+const DEFAULT_STUDY_BATCH_SIZE = 5
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value))
+}
+
+function sanitizeText(value: unknown) {
   return typeof value === 'string' ? value : ''
 }
 
-function normalizeEvaluation(payload: EvaluationPayload, fallbackSentence: string): EvaluationResult {
-  const errorItems = Array.isArray(payload.errors) ? payload.errors as ErrorPayload[] : []
-  const advancedItems = Array.isArray(payload.advancedExpressions)
-    ? payload.advancedExpressions as AdvancedExpressionPayload[]
-    : []
+function sanitizeAttemptStatus(value: unknown): AttemptStatus {
+  return value === 'needs_help' ? 'needs_help' : 'valid'
+}
 
-  return {
-    score: clamp(Number(payload.score) || 0, 0, 100),
-    correctedSentence: sanitizeText(payload.correctedSentence) || fallbackSentence,
-    errors: errorItems.map((item) => ({
-      type: sanitizeText(item.type) || 'grammar',
-      original: sanitizeText(item.original),
-      correction: sanitizeText(item.correction),
-      explanation: sanitizeText(item.explanation),
-    })),
-    praise: sanitizeText(payload.praise) || '继续加油！',
-    suggestion: sanitizeText(payload.suggestion) || '尝试使用更复杂的句式。',
-    naturalness: clamp(Number(payload.naturalness) || 3, 1, 5),
-    grammarScore: clamp(Number(payload.grammarScore) || 3, 1, 5),
-    wordUsageScore: clamp(Number(payload.wordUsageScore) || 3, 1, 5),
-    advancedExpressions: advancedItems.map((item) => ({
-      original: sanitizeText(item.original),
-      advanced: sanitizeText(item.advanced),
-      explanation: sanitizeText(item.explanation),
-      example: sanitizeText(item.example),
-    })),
-    polishedSentence: sanitizeText(payload.polishedSentence),
+function sanitizeUsageQuality(value: unknown): UsageQuality {
+  if (value === 'strong' || value === 'weak' || value === 'meta' || value === 'invalid') {
+    return value
   }
+  return 'weak'
 }
 
-function parseEvaluationJson(content: string, fallbackSentence: string): EvaluationResult {
-  const jsonStr = extractEvaluationJson(content)
-  const parsed = JSON.parse(jsonStr) as EvaluationPayload
-  return normalizeEvaluation(parsed, fallbackSentence)
-}
-
-function getErrorMessage(error: unknown): string {
+function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
     return error.message
   }
-  return '未知错误'
-}
-
-function buildSystemPrompt(word: string, definition: string, tags?: string, learningHistory?: string[]): string {
-  return buildEvaluationSystemPrompt({
-    word,
-    definition,
-    tags,
-    learningHistory,
-  })
-}
-
-const MOCK_RESULT: EvaluationResult = {
-  score: 0,
-  correctedSentence: '',
-  errors: [],
-  praise: '请先配置服务端 AI 环境变量以获取真实评估。',
-  suggestion: '请在 .env.local 或 Vercel 环境变量中设置 AI 提供方配置。',
-  naturalness: 0,
-  grammarScore: 0,
-  wordUsageScore: 0,
-  advancedExpressions: [],
-  polishedSentence: '',
-}
-
-export async function evaluateSentence(
-  word: string,
-  sentence: string,
-  definition: string,
-  tags?: string,
-  learningHistory?: string[]
-): Promise<EvaluationResult> {
-  const apiKey = process.env.OPENAI_API_KEY
-  const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini'
-
-  if (!apiKey) {
-    console.warn('⚠️ OPENAI_API_KEY is missing. Using mock evaluation.')
-    return {
-      ...MOCK_RESULT,
-      correctedSentence: sentence,
-      score: 50,
-      praise: `（模拟评估）你尝试使用了"${word}"，但需要先配置服务端 AI 环境变量才能获得真实反馈。`,
-      suggestion: '请在 .env.local 或 Vercel 环境变量中设置 OPENAI_API_KEY、OPENAI_API_BASE 和 OPENAI_MODEL。',
-    }
-  }
-
-  const systemPrompt = buildSystemPrompt(word, definition, tags, learningHistory)
-
-  // Retry up to 2 times
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout
-
-      const response = await fetch(`${apiBase}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: buildEvaluationUserPrompt(sentence) },
-          ],
-          temperature: 0.3, // Lower temperature for more consistent scoring
-        }),
-        signal: controller.signal,
-      })
-
-      clearTimeout(timeoutId)
-
-      if (!response.ok) {
-        const errText = await response.text()
-        // If rate limited, wait and retry
-        if (response.status === 429 && attempt < 1) {
-          await new Promise(r => setTimeout(r, 2000))
-          continue
-        }
-        throw new Error(`API 错误 (${response.status}): ${errText.slice(0, 200)}`)
-      }
-
-      const data = await response.json()
-      const content = data.choices?.[0]?.message?.content
-
-      if (!content) {
-        throw new Error('AI 返回了空内容')
-      }
-
-      return parseEvaluationJson(content, sentence)
-    } catch (error: unknown) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        if (attempt < 1) continue
-        return makeErrorResult('请求超时，请稍后重试。你可以检查服务端环境变量中的 AI 接口地址是否正确。')
-      }
-      if (error instanceof SyntaxError) {
-        // JSON parse failed — AI returned non-JSON
-        console.error('AI returned non-JSON:', error)
-        return makeErrorResult('AI 返回的格式异常，请重试。如果持续出现，请尝试更换模型。')
-      }
-      if (attempt < 1) continue
-      console.error('Failed to evaluate sentence:', error)
-      return makeErrorResult(
-        `评估失败：${getErrorMessage(error)}。请检查服务端 AI 配置。`
-      )
-    }
-  }
-
-  return makeErrorResult('多次尝试均失败，请检查网络和服务端 AI 配置。')
-}
-
-function clamp(val: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, val))
+  return 'Unknown error'
 }
 
 function makeErrorResult(message: string): EvaluationResult {
@@ -259,20 +180,77 @@ function makeErrorResult(message: string): EvaluationResult {
     wordUsageScore: 0,
     advancedExpressions: [],
     polishedSentence: '',
+    attemptStatus: 'needs_help',
+    usageQuality: 'invalid',
+    usesWordInContext: false,
+    isMetaSentence: false,
   }
 }
 
-function toPostgrestInList(ids: string[]): string {
-  const safeIds = ids.map((id) => id.replace(/"/g, '')).filter(Boolean)
-  return `(${safeIds.map((id) => `"${id}"`).join(',')})`
+function normalizeEvaluation(payload: EvaluationPayload, fallbackSentence: string): EvaluationResult {
+  const errorItems = Array.isArray(payload.errors) ? (payload.errors as ErrorPayload[]) : []
+  const advancedItems = Array.isArray(payload.advancedExpressions)
+    ? (payload.advancedExpressions as AdvancedExpressionPayload[])
+    : []
+
+  const attemptStatus = sanitizeAttemptStatus(payload.attemptStatus)
+  const usageQuality = sanitizeUsageQuality(payload.usageQuality)
+  const allowRewrite = attemptStatus === 'valid'
+
+  return {
+    score: clamp(Number(payload.score) || 0, 0, 100),
+    correctedSentence: allowRewrite ? sanitizeText(payload.correctedSentence) || fallbackSentence : '',
+    errors: errorItems.map((item) => ({
+      type: sanitizeText(item.type) || 'grammar',
+      original: sanitizeText(item.original),
+      correction: sanitizeText(item.correction),
+      explanation: sanitizeText(item.explanation),
+    })),
+    praise: sanitizeText(payload.praise) || '继续保持。',
+    suggestion:
+      sanitizeText(payload.suggestion) ||
+      '先用造句辅助搭一个简单句，再逐步补充细节。',
+    naturalness: clamp(Number(payload.naturalness) || 3, 1, 5),
+    grammarScore: clamp(Number(payload.grammarScore) || 3, 1, 5),
+    wordUsageScore: clamp(Number(payload.wordUsageScore) || 3, 1, 5),
+    advancedExpressions: allowRewrite
+      ? advancedItems.map((item) => ({
+          original: sanitizeText(item.original),
+          advanced: sanitizeText(item.advanced),
+          explanation: sanitizeText(item.explanation),
+          example: sanitizeText(item.example),
+        }))
+      : [],
+    polishedSentence: allowRewrite ? sanitizeText(payload.polishedSentence) : '',
+    attemptStatus,
+    usageQuality,
+    usesWordInContext: payload.usesWordInContext === true,
+    isMetaSentence: payload.isMetaSentence === true,
+  }
+}
+
+function parseEvaluationJson(content: string, fallbackSentence: string): EvaluationResult {
+  const jsonStr = extractEvaluationJson(content)
+  const parsed = JSON.parse(jsonStr) as EvaluationPayload
+  return normalizeEvaluation(parsed, fallbackSentence)
+}
+
+function buildSystemPrompt(word: string, definition: string, tags?: string, learningHistory?: string[]) {
+  return buildEvaluationSystemPrompt({
+    word,
+    definition,
+    tags,
+    learningHistory,
+  })
+}
+
+function isMissingFavoriteColumnError(error: { message?: string; details?: string } | null) {
+  const message = `${error?.message ?? ''} ${error?.details ?? ''}`.toLowerCase()
+  return message.includes('is_favorite')
 }
 
 function isWordRecord(value: unknown): value is WordRecord {
-  if (typeof value !== 'object' || value === null) {
-    return false
-  }
-
-  return typeof (value as WordRecord).id === 'string'
+  return typeof value === 'object' && value !== null && typeof (value as WordRecord).id === 'string'
 }
 
 function isUserWordRecord(value: unknown): value is UserWordRecord {
@@ -283,15 +261,118 @@ function isUserWordRecord(value: unknown): value is UserWordRecord {
   const record = value as UserWordRecord
   return (
     typeof record.id === 'string' &&
+    typeof record.word_id === 'string' &&
     typeof record.repetitions === 'number' &&
     typeof record.interval === 'number' &&
     typeof record.ease_factor === 'number'
   )
 }
 
-function isMissingFavoriteColumnError(error: { message?: string; details?: string; code?: string } | null) {
-  const message = `${error?.message ?? ''} ${error?.details ?? ''}`.toLowerCase()
-  return message.includes('is_favorite')
+function normalizeWordInfo(value: unknown): StudyWordInfo | null {
+  if (Array.isArray(value)) {
+    return normalizeWordInfo(value[0])
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return null
+  }
+
+  const row = value as WordRow
+  if (typeof row.word !== 'string') {
+    return null
+  }
+
+  return {
+    word: row.word,
+    definition: row.definition ?? null,
+    tags: row.tags ?? null,
+    phonetic: row.phonetic ?? null,
+    example: row.example ?? null,
+  }
+}
+
+function normalizeStudyBatchItem(
+  value: unknown,
+  overrides: Pick<StudyBatchItem, 'isNew' | 'priorityReason'>
+): StudyBatchItem | null {
+  if (!isUserWordRecord(value)) {
+    return null
+  }
+
+  const words = normalizeWordInfo(value.words)
+  if (!words) {
+    return null
+  }
+
+  return {
+    id: value.id,
+    word_id: value.word_id,
+    words,
+    isNew: overrides.isNew,
+    priorityReason: overrides.priorityReason,
+  }
+}
+
+function toPostgrestInList(ids: string[]) {
+  const safeIds = ids.map((id) => id.replace(/"/g, '')).filter(Boolean)
+  return `(${safeIds.map((id) => `"${id}"`).join(',')})`
+}
+
+function getTodayDateString() {
+  return new Date().toISOString().split('T')[0]
+}
+
+function buildWordFeedbackForStorage(
+  evaluation: EvaluationResult,
+  originalSentence: string
+) {
+  const sections = [
+    evaluation.attemptStatus === 'needs_help'
+      ? '【状态】本次输入更像占位或无效尝试，建议先使用造句辅助。'
+      : '',
+    evaluation.errors.length > 0
+      ? `【错误】\n${evaluation.errors
+          .map(
+            (error) =>
+              `- ${error.original} -> ${error.correction} (${error.explanation})`
+          )
+          .join('\n')}`
+      : '',
+    evaluation.correctedSentence && evaluation.correctedSentence !== originalSentence
+      ? `【修正后句子】${evaluation.correctedSentence}`
+      : '',
+    `【点评】${evaluation.praise}`,
+    `【建议】${evaluation.suggestion}`,
+  ]
+
+  return sections.filter(Boolean).join('\n\n')
+}
+
+function getNextFailureCounters(
+  current: UserWordRecord,
+  reviewBucket: ReviewBucket
+) {
+  const currentFailures = current.consecutive_failures ?? 0
+  const currentLapses = current.lapse_count ?? 0
+
+  if (reviewBucket === 'again') {
+    return {
+      consecutiveFailures: currentFailures + 1,
+      lapseCount: currentLapses + 1,
+    }
+  }
+
+  if (reviewBucket === 'hard') {
+    return {
+      consecutiveFailures: currentFailures,
+      lapseCount: currentLapses,
+    }
+  }
+
+  return {
+    consecutiveFailures: 0,
+    lapseCount: currentLapses,
+  }
 }
 
 async function getUserFavoriteWordIds(
@@ -348,7 +429,7 @@ async function pickRandomUnseenWord(
   }
 
   const skippedSet = new Set(skippedWordIds)
-  for (let attempt = 0; attempt < attempts; attempt++) {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
     const randomOffset = Math.floor(Math.random() * count)
     let pickQuery = supabase.from('words').select('*').range(randomOffset, randomOffset).limit(1)
     if (tag !== 'All') {
@@ -376,6 +457,78 @@ async function pickRandomUnseenWord(
   }
 
   return null
+}
+
+async function findFallbackUnseenWord(
+  tag: string,
+  skippedWordIds: string[],
+  preferredWordIds: string[],
+  supabase: SupabaseClient,
+  userId: string
+): Promise<WordRecord | null> {
+  const { data: studiedRows } = await supabase
+    .from('user_words')
+    .select('word_id')
+    .eq('user_id', userId)
+
+  const studiedWordIds = (studiedRows ?? [])
+    .map((row) => row.word_id)
+    .filter((id): id is string => typeof id === 'string')
+
+  const excludeIds = [...new Set([...studiedWordIds, ...skippedWordIds])]
+  let fallbackQuery = supabase.from('words').select('*')
+  if (tag !== 'All') {
+    fallbackQuery = fallbackQuery.eq('tags', tag)
+  }
+  if (preferredWordIds.length > 0) {
+    fallbackQuery = fallbackQuery.in('id', preferredWordIds)
+  }
+  if (excludeIds.length > 0) {
+    fallbackQuery = fallbackQuery.not('id', 'in', toPostgrestInList(excludeIds))
+  }
+
+  const { data: fallbackCandidates } = await fallbackQuery.limit(1)
+  const fallback = fallbackCandidates?.[0]
+  return isWordRecord(fallback) ? fallback : null
+}
+
+async function pickUnseenWord(
+  tag: string,
+  skippedWordIds: string[],
+  preferredWordIds: string[],
+  supabase: SupabaseClient,
+  userId: string
+): Promise<WordRecord | null> {
+  if (pickUnstudiedWordRpcSupported !== false && preferredWordIds.length === 0) {
+    const { data: rpcCandidates, error: rpcError } = await supabase.rpc('pick_unstudied_word', {
+      p_user_id: userId,
+      p_tag: tag,
+      p_skipped_ids: skippedWordIds,
+    })
+
+    if (rpcError) {
+      pickUnstudiedWordRpcSupported = false
+    } else {
+      pickUnstudiedWordRpcSupported = true
+      if (Array.isArray(rpcCandidates) && isWordRecord(rpcCandidates[0])) {
+        return rpcCandidates[0]
+      }
+    }
+  }
+
+  const randomCandidate = await pickRandomUnseenWord(
+    tag,
+    skippedWordIds,
+    preferredWordIds,
+    supabase,
+    userId
+  )
+
+  if (randomCandidate) {
+    return randomCandidate
+  }
+
+  return findFallbackUnseenWord(tag, skippedWordIds, preferredWordIds, supabase, userId)
 }
 
 async function attachWordToUser(
@@ -420,110 +573,338 @@ async function attachWordToUser(
   return existing
 }
 
-export async function getNextWord(
-  tag: string = 'All',
-  skippedWordIds: string[] = [],
-  favoritesOnly: boolean = false
+async function getDueWordCount(
+  supabase: SupabaseClient,
+  userId: string,
+  tag: string,
+  today: string,
+  skippedWordIds: string[],
+  preferredWordIds: string[]
 ) {
+  let query = supabase
+    .from('user_words')
+    .select('id, words!inner(id)', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .lte('next_review_date', today)
+
+  if (tag !== 'All') {
+    query = query.eq('words.tags', tag)
+  }
+  if (preferredWordIds.length > 0) {
+    query = query.in('word_id', preferredWordIds)
+  }
+  if (skippedWordIds.length > 0) {
+    query = query.not('word_id', 'in', toPostgrestInList(skippedWordIds))
+  }
+
+  const { count } = await query
+  return count ?? 0
+}
+
+async function getDueStudyItems(
+  supabase: SupabaseClient,
+  userId: string,
+  tag: string,
+  today: string,
+  skippedWordIds: string[],
+  preferredWordIds: string[],
+  batchSize: number
+) {
+  let query = supabase
+    .from('user_words')
+    .select('*, words!inner(*)')
+    .eq('user_id', userId)
+    .lte('next_review_date', today)
+
+  if (tag !== 'All') {
+    query = query.eq('words.tags', tag)
+  }
+  if (preferredWordIds.length > 0) {
+    query = query.in('word_id', preferredWordIds)
+  }
+  if (skippedWordIds.length > 0) {
+    query = query.not('word_id', 'in', toPostgrestInList(skippedWordIds))
+  }
+
+  const { data } = await query.limit(Math.max(batchSize * 6, 24))
+  const sorted = sortDueCandidates((data ?? []) as UserWordRecord[], today)
+
+  return sorted
+    .map((row) =>
+      normalizeStudyBatchItem(row, {
+        isNew: false,
+        priorityReason: getStudyPriorityReason(row, today),
+      })
+    )
+    .filter((item): item is StudyBatchItem => item !== null)
+}
+
+async function getNewStudyItems(
+  supabase: SupabaseClient,
+  userId: string,
+  tag: string,
+  skippedWordIds: string[],
+  preferredWordIds: string[],
+  batchSize: number,
+  reviewDate: string
+) {
+  const items: StudyBatchItem[] = []
+  const excludedWordIds = new Set(skippedWordIds)
+
+  while (items.length < batchSize) {
+    const candidate = await pickUnseenWord(
+      tag,
+      Array.from(excludedWordIds),
+      preferredWordIds,
+      supabase,
+      userId
+    )
+
+    if (!candidate) {
+      break
+    }
+
+    excludedWordIds.add(candidate.id)
+    const attached = await attachWordToUser(candidate.id, reviewDate, supabase, userId)
+    const item = normalizeStudyBatchItem(attached, {
+      isNew: true,
+      priorityReason: 'new',
+    })
+
+    if (item) {
+      items.push(item)
+    }
+  }
+
+  return items
+}
+
+function composeStudyBatch(
+  dueItems: StudyBatchItem[],
+  newItems: StudyBatchItem[],
+  dueCount: number,
+  favoritesOnly: boolean,
+  batchSize: number
+) {
+  const plan = buildStudyMixPlan(dueCount, batchSize, favoritesOnly)
+  const dueQueue = [...dueItems]
+  const newQueue = [...newItems]
+  const batch: StudyBatchItem[] = []
+
+  for (const slot of plan) {
+    if (slot === 'review' && dueQueue.length > 0) {
+      batch.push(dueQueue.shift()!)
+      continue
+    }
+
+    if (slot === 'new' && newQueue.length > 0) {
+      batch.push(newQueue.shift()!)
+      continue
+    }
+
+    if (dueQueue.length > 0) {
+      batch.push(dueQueue.shift()!)
+      continue
+    }
+
+    if (newQueue.length > 0) {
+      batch.push(newQueue.shift()!)
+    }
+  }
+
+  while (batch.length < batchSize) {
+    if (dueQueue.length > 0) {
+      batch.push(dueQueue.shift()!)
+      continue
+    }
+
+    if (newQueue.length > 0) {
+      batch.push(newQueue.shift()!)
+      continue
+    }
+
+    break
+  }
+
+  return batch
+}
+
+async function getWordLearningHistory(
+  supabase: SupabaseClient,
+  userId: string,
+  wordId: string
+) {
+  const { data: pastRecords } = await supabase
+    .from('sentences')
+    .select('original_text')
+    .eq('user_id', userId)
+    .eq('word_id', wordId)
+    .order('created_at', { ascending: false })
+    .limit(5)
+
+  return (pastRecords ?? [])
+    .map((record) => (record as PastSentenceRow).original_text)
+    .filter((value): value is string => typeof value === 'string')
+    .reverse()
+}
+
+export async function evaluateSentence(
+  word: string,
+  sentence: string,
+  definition: string,
+  tags?: string,
+  learningHistory?: string[]
+): Promise<EvaluationResult> {
+  const apiKey = process.env.OPENAI_API_KEY
+  const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini'
+
+  if (!apiKey) {
+    console.warn('OPENAI_API_KEY is missing. Using mock evaluation.')
+    return {
+      ...makeErrorResult('请先配置服务端 AI 环境变量。'),
+      correctedSentence: sentence,
+      score: 50,
+      attemptStatus: 'needs_help',
+      usageQuality: 'invalid',
+      usesWordInContext: false,
+      isMetaSentence: false,
+      praise: `你尝试使用了 "${word}"，但当前环境还没有真实 AI 评估。`,
+      suggestion: '请先配置 OPENAI_API_KEY、OPENAI_API_BASE 和 OPENAI_MODEL。',
+    }
+  }
+
+  const systemPrompt = buildSystemPrompt(word, definition, tags, learningHistory)
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+      const response = await fetch(`${apiBase}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: buildEvaluationUserPrompt(sentence) },
+          ],
+          temperature: 0.3,
+        }),
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        if (response.status === 429 && attempt < 1) {
+          await new Promise((resolve) => setTimeout(resolve, 2000))
+          continue
+        }
+        throw new Error(`API error (${response.status}): ${errorText.slice(0, 200)}`)
+      }
+
+      const data = await response.json()
+      const content = data.choices?.[0]?.message?.content
+      if (!content) {
+        throw new Error('AI returned empty content')
+      }
+
+      return parseEvaluationJson(content, sentence)
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        if (attempt < 1) {
+          continue
+        }
+        return makeErrorResult('评估超时，请稍后重试。')
+      }
+
+      if (error instanceof SyntaxError) {
+        console.error('AI returned malformed JSON:', error)
+        return makeErrorResult('AI 返回格式异常，请重试。')
+      }
+
+      if (attempt < 1) {
+        continue
+      }
+
+      console.error('Failed to evaluate sentence:', error)
+      return makeErrorResult(`评估失败：${getErrorMessage(error)}`)
+    }
+  }
+
+  return makeErrorResult('多次尝试后仍未拿到评估结果。')
+}
+
+export async function getStudyBatch(params: GetStudyBatchParams = {}) {
+  const {
+    tag = 'All',
+    skippedWordIds = [],
+    favoritesOnly = false,
+    batchSize = DEFAULT_STUDY_BATCH_SIZE,
+  } = params
   const { supabase, user } = await requireActionSession()
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayDateString()
   const preferredWordIds = favoritesOnly
     ? await getUserFavoriteWordIds(supabase, user.id)
     : []
 
   if (favoritesOnly && preferredWordIds.length === 0) {
-    return null
+    return [] as StudyBatchItem[]
   }
 
-  // 1. Try to get a word that is due for review today
-  let dueQuery = supabase
-    .from('user_words')
-    .select('*, words!inner(*)')
-    .eq('user_id', user.id)
-    .lte('next_review_date', today)
-    .order('next_review_date', { ascending: true })
+  const dueCount = await getDueWordCount(
+    supabase,
+    user.id,
+    tag,
+    today,
+    skippedWordIds,
+    preferredWordIds
+  )
 
-  if (tag !== 'All') {
-    dueQuery = dueQuery.eq('words.tags', tag)
-  }
-  if (preferredWordIds.length > 0) {
-    dueQuery = dueQuery.in('word_id', preferredWordIds)
-  }
+  const dueItems = await getDueStudyItems(
+    supabase,
+    user.id,
+    tag,
+    today,
+    skippedWordIds,
+    preferredWordIds,
+    batchSize
+  )
 
-  if (skippedWordIds.length > 0) {
-    dueQuery = dueQuery.not('word_id', 'in', toPostgrestInList(skippedWordIds))
-  }
+  const newItems = favoritesOnly
+    ? []
+    : await getNewStudyItems(
+        supabase,
+        user.id,
+        tag,
+        [...skippedWordIds, ...dueItems.map((item) => item.word_id)],
+        preferredWordIds,
+        batchSize,
+        today
+      )
 
-  const { data: dueWords } = await dueQuery.limit(1)
+  return composeStudyBatch(dueItems, newItems, dueCount, favoritesOnly, batchSize)
+}
 
-  if (dueWords && dueWords.length > 0) {
-    return dueWords[0]
-  }
+export async function getNextWord(
+  tag: string = 'All',
+  skippedWordIds: string[] = [],
+  favoritesOnly: boolean = false
+) {
+  const batch = await getStudyBatch({
+    tag,
+    skippedWordIds,
+    favoritesOnly,
+    batchSize: 1,
+  })
 
-  // 2. Try DB-side random selection first (fast path when RPC exists).
-  let candidate: WordRecord | null = null
-  if (pickUnstudiedWordRpcSupported !== false) {
-    if (preferredWordIds.length === 0) {
-      const { data: rpcCandidates, error: rpcError } = await supabase.rpc('pick_unstudied_word', {
-        p_user_id: user.id,
-        p_tag: tag,
-        p_skipped_ids: skippedWordIds,
-      })
-
-      if (rpcError) {
-        pickUnstudiedWordRpcSupported = false
-      } else {
-        pickUnstudiedWordRpcSupported = true
-        if (Array.isArray(rpcCandidates) && isWordRecord(rpcCandidates[0])) {
-          candidate = rpcCandidates[0]
-        }
-      }
-    }
-  }
-
-  // 3. If RPC is unavailable, fall back to lightweight random sampling.
-  if (!candidate) {
-    candidate = await pickRandomUnseenWord(tag, skippedWordIds, preferredWordIds, supabase, user.id)
-  }
-
-  // 4. Deterministic fallback when random sampling misses (e.g. high studied ratio).
-  if (!candidate) {
-    const { data: studiedRows } = await supabase
-      .from('user_words')
-      .select('word_id')
-      .eq('user_id', user.id)
-
-    const studiedWordIds = (studiedRows ?? [])
-      .map((row) => row.word_id)
-      .filter((id): id is string => typeof id === 'string')
-    const excludeIds = [...new Set([...studiedWordIds, ...skippedWordIds])]
-
-    let fallbackQuery = supabase.from('words').select('*')
-    if (tag !== 'All') {
-      fallbackQuery = fallbackQuery.eq('tags', tag)
-    }
-    if (preferredWordIds.length > 0) {
-      fallbackQuery = fallbackQuery.in('id', preferredWordIds)
-    }
-    if (excludeIds.length > 0) {
-      fallbackQuery = fallbackQuery.not('id', 'in', toPostgrestInList(excludeIds))
-    }
-
-    const { data: fallbackCandidates } = await fallbackQuery.limit(1)
-    const fallback = fallbackCandidates?.[0]
-    if (isWordRecord(fallback)) {
-      candidate = fallback
-    }
-  }
-
-  if (candidate) {
-    const userWord = await attachWordToUser(candidate.id, today, supabase, user.id)
-    if (userWord) {
-      return userWord
-    }
-  }
-
-  return null
+  return batch[0] ?? null
 }
 
 export async function submitSentence(
@@ -547,63 +928,50 @@ export async function submitSentence(
   }
 
   if (!evaluation) {
-    // 0. Fetch user's recent history for this word to provide memory context.
-    // Query latest first for better index locality, then reverse to chronological order.
-    const { data: pastRecords } = await supabase
-      .from('sentences')
-      .select('original_text')
-      .eq('user_id', user.id)
-      .eq('word_id', wordId)
-      .order('created_at', { ascending: false })
-      .limit(5)
-
-    const learningHistory = (pastRecords ?? [])
-      .map((record) => (record as PastSentenceRow).original_text)
-      .filter((value): value is string => typeof value === 'string')
-      .reverse()
-
-    // 1. Evaluate with AI — passing definition, tags, and learning history context.
+    const learningHistory = await getWordLearningHistory(supabase, user.id, wordId)
     evaluation = await evaluateSentence(wordStr, sentence, definition, tags, learningHistory)
   }
 
-  // 2. Fetch current SRS state
   const { data: currentSrs } = await supabase
     .from('user_words')
     .select('*')
     .eq('id', userWordId)
     .single()
 
-  if (!currentSrs || !isUserWordRecord(currentSrs)) throw new Error('User word not found')
+  if (!currentSrs || !isUserWordRecord(currentSrs)) {
+    throw new Error('User word not found')
+  }
 
-  // 3. Calculate next SRS state
-  const nextSrs = calculateNextReview({
-    repetitions: currentSrs.repetitions,
-    interval: currentSrs.interval,
-    easeFactor: currentSrs.ease_factor
-  }, evaluation.score)
+  const nextSrs = calculateNextReview(
+    {
+      repetitions: currentSrs.repetitions,
+      interval: currentSrs.interval,
+      easeFactor: currentSrs.ease_factor,
+    },
+    evaluation.score
+  )
 
-  // 4. Update user_words table
-  await supabase
+  const reviewStats = getNextFailureCounters(currentSrs, nextSrs.reviewBucket)
+  const reviewedAt = new Date().toISOString()
+
+  const { error: updateError } = await supabase
     .from('user_words')
     .update({
       repetitions: nextSrs.repetitions,
       interval: nextSrs.interval,
       ease_factor: nextSrs.easeFactor,
-      next_review_date: nextSrs.nextReviewDate.toISOString().split('T')[0]
+      next_review_date: nextSrs.nextReviewDate.toISOString().split('T')[0],
+      last_score: evaluation.score,
+      last_reviewed_at: reviewedAt,
+      consecutive_failures: reviewStats.consecutiveFailures,
+      lapse_count: reviewStats.lapseCount,
     })
     .eq('id', userWordId)
 
-  // 5. Build structured feedback string for storage
-  const feedbackForDb = [
-    evaluation.errors.length > 0
-      ? `【错误】\n${evaluation.errors.map(e => `• ${e.original} → ${e.correction}：${e.explanation}`).join('\n')}`
-      : '',
-    evaluation.correctedSentence !== sentence ? `【修正句】${evaluation.correctedSentence}` : '',
-    `【点评】${evaluation.praise}`,
-    `【建议】${evaluation.suggestion}`,
-  ].filter(Boolean).join('\n\n')
+  if (updateError) {
+    throw updateError
+  }
 
-  // 6. Insert into sentences table for history
   const { data: savedSentence } = await supabase
     .from('sentences')
     .insert({
@@ -611,7 +979,11 @@ export async function submitSentence(
       word_id: wordId,
       original_text: sentence,
       ai_score: evaluation.score,
-      ai_feedback: feedbackForDb
+      ai_feedback: buildWordFeedbackForStorage(evaluation, sentence),
+      attempt_status: evaluation.attemptStatus,
+      usage_quality: evaluation.usageQuality,
+      uses_word_in_context: evaluation.usesWordInContext,
+      is_meta_sentence: evaluation.isMetaSentence,
     })
     .select()
     .single()
@@ -626,34 +998,26 @@ export async function getFavoriteWordIds() {
 
 export async function toggleFavoriteWord(wordId: string, nextFavorite: boolean) {
   const { supabase, user } = await requireActionSession()
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayDateString()
 
   if (favoriteColumnSupported === false) {
     throw new Error('收藏功能需要先执行最新的 Supabase schema。')
   }
 
+  await attachWordToUser(wordId, today, supabase, user.id)
+
   const { error } = await supabase
     .from('user_words')
-    .upsert(
-      {
-        user_id: user.id,
-        word_id: wordId,
-        interval: 0,
-        ease_factor: 2.5,
-        repetitions: 0,
-        next_review_date: today,
-        is_favorite: nextFavorite,
-      },
-      {
-        onConflict: 'user_id,word_id',
-      }
-    )
+    .update({ is_favorite: nextFavorite })
+    .eq('user_id', user.id)
+    .eq('word_id', wordId)
 
   if (error) {
     if (isMissingFavoriteColumnError(error)) {
       favoriteColumnSupported = false
       throw new Error('收藏功能需要先执行最新的 Supabase schema。')
     }
+
     throw error
   }
 

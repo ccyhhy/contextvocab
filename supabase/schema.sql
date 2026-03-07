@@ -31,6 +31,10 @@ CREATE TABLE public.user_words (
     ease_factor      REAL    DEFAULT 2.5,         -- SM-2 ease factor
     next_review_date DATE    DEFAULT CURRENT_DATE,
     repetitions      INTEGER DEFAULT 0,           -- total review count
+    last_score       INTEGER,
+    last_reviewed_at TIMESTAMPTZ,
+    consecutive_failures INTEGER DEFAULT 0,
+    lapse_count      INTEGER DEFAULT 0,
     is_favorite      BOOLEAN DEFAULT FALSE,       -- bookmark word for focused review
     created_at       TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -41,6 +45,7 @@ CREATE INDEX idx_user_words_user_id          ON public.user_words (user_id);
 CREATE INDEX idx_user_words_next_review_date ON public.user_words (next_review_date);
 CREATE INDEX idx_user_words_user_review_date ON public.user_words (user_id, next_review_date);
 CREATE INDEX idx_user_words_user_favorite    ON public.user_words (user_id, is_favorite);
+CREATE INDEX idx_user_words_due_failures     ON public.user_words (user_id, next_review_date, consecutive_failures);
 
 -- Auto-update updated_at on every UPDATE
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
@@ -64,6 +69,10 @@ CREATE TABLE public.sentences (
     original_text TEXT    NOT NULL,
     ai_score      INTEGER CHECK (ai_score >= 0 AND ai_score <= 100),
     ai_feedback   TEXT,
+    attempt_status TEXT   DEFAULT 'valid',
+    usage_quality  TEXT   DEFAULT 'weak',
+    uses_word_in_context BOOLEAN DEFAULT FALSE,
+    is_meta_sentence BOOLEAN DEFAULT FALSE,
     created_at    TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -94,6 +103,22 @@ AS $$
   ORDER BY random()
   LIMIT 1;
 $$;
+
+-- Existing projects can apply this incremental migration:
+ALTER TABLE public.user_words
+ADD COLUMN IF NOT EXISTS last_score INTEGER,
+ADD COLUMN IF NOT EXISTS last_reviewed_at TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS consecutive_failures INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS lapse_count INTEGER DEFAULT 0;
+
+ALTER TABLE public.sentences
+ADD COLUMN IF NOT EXISTS attempt_status TEXT DEFAULT 'valid',
+ADD COLUMN IF NOT EXISTS usage_quality TEXT DEFAULT 'weak',
+ADD COLUMN IF NOT EXISTS uses_word_in_context BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS is_meta_sentence BOOLEAN DEFAULT FALSE;
+
+CREATE INDEX IF NOT EXISTS idx_user_words_due_failures
+ON public.user_words (user_id, next_review_date, consecutive_failures);
 
 -- ── Row Level Security ────────────────────────────────────────
 -- Enable RLS so users can only see their own data

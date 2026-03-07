@@ -9,6 +9,10 @@ export interface SentenceRecord {
   score: number
   feedback: string
   created_at: string
+  attemptStatus: string
+  usageQuality: string
+  usesWordInContext: boolean
+  isMetaSentence: boolean
 }
 
 export interface HistoryResult {
@@ -28,6 +32,10 @@ interface HistoryRow {
   ai_score: number | null
   ai_feedback: string | null
   created_at: string
+  attempt_status?: string | null
+  usage_quality?: string | null
+  uses_word_in_context?: boolean | null
+  is_meta_sentence?: boolean | null
   words: JoinedWord
 }
 
@@ -57,7 +65,10 @@ export async function getSentenceHistory({
   // Build query
   let query = supabase
     .from('sentences')
-    .select('id, original_text, ai_score, ai_feedback, created_at, words!inner(word)', { count: 'exact' })
+    .select(
+      'id, original_text, ai_score, ai_feedback, created_at, attempt_status, usage_quality, uses_word_in_context, is_meta_sentence, words!inner(word)',
+      { count: 'exact' }
+    )
     .eq('user_id', userId)
 
   // Search filter
@@ -97,6 +108,10 @@ export async function getSentenceHistory({
     score: row.ai_score ?? 0,
     feedback: row.ai_feedback || '',
     created_at: row.created_at,
+    attemptStatus: row.attempt_status ?? 'valid',
+    usageQuality: row.usage_quality ?? 'weak',
+    usesWordInContext: row.uses_word_in_context === true,
+    isMetaSentence: row.is_meta_sentence === true,
   }))
 
   return {

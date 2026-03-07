@@ -8,6 +8,10 @@ export interface DashboardStats {
   averageScore: number
   totalSentences: number
   streakDays: number
+  contextualUsageCount: number
+  weakUsageCount: number
+  metaSentenceCount: number
+  needsHelpCount: number
 }
 
 export interface RecentActivity {
@@ -16,10 +20,16 @@ export interface RecentActivity {
   sentence: string
   score: number
   created_at: string
+  attemptStatus: string
+  usageQuality: string
 }
 
 interface SentenceScoreRow {
   ai_score: number | null
+  attempt_status?: string | null
+  usage_quality?: string | null
+  uses_word_in_context?: boolean | null
+  is_meta_sentence?: boolean | null
 }
 
 interface SentenceDateRow {
@@ -33,6 +43,8 @@ interface RecentActivityRow {
   original_text: string
   ai_score: number | null
   created_at: string
+  attempt_status?: string | null
+  usage_quality?: string | null
   words: JoinedWord
 }
 
@@ -65,15 +77,23 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   // Average score from sentences
   const { data: scoreData } = await supabase
     .from('sentences')
-    .select('ai_score')
+    .select('ai_score, attempt_status, usage_quality, uses_word_in_context, is_meta_sentence')
     .eq('user_id', userId)
 
   let averageScore = 0
   const totalSentences = scoreData?.length || 0
+  let contextualUsageCount = 0
+  let weakUsageCount = 0
+  let metaSentenceCount = 0
+  let needsHelpCount = 0
   if (scoreData && scoreData.length > 0) {
     const rows = scoreData as SentenceScoreRow[]
     const sum = rows.reduce((acc, row) => acc + (row.ai_score ?? 0), 0)
     averageScore = Math.round(sum / scoreData.length)
+    contextualUsageCount = rows.filter((row) => row.uses_word_in_context === true).length
+    weakUsageCount = rows.filter((row) => row.usage_quality === 'weak').length
+    metaSentenceCount = rows.filter((row) => row.is_meta_sentence === true).length
+    needsHelpCount = rows.filter((row) => row.attempt_status === 'needs_help').length
   }
 
   // Streak: count consecutive days with at least one sentence, going backwards from today
@@ -114,6 +134,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     averageScore,
     totalSentences,
     streakDays,
+    contextualUsageCount,
+    weakUsageCount,
+    metaSentenceCount,
+    needsHelpCount,
   }
 }
 
@@ -123,7 +147,7 @@ export async function getRecentActivity(limit: number = 10): Promise<RecentActiv
 
   const { data, error } = await supabase
     .from('sentences')
-    .select('id, original_text, ai_score, created_at, words!inner(word)')
+    .select('id, original_text, ai_score, created_at, attempt_status, usage_quality, words!inner(word)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(limit)
@@ -136,5 +160,7 @@ export async function getRecentActivity(limit: number = 10): Promise<RecentActiv
     sentence: row.original_text,
     score: row.ai_score ?? 0,
     created_at: row.created_at,
+    attemptStatus: row.attempt_status ?? 'valid',
+    usageQuality: row.usage_quality ?? 'weak',
   }))
 }
