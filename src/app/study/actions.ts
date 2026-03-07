@@ -199,6 +199,7 @@ interface UserLibraryPlanRow {
   daily_new_limit?: number | null
 }
 
+
 interface SentenceHelpPayload {
   hints?: unknown
 }
@@ -212,6 +213,7 @@ let favoriteColumnSupported: boolean | null = null
 let pickUnstudiedWordRpcSupported: boolean | null = null
 
 const DEFAULT_STUDY_BATCH_SIZE = 5
+const SUPABASE_PAGE_SIZE = 1000
 const LEGACY_LIBRARY_OPTIONS = [
   { slug: 'all', name: '全部词库', tag: 'All' },
   { slug: 'cet-4', name: 'CET-4', tag: 'CET-4' },
@@ -560,22 +562,6 @@ function isMissingLibrariesTableError(error: { message?: string; details?: strin
   )
 }
 
-function applyStudyViewFilters(query: any, studyView: StudyView) {
-  switch (studyView) {
-    case 'favorites':
-      return query.eq('is_favorite', true)
-    case 'weak':
-      return query.or('last_score.lt.75,consecutive_failures.gte.2')
-    case 'recent_failures':
-      return query
-        .or('last_score.lt.60,consecutive_failures.gte.1')
-        .gte('last_reviewed_at', getRecentFailureSince())
-    case 'all':
-    default:
-      return query
-  }
-}
-
 function isWordRecord(value: unknown): value is WordRecord {
   return typeof value === 'object' && value !== null && typeof (value as WordRecord).id === 'string'
 }
@@ -672,21 +658,40 @@ async function getLibraryBySlug(supabase: SupabaseClient, librarySlug: string) {
 }
 
 async function getLibraryWordIds(supabase: SupabaseClient, libraryId: string) {
-  const { data, error } = await supabase
-    .from('library_words')
-    .select('word_id')
-    .eq('library_id', libraryId)
+  const collectedWordIds: string[] = []
+  let from = 0
 
-  if (error || !data) {
-    if (error && !isMissingLibrariesTableError(error)) {
-      console.error('Failed to load library words:', error)
+  while (true) {
+    const to = from + SUPABASE_PAGE_SIZE - 1
+    const { data, error } = await supabase
+      .from('library_words')
+      .select('word_id')
+      .eq('library_id', libraryId)
+      .order('position', { ascending: true, nullsFirst: false })
+      .range(from, to)
+
+    if (error) {
+      if (!isMissingLibrariesTableError(error)) {
+        console.error('Failed to load library words:', error)
+      }
+      return [] as string[]
     }
-    return [] as string[]
+
+    const rows = (data ?? []) as LibraryWordRow[]
+    collectedWordIds.push(
+      ...rows
+        .map((row) => row.word_id)
+        .filter((wordId): wordId is string => typeof wordId === 'string')
+    )
+
+    if (rows.length < SUPABASE_PAGE_SIZE) {
+      break
+    }
+
+    from += SUPABASE_PAGE_SIZE
   }
 
-  return (data as LibraryWordRow[])
-    .map((row) => row.word_id)
-    .filter((wordId): wordId is string => typeof wordId === 'string')
+  return collectedWordIds
 }
 
 async function ensureUserLibraryPlan(
@@ -1059,7 +1064,22 @@ async function getDueWordCount(
     .eq('user_id', userId)
     .lte('next_review_date', today)
 
-  query = applyStudyViewFilters(query, studyView)
+  switch (studyView) {
+    case 'favorites':
+      query = query.eq('is_favorite', true)
+      break
+    case 'weak':
+      query = query.or('last_score.lt.75,consecutive_failures.gte.2')
+      break
+    case 'recent_failures':
+      query = query
+        .or('last_score.lt.60,consecutive_failures.gte.1')
+        .gte('last_reviewed_at', getRecentFailureSince())
+      break
+    case 'all':
+    default:
+      break
+  }
 
   if (tag !== 'All') {
     query = query.eq('words.tags', tag)
@@ -1095,7 +1115,22 @@ async function getDueStudyItems(
     .eq('user_id', userId)
     .lte('next_review_date', today)
 
-  query = applyStudyViewFilters(query, studyView)
+  switch (studyView) {
+    case 'favorites':
+      query = query.eq('is_favorite', true)
+      break
+    case 'weak':
+      query = query.or('last_score.lt.75,consecutive_failures.gte.2')
+      break
+    case 'recent_failures':
+      query = query
+        .or('last_score.lt.60,consecutive_failures.gte.1')
+        .gte('last_reviewed_at', getRecentFailureSince())
+      break
+    case 'all':
+    default:
+      break
+  }
 
   if (tag !== 'All') {
     query = query.eq('words.tags', tag)
