@@ -219,6 +219,10 @@ interface SentenceHelpPayload {
 interface SentenceHelpItemPayload {
   sentence?: unknown
   cue?: unknown
+  text?: unknown
+  tip?: unknown
+  explanation?: unknown
+  reason?: unknown
 }
 
 let favoriteColumnSupported: boolean | null = null
@@ -310,6 +314,135 @@ function extractJsonObject(content: string) {
 
   const match = trimmed.match(/\{[\s\S]*\}/)
   return match?.[0] ?? trimmed
+}
+
+function extractJsonArray(content: string) {
+  const trimmed = content.trim()
+  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    return trimmed
+  }
+
+  const match = trimmed.match(/\[[\s\S]*\]/)
+  return match?.[0] ?? trimmed
+}
+
+function stripMarkdownCodeFence(content: string) {
+  const trimmed = content.trim()
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i)
+  if (fenced?.[1]) {
+    return fenced[1].trim()
+  }
+
+  return trimmed
+}
+
+function repairJsonLikeString(content: string) {
+  return content
+    .replace(/^\uFEFF/, '')
+    .replace(/,\s*([}\]])/g, '$1')
+    .trim()
+}
+
+function normalizeSentenceHelpPayloadValue(value: unknown): SentenceHelpPayload {
+  if (Array.isArray(value)) {
+    return { hints: value }
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return {}
+  }
+
+  const record = value as Record<string, unknown>
+
+  if (Array.isArray(record.hints)) {
+    return { hints: record.hints }
+  }
+
+  if (Array.isArray(record.items)) {
+    return { hints: record.items }
+  }
+
+  if (Array.isArray(record.examples)) {
+    return { hints: record.examples }
+  }
+
+  if (typeof record.data === 'object' && record.data !== null) {
+    const nested = normalizeSentenceHelpPayloadValue(record.data)
+    if (Array.isArray(nested.hints)) {
+      return nested
+    }
+  }
+
+  if (typeof record.result === 'object' && record.result !== null) {
+    const nested = normalizeSentenceHelpPayloadValue(record.result)
+    if (Array.isArray(nested.hints)) {
+      return nested
+    }
+  }
+
+  if (typeof record.output === 'object' && record.output !== null) {
+    const nested = normalizeSentenceHelpPayloadValue(record.output)
+    if (Array.isArray(nested.hints)) {
+      return nested
+    }
+  }
+
+  return {}
+}
+
+function parseSentenceHelpPayload(content: string): SentenceHelpPayload {
+  const candidates = Array.from(
+    new Set(
+      [
+        content,
+        stripMarkdownCodeFence(content),
+        extractJsonObject(stripMarkdownCodeFence(content)),
+        extractJsonArray(stripMarkdownCodeFence(content)),
+      ]
+        .map((item) => repairJsonLikeString(item))
+        .filter(Boolean)
+    )
+  )
+
+  let lastError: unknown = null
+
+  for (const candidate of candidates) {
+    try {
+      return normalizeSentenceHelpPayloadValue(JSON.parse(candidate))
+    } catch (error) {
+      lastError = error
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Unable to parse sentence help payload')
+}
+
+function extractChatMessageText(content: unknown) {
+  if (typeof content === 'string') {
+    return content.trim()
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map((item) => {
+        if (typeof item === 'string') {
+          return item
+        }
+
+        if (typeof item === 'object' && item !== null) {
+          const part = item as Record<string, unknown>
+          if (typeof part.text === 'string') {
+            return part.text
+          }
+        }
+
+        return ''
+      })
+      .join('\n')
+      .trim()
+  }
+
+  return ''
 }
 
 function getModelProviderLabel(apiBase: string) {
@@ -425,14 +558,26 @@ function normalizeSentenceHelp(
   payload: SentenceHelpPayload,
   word: string
 ): SentenceHelpItem[] {
-  const items = Array.isArray(payload.hints) ? (payload.hints as SentenceHelpItemPayload[]) : []
+  const items = Array.isArray(payload.hints) ? payload.hints : []
   const normalizedWord = word.trim().toLowerCase()
 
   return items
-    .map((item) => ({
-      sentence: sanitizeText(item.sentence).trim(),
-      cue: sanitizeText(item.cue).trim(),
-    }))
+    .map((item) => {
+      if (typeof item === 'string') {
+        return {
+          sentence: item.trim(),
+          cue: '',
+        }
+      }
+
+      const payloadItem = (item ?? {}) as SentenceHelpItemPayload
+      return {
+        sentence: sanitizeText(payloadItem.sentence ?? payloadItem.text).trim(),
+        cue: sanitizeText(
+          payloadItem.cue ?? payloadItem.tip ?? payloadItem.explanation ?? payloadItem.reason
+        ).trim(),
+      }
+    })
     .filter((item) => item.sentence.length > 0)
     .filter((item) => {
       if (!normalizedWord) {
@@ -1413,6 +1558,8 @@ export async function generateSentenceHelp(
               'Each item must include:',
               '- sentence: an English sentence.',
               '- cue: one concise coaching tip in Simplified Chinese explaining why this sentence works or how to adapt it.',
+              'Do not wrap the JSON in markdown code fences.',
+              'Do not add any explanation before or after the JSON.',
               'Avoid fake dictionary-style lines and avoid repetitive sentence frames.',
               'Schema: {"hints":[{"sentence":"...","cue":"..."}]}',
             ].join('\n'),
@@ -1445,8 +1592,8 @@ export async function generateSentenceHelp(
     }
 
     const data = await response.json()
-    const content = data.choices?.[0]?.message?.content
-    if (typeof content !== 'string' || !content.trim()) {
+    const content = extractChatMessageText(data.choices?.[0]?.message?.content)
+    if (!content) {
       return buildSentenceHelpFallbackResult({
         reason: 'empty_content',
         remoteModelLabel,
@@ -1458,9 +1605,12 @@ export async function generateSentenceHelp(
 
     let parsed: SentenceHelpPayload
     try {
-      parsed = JSON.parse(extractJsonObject(content)) as SentenceHelpPayload
+      parsed = parseSentenceHelpPayload(content)
     } catch (error) {
-      console.error('Failed to parse sentence help JSON:', error)
+      console.error('Failed to parse sentence help JSON:', {
+        error,
+        rawContentPreview: content.slice(0, 1200),
+      })
       return buildSentenceHelpFallbackResult({
         reason: 'parse_error',
         remoteModelLabel,
