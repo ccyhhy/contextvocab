@@ -2,6 +2,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { requireActionSession } from '@/lib/supabase/user'
+import { formatDateInAppTimeZone, getTodayDateString, shiftDateString } from '@/lib/app-date'
 
 const DASHBOARD_PAGE_SIZE = 1000
 
@@ -29,14 +30,11 @@ export interface RecentActivity {
 
 interface SentenceScoreRow {
   ai_score: number | null
+  created_at: string
   attempt_status?: string | null
   usage_quality?: string | null
   uses_word_in_context?: boolean | null
   is_meta_sentence?: boolean | null
-}
-
-interface SentenceDateRow {
-  created_at: string
 }
 
 interface WordIdRow {
@@ -61,10 +59,6 @@ function readJoinedWord(words: JoinedWord): string {
   }
 
   return words?.word ?? 'Unknown'
-}
-
-function getTodayDateString() {
-  return new Date().toISOString().split('T')[0]
 }
 
 async function getAllWordIdsByTable(
@@ -127,7 +121,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const userId = user.id
   const today = getTodayDateString()
 
-  const [{ count: dueToday }, scoreResult, sentenceDatesResult, totalStudied] = await Promise.all([
+  const [{ count: dueToday }, scoreResult, totalStudied] = await Promise.all([
     supabase
       .from('user_words')
       .select('id', { count: 'exact', head: true })
@@ -136,19 +130,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .lte('next_review_date', today),
     supabase
       .from('sentences')
-      .select('ai_score, attempt_status, usage_quality, uses_word_in_context, is_meta_sentence')
+      .select('ai_score, created_at, attempt_status, usage_quality, uses_word_in_context, is_meta_sentence')
       .eq('user_id', userId),
-    supabase
-      .from('sentences')
-      .select('created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(365),
     getStartedWordCount(supabase, userId),
   ])
 
   const scoreData = scoreResult.data as SentenceScoreRow[] | null
-  const sentenceDates = sentenceDatesResult.data as SentenceDateRow[] | null
 
   let averageScore = 0
   const totalSentences = scoreData?.length || 0
@@ -168,25 +155,19 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   }
 
   let streakDays = 0
-  if (sentenceDates && sentenceDates.length > 0) {
+  if (scoreData && scoreData.length > 0) {
     const uniqueDays = new Set(
-      sentenceDates.map((row) => new Date(row.created_at).toISOString().split('T')[0])
+      scoreData.map((row) => formatDateInAppTimeZone(row.created_at))
     )
-    const checkDate = new Date()
-    const todayStr = checkDate.toISOString().split('T')[0]
-
-    if (!uniqueDays.has(todayStr)) {
-      checkDate.setDate(checkDate.getDate() - 1)
-    }
+    let checkDate = uniqueDays.has(today) ? today : shiftDateString(today, -1)
 
     for (let i = 0; i < 365; i += 1) {
-      const dateStr = checkDate.toISOString().split('T')[0]
-      if (!uniqueDays.has(dateStr)) {
+      if (!uniqueDays.has(checkDate)) {
         break
       }
 
       streakDays += 1
-      checkDate.setDate(checkDate.getDate() - 1)
+      checkDate = shiftDateString(checkDate, -1)
     }
   }
 

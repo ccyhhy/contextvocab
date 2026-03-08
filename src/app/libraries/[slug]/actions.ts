@@ -3,6 +3,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { requireActionSession } from '@/lib/supabase/user'
+import { getTodayDateString } from '@/lib/app-date'
 
 const LIBRARY_WORD_PAGE_SIZE = 100
 const ADD_WORD_SEARCH_LIMIT = 12
@@ -143,10 +144,6 @@ function normalizeLibraryWordRow(value: unknown): LibraryDetailWord | null {
     example: word.example ?? null,
     position: typeof row.position === 'number' ? row.position : null,
   }
-}
-
-function getTodayDateString() {
-  return new Date().toISOString().slice(0, 10)
 }
 
 function getSearchPattern(query: string) {

@@ -14,6 +14,7 @@ import {
   type StudyPriorityReason,
 } from '@/lib/study-scheduler'
 import { requireActionSession } from '@/lib/supabase/user'
+import { getTodayDateString, shiftDateString } from '@/lib/app-date'
 
 export type AttemptStatus = 'valid' | 'needs_help'
 export type UsageQuality = 'strong' | 'weak' | 'meta' | 'invalid'
@@ -212,6 +213,8 @@ interface UserLibraryPlanRow {
   status?: 'active' | 'paused' | 'completed' | null
   daily_new_limit?: number | null
 }
+
+type DueStudyCategory = Exclude<StudyPriorityReason, 'new'>
 
 
 interface SentenceHelpPayload {
@@ -764,10 +767,6 @@ function toPostgrestInList(ids: string[]) {
   return `(${safeIds.map((id) => `"${id}"`).join(',')})`
 }
 
-function getTodayDateString() {
-  return new Date().toISOString().split('T')[0]
-}
-
 async function getLibraryBySlug(supabase: SupabaseClient, librarySlug: string) {
   const normalizedSlug = normalizeLibrarySlug(librarySlug)
   if (normalizedSlug === 'all') {
@@ -1267,16 +1266,17 @@ async function getDueWordCount(
   return count ?? 0
 }
 
-async function getDueStudyItems(
+async function getDueRowsByCategory(
   supabase: SupabaseClient,
   userId: string,
   tag: string,
   today: string,
   skippedWordIds: string[],
   preferredWordIds: string[],
-  batchSize: number,
   studyView: StudyView,
-  libraryWordIds: string[] = []
+  libraryWordIds: string[],
+  category: DueStudyCategory,
+  limit: number
 ) {
   let query = supabase
     .from('user_words')
@@ -1314,17 +1314,90 @@ async function getDueStudyItems(
     query = query.not('word_id', 'in', toPostgrestInList(skippedWordIds))
   }
 
-  const { data } = await query.limit(Math.max(batchSize * 6, 24))
-  const sorted = sortDueCandidates((data ?? []) as UserWordRecord[], today)
+  switch (category) {
+    case 'leech_due':
+      query = query
+        .gte('consecutive_failures', 3)
+        .order('consecutive_failures', { ascending: false, nullsFirst: false })
+        .order('next_review_date', { ascending: true })
+        .order('last_reviewed_at', { ascending: true, nullsFirst: true })
+      break
+    case 'overdue':
+      query = query
+        .lt('next_review_date', today)
+        .order('next_review_date', { ascending: true })
+        .order('last_reviewed_at', { ascending: true, nullsFirst: true })
+      break
+    case 'weak_due':
+      query = query
+        .eq('next_review_date', today)
+        .lt('last_score', 75)
+        .order('last_score', { ascending: true, nullsFirst: false })
+        .order('last_reviewed_at', { ascending: true, nullsFirst: true })
+      break
+    case 'due':
+      query = query
+        .eq('next_review_date', today)
+        .order('last_reviewed_at', { ascending: true, nullsFirst: true })
+        .order('created_at', { ascending: true, nullsFirst: true })
+      break
+    default:
+      break
+  }
 
-  return sorted
-    .map((row) =>
-      normalizeStudyBatchItem(row, {
-        isNew: false,
-        priorityReason: getStudyPriorityReason(row, today),
-      })
+  const { data } = await query.limit(limit)
+  return sortDueCandidates((data ?? []) as UserWordRecord[], today).filter(
+    (row) => getStudyPriorityReason(row, today) === category
+  )
+}
+
+async function getDueStudyItems(
+  supabase: SupabaseClient,
+  userId: string,
+  tag: string,
+  today: string,
+  skippedWordIds: string[],
+  preferredWordIds: string[],
+  batchSize: number,
+  studyView: StudyView,
+  libraryWordIds: string[] = []
+) {
+  const targetSize = Math.max(batchSize * 6, 24)
+  const categories: DueStudyCategory[] = ['leech_due', 'overdue', 'weak_due', 'due']
+  const items: StudyBatchItem[] = []
+
+  for (const category of categories) {
+    const rows = await getDueRowsByCategory(
+      supabase,
+      userId,
+      tag,
+      today,
+      skippedWordIds,
+      preferredWordIds,
+      studyView,
+      libraryWordIds,
+      category,
+      targetSize
     )
-    .filter((item): item is StudyBatchItem => item !== null)
+
+    for (const row of rows) {
+      const item = normalizeStudyBatchItem(row, {
+        isNew: false,
+        priorityReason: category,
+      })
+
+      if (!item) {
+        continue
+      }
+
+      items.push(item)
+      if (items.length >= targetSize) {
+        return items
+      }
+    }
+  }
+
+  return items
 }
 
 async function getNewStudyItems(
@@ -1957,6 +2030,7 @@ export async function submitSentence(
 ): Promise<StudySubmissionResult> {
   const { supabase, user } = await requireActionSession()
   let evaluation: EvaluationResult | null = null
+  const today = getTodayDateString()
 
   if (streamedContent?.trim()) {
     try {
@@ -1986,7 +2060,6 @@ export async function submitSentence(
   }
 
   if (!currentSrs) {
-    const today = getTodayDateString()
     const library = await getLibraryBySlug(supabase, librarySlug ?? 'all')
     const attached = await attachWordToUser(wordId, today, supabase, user.id, library?.id)
 
@@ -2010,6 +2083,7 @@ export async function submitSentence(
 
   const reviewStats = getNextFailureCounters(currentSrs, nextSrs.reviewBucket)
   const reviewedAt = new Date().toISOString()
+  const nextReviewDate = shiftDateString(today, nextSrs.interval)
 
   const { error: updateError } = await supabase
     .from('user_words')
@@ -2017,7 +2091,7 @@ export async function submitSentence(
       repetitions: nextSrs.repetitions,
       interval: nextSrs.interval,
       ease_factor: nextSrs.easeFactor,
-      next_review_date: nextSrs.nextReviewDate.toISOString().split('T')[0],
+      next_review_date: nextReviewDate,
       last_score: evaluation.score,
       last_reviewed_at: reviewedAt,
       consecutive_failures: reviewStats.consecutiveFailures,
@@ -2029,7 +2103,7 @@ export async function submitSentence(
     throw updateError
   }
 
-  const { data: savedSentence } = await supabase
+  const { data: savedSentence, error: savedSentenceError } = await supabase
     .from('sentences')
     .insert({
       user_id: user.id,
@@ -2044,6 +2118,29 @@ export async function submitSentence(
     })
     .select()
     .single()
+
+  if (savedSentenceError) {
+    const { error: rollbackError } = await supabase
+      .from('user_words')
+      .update({
+        repetitions: currentSrs.repetitions,
+        interval: currentSrs.interval,
+        ease_factor: currentSrs.ease_factor,
+        next_review_date: currentSrs.next_review_date ?? today,
+        last_score: currentSrs.last_score ?? null,
+        last_reviewed_at: currentSrs.last_reviewed_at ?? null,
+        consecutive_failures: currentSrs.consecutive_failures ?? 0,
+        lapse_count: currentSrs.lapse_count ?? 0,
+      })
+      .eq('id', userWordId)
+
+    if (rollbackError) {
+      console.error('Failed to rollback user_words after sentence insert error:', rollbackError)
+      throw new Error('Failed to save sentence history and rollback study state.')
+    }
+
+    throw savedSentenceError
+  }
 
   await touchLibraryProgress(supabase, user.id, wordId, librarySlug)
 
