@@ -61,6 +61,7 @@ export interface StudySubmissionResult {
   savedSentence: unknown | null
   evaluationModelLabel: string
   reviewImpact: 'scheduled' | 'practice_only'
+  userWordId: string | null
 }
 
 export interface StudyWordInfo {
@@ -73,6 +74,7 @@ export interface StudyWordInfo {
 
 export interface StudyBatchItem {
   id: string
+  userWordId: string | null
   word_id: string
   words: StudyWordInfo
   isNew: boolean
@@ -226,8 +228,6 @@ interface SentenceHelpItemPayload {
 }
 
 let favoriteColumnSupported: boolean | null = null
-let pickUnstudiedWordRpcSupported: boolean | null = null
-
 const DEFAULT_STUDY_BATCH_SIZE = 5
 const SUPABASE_PAGE_SIZE = 1000
 const LEGACY_LIBRARY_OPTIONS = [
@@ -728,7 +728,31 @@ function normalizeStudyBatchItem(
 
   return {
     id: value.id,
+    userWordId: value.id,
     word_id: value.word_id,
+    words,
+    isNew: overrides.isNew,
+    priorityReason: overrides.priorityReason,
+  }
+}
+
+function normalizeNewStudyBatchItem(
+  value: unknown,
+  overrides: Pick<StudyBatchItem, 'isNew' | 'priorityReason'>
+): StudyBatchItem | null {
+  if (!isWordRecord(value)) {
+    return null
+  }
+
+  const words = normalizeWordInfo(value)
+  if (!words) {
+    return null
+  }
+
+  return {
+    id: `new:${value.id}`,
+    userWordId: null,
+    word_id: value.id,
     words,
     isNew: overrides.isNew,
     priorityReason: overrides.priorityReason,
@@ -973,12 +997,78 @@ async function getUserFavoriteWordIds(
     .filter((wordId): wordId is string => typeof wordId === 'string')
 }
 
+async function getStartedWordIds(
+  supabase: SupabaseClient,
+  userId: string,
+  candidateWordIds?: string[]
+) {
+  const startedWordIds = new Set<string>()
+  const tables = ['user_words', 'sentences', 'user_library_words'] as const
+
+  for (const table of tables) {
+    if (candidateWordIds && candidateWordIds.length > 0) {
+      for (let from = 0; from < candidateWordIds.length; from += SUPABASE_PAGE_SIZE) {
+        const chunk = candidateWordIds.slice(from, from + SUPABASE_PAGE_SIZE)
+        if (chunk.length === 0) {
+          continue
+        }
+
+        const { data, error } = await supabase
+          .from(table)
+          .select('word_id')
+          .eq('user_id', userId)
+          .in('word_id', chunk)
+
+        if (error) {
+          console.error(`Failed to load started word ids from ${table}:`, error)
+          continue
+        }
+
+        for (const row of (data ?? []) as Array<{ word_id?: string | null }>) {
+          if (typeof row.word_id === 'string') {
+            startedWordIds.add(row.word_id)
+          }
+        }
+      }
+
+      continue
+    }
+
+    for (let from = 0; ; from += SUPABASE_PAGE_SIZE) {
+      const to = from + SUPABASE_PAGE_SIZE - 1
+      const { data, error } = await supabase
+        .from(table)
+        .select('word_id')
+        .eq('user_id', userId)
+        .range(from, to)
+
+      if (error) {
+        console.error(`Failed to load started word ids from ${table}:`, error)
+        break
+      }
+
+      const rows = (data ?? []) as Array<{ word_id?: string | null }>
+      for (const row of rows) {
+        if (typeof row.word_id === 'string') {
+          startedWordIds.add(row.word_id)
+        }
+      }
+
+      if (rows.length < SUPABASE_PAGE_SIZE) {
+        break
+      }
+    }
+  }
+
+  return startedWordIds
+}
+
 async function pickRandomUnseenWord(
   tag: string,
   skippedWordIds: string[],
   preferredWordIds: string[],
   supabase: SupabaseClient,
-  userId: string,
+  startedWordIds: Set<string>,
   attempts = 8
 ): Promise<WordRecord | null> {
   let countQuery = supabase.from('words').select('id', { count: 'exact', head: true })
@@ -1011,13 +1101,7 @@ async function pickRandomUnseenWord(
       continue
     }
 
-    const { count: studiedCount } = await supabase
-      .from('user_words')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('word_id', candidate.id)
-
-    if (!studiedCount) {
+    if (!startedWordIds.has(candidate.id)) {
       return candidate
     }
   }
@@ -1030,18 +1114,9 @@ async function findFallbackUnseenWord(
   skippedWordIds: string[],
   preferredWordIds: string[],
   supabase: SupabaseClient,
-  userId: string
+  startedWordIds: Set<string>
 ): Promise<WordRecord | null> {
-  const { data: studiedRows } = await supabase
-    .from('user_words')
-    .select('word_id')
-    .eq('user_id', userId)
-
-  const studiedWordIds = (studiedRows ?? [])
-    .map((row) => row.word_id)
-    .filter((id): id is string => typeof id === 'string')
-
-  const excludeIds = [...new Set([...studiedWordIds, ...skippedWordIds])]
+  const excludeIds = [...new Set([...startedWordIds, ...skippedWordIds])]
   let fallbackQuery = supabase.from('words').select('*')
   if (tag !== 'All') {
     fallbackQuery = fallbackQuery.eq('tags', tag)
@@ -1065,36 +1140,21 @@ async function pickUnseenWord(
   supabase: SupabaseClient,
   userId: string
 ): Promise<WordRecord | null> {
-  if (pickUnstudiedWordRpcSupported !== false && preferredWordIds.length === 0) {
-    const { data: rpcCandidates, error: rpcError } = await supabase.rpc('pick_unstudied_word', {
-      p_user_id: userId,
-      p_tag: tag,
-      p_skipped_ids: skippedWordIds,
-    })
-
-    if (rpcError) {
-      pickUnstudiedWordRpcSupported = false
-    } else {
-      pickUnstudiedWordRpcSupported = true
-      if (Array.isArray(rpcCandidates) && isWordRecord(rpcCandidates[0])) {
-        return rpcCandidates[0]
-      }
-    }
-  }
+  const startedWordIds = await getStartedWordIds(supabase, userId)
 
   const randomCandidate = await pickRandomUnseenWord(
     tag,
     skippedWordIds,
     preferredWordIds,
     supabase,
-    userId
+    startedWordIds
   )
 
   if (randomCandidate) {
     return randomCandidate
   }
 
-  return findFallbackUnseenWord(tag, skippedWordIds, preferredWordIds, supabase, userId)
+  return findFallbackUnseenWord(tag, skippedWordIds, preferredWordIds, supabase, startedWordIds)
 }
 
 async function getWordById(supabase: SupabaseClient, wordId: string) {
@@ -1274,28 +1334,15 @@ async function getNewStudyItems(
   skippedWordIds: string[],
   preferredWordIds: string[],
   batchSize: number,
-  reviewDate: string,
-  libraryWordIds: string[] = [],
-  libraryId?: string | null
+  libraryWordIds: string[] = []
 ) {
   const items: StudyBatchItem[] = []
   const excludedWordIds = new Set(skippedWordIds)
   let libraryUnseenWordIds = libraryWordIds
 
   if (libraryWordIds.length > 0) {
-    const { data: studiedRows } = await supabase
-      .from('user_words')
-      .select('word_id')
-      .eq('user_id', userId)
-      .in('word_id', libraryWordIds)
-
-    const studiedWordIds = new Set(
-      (studiedRows ?? [])
-        .map((row) => row.word_id)
-        .filter((id): id is string => typeof id === 'string')
-    )
-
-    libraryUnseenWordIds = libraryWordIds.filter((wordId) => !studiedWordIds.has(wordId))
+    const startedWordIds = await getStartedWordIds(supabase, userId, libraryWordIds)
+    libraryUnseenWordIds = libraryWordIds.filter((wordId) => !startedWordIds.has(wordId))
   }
 
   while (items.length < batchSize) {
@@ -1324,8 +1371,7 @@ async function getNewStudyItems(
     }
 
     excludedWordIds.add(candidate.id)
-    const attached = await attachWordToUser(candidate.id, reviewDate, supabase, userId, libraryId)
-    const item = normalizeStudyBatchItem(attached, {
+    const item = normalizeNewStudyBatchItem(candidate, {
       isNew: true,
       priorityReason: 'new',
     })
@@ -1827,13 +1873,11 @@ export async function getStudyBatch(params: GetStudyBatchParams = {}) {
     ? await getUserFavoriteWordIds(supabase, user.id)
     : []
   let tagFilter = tag
-  let libraryId: string | null = null
   let libraryWordIds: string[] = []
 
   if (resolvedLibrarySlug !== 'all') {
     const library = await getLibraryBySlug(supabase, resolvedLibrarySlug)
     if (library) {
-      libraryId = library.id
       tagFilter = 'All'
       libraryWordIds = await getLibraryWordIds(supabase, library.id)
       await ensureUserLibraryPlan(supabase, user.id, library.id)
@@ -1880,9 +1924,7 @@ export async function getStudyBatch(params: GetStudyBatchParams = {}) {
         [...skippedWordIds, ...dueItems.map((item) => item.word_id)],
         preferredWordIds,
         batchSize,
-        today,
-        libraryWordIds,
-        libraryId
+        libraryWordIds
       )
 
   return composeStudyBatch(dueItems, newItems, dueCount, isReviewOnlyView(resolvedStudyView), batchSize)
@@ -1904,7 +1946,7 @@ export async function getNextWord(
 }
 
 export async function submitSentence(
-  userWordId: string,
+  userWordId: string | null,
   wordId: string,
   wordStr: string,
   definition: string,
@@ -1929,15 +1971,33 @@ export async function submitSentence(
     evaluation = await evaluateSentence(wordStr, sentence, definition, tags, learningHistory)
   }
 
-  const { data: currentSrs } = await supabase
-    .from('user_words')
-    .select('*')
-    .eq('id', userWordId)
-    .single()
+  let currentSrs: UserWordRecord | null = null
 
-  if (!currentSrs || !isUserWordRecord(currentSrs)) {
-    throw new Error('User word not found')
+  if (userWordId) {
+    const { data } = await supabase
+      .from('user_words')
+      .select('*')
+      .eq('id', userWordId)
+      .single()
+
+    if (isUserWordRecord(data)) {
+      currentSrs = data
+    }
   }
+
+  if (!currentSrs) {
+    const today = getTodayDateString()
+    const library = await getLibraryBySlug(supabase, librarySlug ?? 'all')
+    const attached = await attachWordToUser(wordId, today, supabase, user.id, library?.id)
+
+    if (!attached || !isUserWordRecord(attached)) {
+      throw new Error('User word not found')
+    }
+
+    currentSrs = attached
+  }
+
+  userWordId = currentSrs.id
 
   const nextSrs = calculateNextReview(
     {
@@ -1998,6 +2058,7 @@ export async function submitSentence(
     savedSentence,
     evaluationModelLabel: formatModelLabel(evaluationModel, evaluationApiBase),
     reviewImpact: 'scheduled',
+    userWordId,
   }
 }
 
@@ -2037,6 +2098,7 @@ export async function rewriteSentence(
     savedSentence: null,
     evaluationModelLabel: formatModelLabel(evaluationModel, evaluationApiBase),
     reviewImpact: 'practice_only',
+    userWordId: null,
   }
 }
 

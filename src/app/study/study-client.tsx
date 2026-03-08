@@ -714,7 +714,7 @@ export default function StudyClient({
               streamedContent
             )
           : await submitSentence(
-              currentWord.id,
+              currentWord.userWordId,
               currentWord.word_id,
               wordData.word,
               wordData.definition || "",
@@ -741,6 +741,8 @@ export default function StudyClient({
 
           const requeuedWord: StudyBatchItem = {
             ...currentWord,
+            id: submission.userWordId ?? currentWord.id,
+            userWordId: submission.userWordId,
             isNew: false,
             priorityReason: "due",
           }
