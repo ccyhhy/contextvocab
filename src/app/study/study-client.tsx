@@ -36,6 +36,7 @@ import {
   type SentenceHelpResult,
   type StudySubmissionResult,
   type StudyBatchItem,
+  type StudyEnrichmentProgress,
   type StudyLibrary,
   type StudyView,
 } from "./actions"
@@ -239,6 +240,48 @@ function getSceneTagLabel(tag: string) {
   return labels[tag] ?? tag
 }
 
+function formatCoveragePercent(done: number, total: number) {
+  if (total <= 0) {
+    return 0
+  }
+
+  return Math.round((done / total) * 100)
+}
+
+function EnrichmentProgressBar({
+  label,
+  value,
+  total,
+  barClassName,
+}: {
+  label: string
+  value: number
+  total: number
+  barClassName: string
+}) {
+  const percent = formatCoveragePercent(value, total)
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-zinc-200">{label}</span>
+          <span className="text-xs text-zinc-500">{value} / {total}</span>
+        </div>
+        <span className="text-xs font-medium text-zinc-300">{percent}%</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${percent}%` }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          className={`h-full rounded-full ${barClassName}`}
+        />
+      </div>
+    </div>
+  )
+}
+
 function AnimatedScore({ score }: { score: number }) {
   const [displayScore, setDisplayScore] = useState(0)
 
@@ -388,11 +431,13 @@ async function streamEvaluateSentence(
 export default function StudyClient({
   initialBatch,
   initialFavoriteWordIds,
+  enrichmentProgress,
   libraries,
   initialLibrarySlug,
 }: {
   initialBatch: StudyBatchItem[]
   initialFavoriteWordIds: string[]
+  enrichmentProgress: StudyEnrichmentProgress[]
   libraries: StudyLibrary[]
   initialLibrarySlug: string
 }) {
@@ -429,6 +474,10 @@ export default function StudyClient({
   const sentenceHelpCacheRef = useRef<Record<string, SentenceHelpResult>>({})
   const selectedLibrary =
     libraries.find((item) => item.slug === librarySlug) ?? null
+  const selectedEnrichmentProgress =
+    enrichmentProgress.find((item) => item.slug === librarySlug) ??
+    enrichmentProgress.find((item) => item.slug === "all") ??
+    null
 
   const updateSpeechConfig = (updater: (current: SpeechConfig) => SpeechConfig) => {
     setSpeechConfig((current) => {
@@ -1423,6 +1472,41 @@ export default function StudyClient({
           )}
         </div>
       </div>
+
+      {selectedEnrichmentProgress ? (
+        <div className="glass-panel rounded-2xl px-4 py-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">词库完善进度</div>
+              <div className="mt-1 text-sm text-zinc-300">
+                当前显示 <span className="font-medium text-white">{selectedEnrichmentProgress.name}</span>
+              </div>
+            </div>
+            <div className="text-right text-xs text-zinc-500">
+              <div>例句覆盖 {selectedEnrichmentProgress.exampleWords} / {selectedEnrichmentProgress.totalWords}</div>
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-4">
+            <EnrichmentProgressBar
+              label="基础覆盖"
+              value={selectedEnrichmentProgress.coveredWords}
+              total={selectedEnrichmentProgress.totalWords}
+              barClassName="bg-gradient-to-r from-sky-500 to-cyan-400"
+            />
+            <EnrichmentProgressBar
+              label="深度精修"
+              value={selectedEnrichmentProgress.refinedWords}
+              total={selectedEnrichmentProgress.totalWords}
+              barClassName="bg-gradient-to-r from-emerald-500 to-teal-400"
+            />
+          </div>
+
+          <div className="mt-3 text-xs leading-6 text-zinc-500">
+            基础覆盖表示已有核心义、场景和搭配。深度精修表示已有更完整的语义说明、辨析或高质量例句。
+          </div>
+        </div>
+      ) : null}
 
       <div className={`glass-panel rounded-3xl p-8 ${loadingNext ? "pointer-events-none opacity-50 blur-sm" : ""}`}>
         <div className="mb-4 flex items-center justify-between gap-3">

@@ -120,6 +120,15 @@ export interface StudyLibrary {
   dailyNewLimit: number | null
 }
 
+export interface StudyEnrichmentProgress {
+  slug: string
+  name: string
+  totalWords: number
+  coveredWords: number
+  refinedWords: number
+  exampleWords: number
+}
+
 export interface SentenceHelpItem {
   sentence: string
   cue: string
@@ -1935,6 +1944,127 @@ async function buildLibrarySummary(
   }
 }
 
+interface WordProfileProgressRow {
+  word_id?: string | null
+  generation_method?: string | null
+}
+
+interface WordIdRow {
+  id?: string | null
+}
+
+interface WordIdOnlyRow {
+  word_id?: string | null
+}
+
+const OFFICIAL_LIBRARY_TAG_MAP: Record<string, string> = {
+  'cet-4': 'CET-4',
+  'cet-6': 'CET-6',
+}
+
+function isBaseGenerationMethod(method?: string | null) {
+  return typeof method === 'string' && method.includes('base')
+}
+
+async function getWordIdsByOfficialTag(supabase: SupabaseClient, tag: string) {
+  const ids: string[] = []
+  let from = 0
+
+  while (true) {
+    const to = from + SUPABASE_PAGE_SIZE - 1
+    const { data, error } = await supabase
+      .from('words')
+      .select('id')
+      .ilike('tags', `%${tag}%`)
+      .order('word', { ascending: true })
+      .range(from, to)
+
+    if (error) {
+      console.error('Failed to load official library word ids for progress:', error)
+      return [] as string[]
+    }
+
+    const rows = (data ?? []) as WordIdRow[]
+    ids.push(...rows.map((row) => row.id).filter((id): id is string => typeof id === 'string'))
+
+    if (rows.length < SUPABASE_PAGE_SIZE) {
+      break
+    }
+
+    from += SUPABASE_PAGE_SIZE
+  }
+
+  return ids
+}
+
+async function getAllWordProfileProgressRows(supabase: SupabaseClient) {
+  const rows: WordProfileProgressRow[] = []
+  let from = 0
+
+  while (true) {
+    const to = from + SUPABASE_PAGE_SIZE - 1
+    const { data, error } = await supabase
+      .from('word_profiles')
+      .select('word_id, generation_method')
+      .order('word_id', { ascending: true })
+      .range(from, to)
+
+    if (error) {
+      if (!isMissingWordProfileTableError(error)) {
+        console.error('Failed to load word profile progress:', error)
+      }
+      return [] as WordProfileProgressRow[]
+    }
+
+    const pageRows = (data ?? []) as WordProfileProgressRow[]
+    rows.push(...pageRows)
+
+    if (pageRows.length < SUPABASE_PAGE_SIZE) {
+      break
+    }
+
+    from += SUPABASE_PAGE_SIZE
+  }
+
+  return rows
+}
+
+async function getAllExampleWordIds(supabase: SupabaseClient) {
+  const ids = new Set<string>()
+  let from = 0
+
+  while (true) {
+    const to = from + SUPABASE_PAGE_SIZE - 1
+    const { data, error } = await supabase
+      .from('word_profile_examples')
+      .select('word_id')
+      .order('word_id', { ascending: true })
+      .range(from, to)
+
+    if (error) {
+      if (!isMissingWordProfileTableError(error)) {
+        console.error('Failed to load word example progress:', error)
+      }
+      return ids
+    }
+
+    const pageRows = (data ?? []) as WordIdOnlyRow[]
+    for (const row of pageRows) {
+      if (typeof row.word_id === 'string') {
+        ids.add(row.word_id)
+      }
+    }
+
+    if (pageRows.length < SUPABASE_PAGE_SIZE) {
+      break
+    }
+
+    from += SUPABASE_PAGE_SIZE
+  }
+
+  return ids
+}
+
 export async function getStudyLibraries(): Promise<StudyLibrary[]> {
   const { supabase, user } = await requireActionSession()
   const { data, error } = await supabase
@@ -1967,6 +2097,81 @@ export async function getStudyLibraries(): Promise<StudyLibrary[]> {
   )
 
   return Promise.all(libraries.map((library) => buildLibrarySummary(supabase, user.id, library)))
+}
+
+export async function getStudyEnrichmentProgress(
+  libraries: StudyLibrary[] = []
+): Promise<StudyEnrichmentProgress[]> {
+  const { supabase } = await requireActionSession()
+  const [{ count: totalWordsCount }, profileRows, exampleWordIds] = await Promise.all([
+    supabase.from('words').select('id', { count: 'exact', head: true }),
+    getAllWordProfileProgressRows(supabase),
+    getAllExampleWordIds(supabase),
+  ])
+
+  const coveredWordIds = new Set<string>()
+  const refinedWordIds = new Set<string>()
+
+  for (const row of profileRows) {
+    if (typeof row.word_id !== 'string') {
+      continue
+    }
+
+    coveredWordIds.add(row.word_id)
+    if (!isBaseGenerationMethod(row.generation_method)) {
+      refinedWordIds.add(row.word_id)
+    }
+  }
+
+  const progressItems: StudyEnrichmentProgress[] = [
+    {
+      slug: 'all',
+      name: '全部词库',
+      totalWords: totalWordsCount ?? 0,
+      coveredWords: coveredWordIds.size,
+      refinedWords: refinedWordIds.size,
+      exampleWords: exampleWordIds.size,
+    },
+  ]
+
+  for (const library of libraries) {
+    let libraryWordIds: string[] = []
+    const officialTag = OFFICIAL_LIBRARY_TAG_MAP[library.slug]
+
+    if (officialTag) {
+      libraryWordIds = await getWordIdsByOfficialTag(supabase, officialTag)
+    } else {
+      libraryWordIds = await getLibraryWordIds(supabase, library.id)
+    }
+
+    const libraryWordIdSet = new Set(libraryWordIds)
+    let coveredWords = 0
+    let refinedWords = 0
+    let exampleWords = 0
+
+    for (const wordId of libraryWordIdSet) {
+      if (coveredWordIds.has(wordId)) {
+        coveredWords += 1
+      }
+      if (refinedWordIds.has(wordId)) {
+        refinedWords += 1
+      }
+      if (exampleWordIds.has(wordId)) {
+        exampleWords += 1
+      }
+    }
+
+    progressItems.push({
+      slug: library.slug,
+      name: library.name,
+      totalWords: library.wordCount || libraryWordIdSet.size,
+      coveredWords,
+      refinedWords,
+      exampleWords,
+    })
+  }
+
+  return progressItems
 }
 
 export async function generateSentenceHelp(
