@@ -229,6 +229,7 @@ export interface EnrichCliOptions {
   output: string
   dryRun: boolean
   withAi: boolean
+  concurrency: number
 }
 
 export interface ImportCliOptions {
@@ -283,6 +284,7 @@ const SCENE_KEYWORDS: Record<string, string[]> = {
 
 export function parseEnrichCliArgs(argv: string[]): EnrichCliOptions {
   const stage = normalizeEnrichmentStage(getStringArg(argv, '--stage')) ?? 'base'
+  const defaultConcurrency = getDefaultConcurrencyForStage(stage)
   return {
     stage,
     tag: getStringArg(argv, '--tag') ?? null,
@@ -292,6 +294,7 @@ export function parseEnrichCliArgs(argv: string[]): EnrichCliOptions {
     output: getStringArg(argv, '--output') ?? DEFAULT_OUTPUT_FILE,
     dryRun: hasFlag(argv, '--dry-run'),
     withAi: hasFlag(argv, '--with-ai') || (!hasFlag(argv, '--no-ai') && hasAnyAiConfig()),
+    concurrency: getPositiveIntegerArg(argv, '--concurrency', defaultConcurrency),
   }
 }
 
@@ -1660,6 +1663,10 @@ export function normalizeEnrichmentStage(value: string | null | undefined): Enri
   return value === 'base' || value === 'refine' ? value : null
 }
 
+function getDefaultConcurrencyForStage(stage: EnrichmentStage) {
+  return stage === 'base' ? 4 : 2
+}
+
 function hasFlag(argv: string[], name: string) {
   return argv.includes(name)
 }
@@ -1678,6 +1685,11 @@ function getNumberArg(argv: string[], name: string, fallback: number) {
   const value = getStringArg(argv, name)
   const parsed = value ? Number(value) : fallback
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback
+}
+
+function getPositiveIntegerArg(argv: string[], name: string, fallback: number) {
+  const parsed = Math.floor(getNumberArg(argv, name, fallback))
+  return parsed >= 1 ? parsed : Math.max(1, fallback)
 }
 
 function getListArg(argv: string[], name: string) {

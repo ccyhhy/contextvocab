@@ -148,6 +148,7 @@ npm run enrich:words -- --stage base --tag CET-4 --limit 50 --output data/enrich
 Useful flags:
 
 - `--stage base|refine`: choose which layer to generate. Default is `base`
+- `--concurrency N`: worker count for enrichment. Default is `4` for `base`, `2` for `refine`
 - `--dry-run`: show a preview without writing the JSON file
 - `--no-ai`: force pure free-source + rule-based mode
 - `--with-ai`: use the stage-specific AI env vars if available

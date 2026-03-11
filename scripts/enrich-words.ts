@@ -19,15 +19,16 @@ async function main() {
     throw new Error('No source words matched the current selection.')
   }
 
-  const items = []
-  for (const wordRow of sourceWords) {
-    console.log(`enriching ${wordRow.word} [${options.stage}]...`)
-    const enriched = await generateEnrichedRecord(wordRow, { withAi: options.withAi, stage: options.stage })
-    items.push(enriched)
-    console.log(
-      `  method=${enriched.profile.generationMethod} examples=${enriched.examples.length} collocations=${enriched.profile.collocations.length}`
-    )
-  }
+  const concurrency = Math.min(options.concurrency, sourceWords.length)
+  console.log(
+    `Starting enrichment: stage=${options.stage} words=${sourceWords.length} concurrency=${concurrency} ai=${options.withAi ? 'yes' : 'no'}`
+  )
+
+  const items = await enrichWordsInParallel(sourceWords, {
+    concurrency,
+    withAi: options.withAi,
+    stage: options.stage,
+  })
 
   const dataset = buildDataset(items, {
     stage: options.stage,
@@ -51,6 +52,61 @@ async function main() {
   console.log(`  words: ${items.length}`)
   console.log(`  stage: ${options.stage}`)
   console.log(`  with AI: ${options.withAi ? 'yes' : 'no'}`)
+  console.log(`  concurrency: ${concurrency}`)
+}
+
+async function enrichWordsInParallel(
+  sourceWords: Awaited<ReturnType<typeof fetchSourceWords>>,
+  options: {
+    concurrency: number
+    withAi: boolean
+    stage: 'base' | 'refine'
+  }
+) {
+  const items = new Array(sourceWords.length)
+  let nextIndex = 0
+  let completed = 0
+
+  async function worker() {
+    while (true) {
+      const currentIndex = nextIndex
+      nextIndex += 1
+
+      if (currentIndex >= sourceWords.length) {
+        return
+      }
+
+      const wordRow = sourceWords[currentIndex]
+      const startedAt = Date.now()
+
+      try {
+        const enriched = await generateEnrichedRecord(wordRow, {
+          withAi: options.withAi,
+          stage: options.stage,
+        })
+        items[currentIndex] = enriched
+        completed += 1
+
+        if (shouldLogProgress(completed, sourceWords.length)) {
+          const elapsedSeconds = ((Date.now() - startedAt) / 1000).toFixed(1)
+          console.log(
+            `[${completed}/${sourceWords.length}] ${wordRow.word} method=${enriched.profile.generationMethod} examples=${enriched.examples.length} collocations=${enriched.profile.collocations.length} elapsed=${elapsedSeconds}s`
+          )
+        }
+      } catch (error) {
+        throw new Error(
+          `Failed to enrich "${wordRow.word}" at index ${currentIndex}: ${error instanceof Error ? error.message : String(error)}`
+        )
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: options.concurrency }, () => worker()))
+  return items
+}
+
+function shouldLogProgress(completed: number, total: number) {
+  return completed <= 3 || completed === total || completed % 10 === 0
 }
 
 main().catch((error) => {
