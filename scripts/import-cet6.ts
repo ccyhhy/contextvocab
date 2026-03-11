@@ -15,7 +15,7 @@ function parseLine(line: string): WordInsertInput | null {
 
   const phoneticMatch = trimmed.match(/\[([^\]]+)\]/)
   const phonetic = phoneticMatch ? `[${phoneticMatch[1]}]` : ''
-  const word = normalizeWord(trimmed.split(/[\s\[]/)[0] ?? '').toLowerCase()
+  const word = normalizeWord(trimmed.split(/[\s\[]/)[0] ?? '')
 
   if (!word || !/^[a-z][a-z-]*$/i.test(word)) {
     return null

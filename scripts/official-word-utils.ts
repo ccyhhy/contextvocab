@@ -68,7 +68,7 @@ export function dedupeWordInputs(items: WordInsertInput[]) {
   const byWord = new Map<string, WordInsertInput>()
 
   for (const item of items) {
-    const normalizedWord = normalizeWord(item.word).toLowerCase()
+    const normalizedWord = normalizeWord(item.word)
     if (!normalizedWord) {
       continue
     }
@@ -111,7 +111,7 @@ async function getExistingWords(supabase: SupabaseClient, words: string[]) {
   }
 
   return new Map(
-    ((data ?? []) as ExistingWordRow[]).map((row) => [row.word.toLowerCase(), row])
+    ((data ?? []) as ExistingWordRow[]).map((row) => [normalizeWord(row.word), row])
   )
 }
 

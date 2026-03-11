@@ -7,10 +7,19 @@ import { createServiceRoleClient, normalizeWord } from './official-word-utils'
 const DEFAULT_TIMEOUT_MS = 12000
 const AI_TIMEOUT_MS = Number(process.env.OPENAI_ENRICH_TIMEOUT_MS || 65000)
 const AI_RETRY_COUNT = 2
-const ENRICHED_DATA_VERSION = 1
+const ENRICHED_DATA_VERSION = 2
 const DEFAULT_OUTPUT_FILE = path.join(process.cwd(), 'data', 'enriched', 'word-profiles.generated.json')
 const AI_MAX_EXAMPLES = 2
 const CHAT_COMPLETIONS_SUFFIX = '/chat/completions'
+
+export type EnrichmentStage = 'base' | 'refine'
+type AiTask = 'base' | 'refine' | 'example'
+
+interface AiConfig {
+  apiKey: string
+  apiBase: string
+  model: string
+}
 
 const SCENE_LABELS: Record<string, string> = {
   general: '通用',
@@ -164,7 +173,7 @@ export interface WordProfileInput {
   collocations: string[]
   contrastWords: WordContrastInput[]
   confidenceScore: number
-  generationMethod: 'fallback' | 'ai'
+  generationMethod: 'fallback_base' | 'ai_base' | 'fallback_refine' | 'ai_refine' | 'fallback' | 'ai'
 }
 
 export interface WordExampleInput {
@@ -206,11 +215,13 @@ export interface EnrichedWordDataset {
     limit: number
     offset: number
     words: string[]
+    stage: EnrichmentStage
   }
   items: EnrichedWordRecord[]
 }
 
 export interface EnrichCliOptions {
+  stage: EnrichmentStage
   tag: string | null
   limit: number
   offset: number
@@ -271,7 +282,9 @@ const SCENE_KEYWORDS: Record<string, string[]> = {
 }
 
 export function parseEnrichCliArgs(argv: string[]): EnrichCliOptions {
+  const stage = normalizeEnrichmentStage(getStringArg(argv, '--stage')) ?? 'base'
   return {
+    stage,
     tag: getStringArg(argv, '--tag') ?? null,
     limit: getNumberArg(argv, '--limit', 50),
     offset: getNumberArg(argv, '--offset', 0),
@@ -310,7 +323,7 @@ export async function fetchSourceWords(
     .order('word', { ascending: true })
 
   if (options.words.length > 0) {
-    query = query.in('word', options.words.map((item) => normalizeWord(item).toLowerCase()))
+    query = query.in('word', options.words.map((item) => normalizeWord(item)))
   } else if (options.tag) {
     query = query.ilike('tags', `%${options.tag}%`)
   }
@@ -328,7 +341,7 @@ export async function fetchSourceWords(
 }
 
 export async function fetchDictionaryEvidence(word: string): Promise<DictionaryEvidence | null> {
-  const normalizedWord = normalizeWord(word).toLowerCase()
+  const normalizedWord = normalizeWord(word)
   if (!normalizedWord) {
     return null
   }
@@ -406,7 +419,7 @@ export async function fetchDictionaryEvidence(word: string): Promise<DictionaryE
 }
 
 export async function fetchDatamuseEvidence(word: string): Promise<DatamuseEvidence> {
-  const normalizedWord = normalizeWord(word).toLowerCase()
+  const normalizedWord = normalizeWord(word)
   const [meaningHints, synonymHints, associationHints, leftCollocationHints, rightCollocationHints] =
     await Promise.all([
       fetchDatamuseWordList(`https://api.datamuse.com/words?ml=${encodeURIComponent(normalizedWord)}&max=8&md=p`),
@@ -434,7 +447,7 @@ export async function fetchDatamuseEvidence(word: string): Promise<DatamuseEvide
 
 export async function generateEnrichedRecord(
   wordRow: SourceWordRow,
-  options: { withAi: boolean }
+  options: { withAi: boolean; stage: EnrichmentStage }
 ): Promise<EnrichedWordRecord> {
   const dictionaryEvidence = await fetchDictionaryEvidence(wordRow.word)
   const datamuseEvidence = await fetchDatamuseEvidence(wordRow.word)
@@ -452,19 +465,33 @@ export async function generateEnrichedRecord(
     primaryPartOfSpeech
   )
   const fallbackProfile = buildFallbackProfile(wordRow, dictionaryEvidence, datamuseEvidence, collocations, evidenceExamples)
-  const aiResult = options.withAi
-    ? await tryGenerateAiProfile(wordRow, dictionaryEvidence, datamuseEvidence, collocations, evidenceExamples)
-    : null
+  const baseFallbackProfile = buildBaseProfile(fallbackProfile)
 
-  const examples = selectBestExamples([
-    ...evidenceExamples,
-    ...(aiResult?.examples ?? []),
-  ]).map((item, index) => ({
-    ...item,
-    isPrimary: index === 0,
-  }))
+  const aiResult =
+    options.withAi && options.stage === 'base'
+      ? await tryGenerateAiBaseProfile(wordRow, dictionaryEvidence, datamuseEvidence, collocations, evidenceExamples)
+      : options.withAi
+        ? await tryGenerateAiRefineProfile(wordRow, dictionaryEvidence, datamuseEvidence, collocations, evidenceExamples)
+        : null
 
-  const profile = aiResult?.profile ?? fallbackProfile
+  const examples =
+    options.stage === 'base'
+      ? selectBestExamples(evidenceExamples).map((item, index) => ({
+          ...item,
+          isPrimary: index === 0,
+        }))
+      : selectBestExamples([
+          ...evidenceExamples,
+          ...(aiResult?.examples ?? []),
+        ]).map((item, index) => ({
+          ...item,
+          isPrimary: index === 0,
+        }))
+
+  const profile =
+    options.stage === 'base'
+      ? aiResult?.profile ?? baseFallbackProfile
+      : aiResult?.profile ?? fallbackProfile
   const sources: WordSourceInput[] = [
     {
       sourceName: 'seed_words',
@@ -507,8 +534,8 @@ export async function generateEnrichedRecord(
 
   if (aiResult) {
     sources.push({
-      sourceName: 'ai_summary',
-      sourceKind: 'profile_generation',
+      sourceName: options.stage === 'base' ? 'ai_base_summary' : 'ai_refine_summary',
+      sourceKind: options.stage === 'base' ? 'base_profile_generation' : 'refine_profile_generation',
       sourceUrl: null,
       license: null,
       payload: aiResult.rawPayload,
@@ -586,6 +613,19 @@ function buildSeedExample(wordRow: SourceWordRow): WordExampleInput | null {
   }
 }
 
+function buildBaseProfile(profile: WordProfileInput): WordProfileInput {
+  return {
+    ...profile,
+    semanticFeel: '',
+    usageNote: '',
+    contrastWords: [],
+    generationMethod:
+      profile.generationMethod === 'ai' || profile.generationMethod === 'ai_refine'
+        ? 'ai_base'
+        : 'fallback_base',
+  }
+}
+
 function buildFallbackProfile(
   wordRow: SourceWordRow,
   dictionaryEvidence: DictionaryEvidence | null,
@@ -637,24 +677,21 @@ function buildFallbackProfile(
     collocations,
     contrastWords: refinedContrastWords,
     confidenceScore: Number(confidenceScore.toFixed(2)),
-    generationMethod: 'fallback',
+    generationMethod: 'fallback_refine',
   }
 }
 
-async function tryGenerateAiProfile(
+async function tryGenerateAiBaseProfile(
   wordRow: SourceWordRow,
   dictionaryEvidence: DictionaryEvidence | null,
   datamuseEvidence: DatamuseEvidence,
   collocations: string[],
   examples: WordExampleInput[]
 ) {
-  const apiKey = process.env.OPENAI_ENRICH_API_KEY || process.env.OPENAI_API_KEY
-  const apiBase = process.env.OPENAI_ENRICH_API_BASE || process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-  const model = process.env.OPENAI_ENRICH_MODEL || process.env.OPENAI_MODEL
+  const aiConfig = resolveAiConfig('base')
   const primaryPartOfSpeech = dictionaryEvidence?.meanings[0]?.partOfSpeech ?? null
-  const shouldRefreshExamples = needsExampleUpgrade(examples)
 
-  if (!apiKey || !model) {
+  if (!aiConfig) {
     return null
   }
 
@@ -666,15 +703,140 @@ async function tryGenerateAiProfile(
         }
       }>
     }>(
-      buildChatCompletionsUrl(apiBase),
+      buildChatCompletionsUrl(aiConfig.apiBase),
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${aiConfig.apiKey}`,
         },
         body: JSON.stringify({
-          model,
+          model: aiConfig.model,
+          temperature: 0.1,
+          messages: [
+            {
+              role: 'system',
+              content: [
+                'You build the fast base layer of a learner-friendly lexical profile for a Chinese CET-4/CET-6 English learner.',
+                'Use the supplied evidence as the factual boundary. Rephrase and rank it, but do not invent unsupported senses.',
+                'Return JSON only.',
+                'Write all explanatory text in Simplified Chinese.',
+                `sceneTags must come from this closed set: ${AI_SCENE_TAGS.join(', ')}.`,
+                'Keep only the most learnable sense.',
+                'Only fill these fields: coreMeaning, usageRegister, sceneTags, collocations, confidenceScore.',
+                'collocations: keep 3 to 6 high-value items only. Remove fragments, stopwords, and awkward leftovers.',
+                'Schema:',
+                '{"coreMeaning":"...", "usageRegister":"formal|neutral|informal|null", "sceneTags":["..."], "collocations":["..."], "confidenceScore":0.0}',
+              ].join('\n'),
+            },
+            {
+              role: 'user',
+              content: JSON.stringify(
+                {
+                  word: wordRow.word,
+                  seedDefinition: wordRow.definition,
+                  seedExample: wordRow.example,
+                  tags: wordRow.tags,
+                  dictionaryEvidence: dictionaryEvidence
+                    ? {
+                        phonetic: dictionaryEvidence.phonetic,
+                        meanings: dictionaryEvidence.meanings,
+                        examples: dictionaryEvidence.examples.map((item) => item.sentence),
+                      }
+                    : null,
+                  datamuseEvidence,
+                  derivedCollocations: collocations,
+                  realExamples: examples.map((item) => ({
+                    sentence: item.sentence,
+                    scene: item.scene,
+                    qualityScore: item.qualityScore,
+                    sourceName: item.sourceName,
+                  })),
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        }),
+      },
+      AI_TIMEOUT_MS
+    )
+
+    const content = extractChatContent(response?.choices?.[0]?.message?.content)
+    if (!content) {
+      continue
+    }
+
+    try {
+      const parsed = parseJsonObject(content) as Record<string, unknown>
+      const fallbackProfile = buildBaseProfile(
+        buildFallbackProfile(wordRow, dictionaryEvidence, datamuseEvidence, collocations, examples)
+      )
+
+      const profile: WordProfileInput = {
+        ...fallbackProfile,
+        coreMeaning: toOptionalString(parsed.coreMeaning) ?? fallbackProfile.coreMeaning,
+        usageRegister: normalizeRegisterValue(parsed.usageRegister) ?? fallbackProfile.usageRegister,
+        sceneTags: normalizeAiSceneTags(parsed.sceneTags),
+        collocations: normalizeAiCollocations(wordRow.word, parsed.collocations, primaryPartOfSpeech, collocations),
+        confidenceScore: clamp(Number(parsed.confidenceScore) || fallbackProfile.confidenceScore, 0.3, 0.95),
+        generationMethod: 'ai_base',
+      }
+
+      if (profile.sceneTags.length === 0) {
+        profile.sceneTags = fallbackProfile.sceneTags
+      }
+
+      if (profile.collocations.length === 0) {
+        profile.collocations = collocations.slice(0, 8)
+      }
+
+      return {
+        profile,
+        examples: [] as WordExampleInput[],
+        rawPayload: parsed,
+      }
+    } catch {
+      continue
+    }
+  }
+
+  return null
+}
+
+async function tryGenerateAiRefineProfile(
+  wordRow: SourceWordRow,
+  dictionaryEvidence: DictionaryEvidence | null,
+  datamuseEvidence: DatamuseEvidence,
+  collocations: string[],
+  examples: WordExampleInput[]
+) {
+  const aiConfig = resolveAiConfig('refine')
+  const primaryPartOfSpeech = dictionaryEvidence?.meanings[0]?.partOfSpeech ?? null
+  const shouldRefreshExamples = needsExampleUpgrade(examples)
+
+  if (!aiConfig) {
+    return null
+  }
+
+  for (let attempt = 0; attempt < AI_RETRY_COUNT; attempt += 1) {
+    const response = await fetchJsonWithTimeout<{
+      choices?: Array<{
+        message?: {
+          content?: unknown
+        }
+      }>
+    }>(
+      buildChatCompletionsUrl(aiConfig.apiBase),
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${aiConfig.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: aiConfig.model,
           temperature: 0.2,
           messages: [
             {
@@ -772,7 +934,7 @@ async function tryGenerateAiProfile(
             .filter((item): item is WordContrastInput => item !== null)
         ).slice(0, 6),
         confidenceScore: clamp(Number(parsed.confidenceScore) || 0.6, 0.3, 0.98),
-        generationMethod: 'ai',
+        generationMethod: 'ai_refine',
       }
 
       if (profile.sceneTags.length === 0) {
@@ -823,9 +985,7 @@ async function tryGenerateAiProfile(
         generatedExamples.length > 0 || !shouldRefreshExamples
           ? generatedExamples
           : await tryGenerateAiExamples({
-              apiKey,
-              apiBase,
-              model,
+              ...(resolveAiConfig('example') ?? aiConfig),
               word: wordRow.word,
               coreMeaning: profile.coreMeaning,
               sceneTags: profile.sceneTags,
@@ -1452,10 +1612,52 @@ function computePayloadHash(value: unknown) {
 }
 
 function hasAnyAiConfig() {
-  return Boolean(
-    (process.env.OPENAI_ENRICH_API_KEY || process.env.OPENAI_API_KEY) &&
-      (process.env.OPENAI_ENRICH_MODEL || process.env.OPENAI_MODEL)
-  )
+  return Boolean(resolveAiConfig('base') || resolveAiConfig('refine') || resolveAiConfig('example'))
+}
+
+function resolveAiConfig(task: AiTask): AiConfig | null {
+  const candidates =
+    task === 'base'
+      ? [
+          ['OPENAI_ENRICH_BASE_API_KEY', 'OPENAI_ENRICH_BASE_API_BASE', 'OPENAI_ENRICH_BASE_MODEL'],
+          ['OPENAI_HINT_API_KEY', 'OPENAI_HINT_API_BASE', 'OPENAI_HINT_MODEL'],
+          ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL'],
+          ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL'],
+        ]
+      : task === 'example'
+        ? [
+            ['OPENAI_ENRICH_EXAMPLE_API_KEY', 'OPENAI_ENRICH_EXAMPLE_API_BASE', 'OPENAI_ENRICH_EXAMPLE_MODEL'],
+            ['OPENAI_ENRICH_BASE_API_KEY', 'OPENAI_ENRICH_BASE_API_BASE', 'OPENAI_ENRICH_BASE_MODEL'],
+            ['OPENAI_HINT_API_KEY', 'OPENAI_HINT_API_BASE', 'OPENAI_HINT_MODEL'],
+            ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL'],
+            ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL'],
+          ]
+        : [
+            ['OPENAI_ENRICH_REFINE_API_KEY', 'OPENAI_ENRICH_REFINE_API_BASE', 'OPENAI_ENRICH_REFINE_MODEL'],
+            ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL'],
+            ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL'],
+          ]
+
+  for (const [apiKeyName, apiBaseName, modelName] of candidates) {
+    const apiKey = process.env[apiKeyName]
+    const model = process.env[modelName]
+
+    if (!apiKey || !model) {
+      continue
+    }
+
+    return {
+      apiKey,
+      apiBase: process.env[apiBaseName] || 'https://api.openai.com/v1',
+      model,
+    }
+  }
+
+  return null
+}
+
+export function normalizeEnrichmentStage(value: string | null | undefined): EnrichmentStage | null {
+  return value === 'base' || value === 'refine' ? value : null
 }
 
 function hasFlag(argv: string[], name: string) {
@@ -1486,7 +1688,7 @@ function getListArg(argv: string[], name: string) {
 
   return value
     .split(',')
-    .map((item) => normalizeWord(item).toLowerCase())
+    .map((item) => normalizeWord(item))
     .filter(Boolean)
 }
 

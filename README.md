@@ -124,7 +124,9 @@ What it does:
 
 - reads seed words from `public.words`
 - fetches extra evidence from `dictionaryapi.dev` and Datamuse
-- generates a learner profile with scenes, collocations, usage notes, and contrast words
+- supports a staged learner-profile pipeline:
+  - `base`: fast coverage for `coreMeaning`, `sceneTags`, `collocations`, `usageRegister`
+  - `refine`: deeper semantic feel, usage notes, contrast words, and better examples
 - writes a reviewable JSON file before any database import
 - imports the profile tables and syncs the best example sentence back to `words.example`
 
@@ -137,24 +139,32 @@ New tables added in [schema.sql](e:/codework/words/supabase/schema.sql):
 ### Typical Workflow
 
 1. Regenerate the latest database schema in Supabase.
-2. Create a pilot enrichment file:
+2. Create a fast base-layer pilot:
 
 ```bash
-npm run enrich:words -- --tag CET-4 --limit 20 --output data/enriched/cet4-pilot.json
+npm run enrich:words -- --stage base --tag CET-4 --limit 50 --output data/enriched/cet4-base.json
 ```
 
 Useful flags:
 
+- `--stage base|refine`: choose which layer to generate. Default is `base`
 - `--dry-run`: show a preview without writing the JSON file
 - `--no-ai`: force pure free-source + rule-based mode
-- `--with-ai`: use `OPENAI_ENRICH_*` or fallback `OPENAI_*` env vars if available
+- `--with-ai`: use the stage-specific AI env vars if available
 - `--words abandon,commit,issue`: enrich specific words instead of a tag slice
 
 3. Review the generated JSON in `data/enriched/`.
 4. Import it into Supabase:
 
 ```bash
-npm run import:enriched -- --input data/enriched/cet4-pilot.json
+npm run import:enriched -- --input data/enriched/cet4-base.json
+```
+
+5. Refine only the words that matter now:
+
+```bash
+npm run enrich:words -- --stage refine --words hazard,issue,account --output data/enriched/refine-focus.json
+npm run import:enriched -- --input data/enriched/refine-focus.json
 ```
 
 Useful flags:
@@ -166,9 +176,13 @@ Useful flags:
 
 ### Notes
 
-- The free pipeline works without AI, but the `fallback` profile is intentionally conservative.
-- If `OPENAI_ENRICH_API_KEY` / `OPENAI_ENRICH_MODEL` are set, the script will try to produce better Chinese usage notes and contrast hints.
-- For Zhipu GLM ordinary API, set `OPENAI_ENRICH_API_BASE=https://open.bigmodel.cn/api/paas/v4` and `OPENAI_ENRICH_MODEL=glm-4.7`.
+- Base imports merge into existing profiles and keep refined fields intact.
+- Refine imports replace profile examples and sources for the selected words, so you can safely refresh a bad card.
+- The free pipeline works without AI, but the fallback profile is intentionally conservative.
+- If AI env vars are set, the script will use stage-specific models when available.
+- For Zhipu GLM ordinary API, a practical split is:
+  - `OPENAI_ENRICH_BASE_MODEL=glm-4.5-air`
+  - `OPENAI_ENRICH_REFINE_MODEL=glm-4.7`
 - `OPENAI_*_API_BASE` can be either a base URL like `.../paas/v4` or the full `.../chat/completions` endpoint.
 - Even without any frontend changes, importing enriched data improves the current sentence-help flow because the primary example is copied back into `words.example`.
 
@@ -188,16 +202,19 @@ The frontend no longer accepts API keys from users. The server reads:
 - `OPENAI_MODEL`
 - `OPENAI_HINT_API_KEY` / `OPENAI_HINT_API_BASE` / `OPENAI_HINT_MODEL`
 - `OPENAI_ENRICH_API_KEY` / `OPENAI_ENRICH_API_BASE` / `OPENAI_ENRICH_MODEL`
+- `OPENAI_ENRICH_BASE_API_KEY` / `OPENAI_ENRICH_BASE_API_BASE` / `OPENAI_ENRICH_BASE_MODEL`
+- `OPENAI_ENRICH_REFINE_API_KEY` / `OPENAI_ENRICH_REFINE_API_BASE` / `OPENAI_ENRICH_REFINE_MODEL`
+- `OPENAI_ENRICH_EXAMPLE_API_KEY` / `OPENAI_ENRICH_EXAMPLE_API_BASE` / `OPENAI_ENRICH_EXAMPLE_MODEL`
 
 ## Recommended Model Setup
 
 For this project:
 
-- Default: `gpt-4o-mini`
-- Lower-friction alternative: `deepseek-chat`
-- If you already have Zhipu quota: `glm-4.7` through `OPENAI_ENRICH_*`
+- Fast base layer: `glm-4.5-air`
+- Focus-word refine layer: `glm-4.7`
+- Sentence help: `glm-4.5-air` or `OPENAI_HINT_*`
 
-If OpenAI billing or availability is inconvenient, use DeepSeek through the same server-side variables.
+If OpenAI billing or availability is inconvenient, use any OpenAI-compatible provider through the same server-side variables.
 
 ## Project Structure
 

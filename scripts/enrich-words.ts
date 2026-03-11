@@ -21,8 +21,8 @@ async function main() {
 
   const items = []
   for (const wordRow of sourceWords) {
-    console.log(`enriching ${wordRow.word}...`)
-    const enriched = await generateEnrichedRecord(wordRow, { withAi: options.withAi })
+    console.log(`enriching ${wordRow.word} [${options.stage}]...`)
+    const enriched = await generateEnrichedRecord(wordRow, { withAi: options.withAi, stage: options.stage })
     items.push(enriched)
     console.log(
       `  method=${enriched.profile.generationMethod} examples=${enriched.examples.length} collocations=${enriched.profile.collocations.length}`
@@ -30,6 +30,7 @@ async function main() {
   }
 
   const dataset = buildDataset(items, {
+    stage: options.stage,
     tag: options.tag,
     limit: options.limit,
     offset: options.offset,
@@ -48,6 +49,7 @@ async function main() {
   const writtenPath = writeEnrichedDataset(outputPath, dataset)
   console.log(`Enriched dataset written to ${writtenPath}`)
   console.log(`  words: ${items.length}`)
+  console.log(`  stage: ${options.stage}`)
   console.log(`  with AI: ${options.withAi ? 'yes' : 'no'}`)
 }
 
