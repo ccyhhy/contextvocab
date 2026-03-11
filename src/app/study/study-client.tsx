@@ -232,6 +232,8 @@ function getSceneTagLabel(tag: string) {
     communication: "沟通",
     emotions: "情绪",
     government: "公共事务",
+    safety: "安全",
+    environment: "环境",
   }
 
   return labels[tag] ?? tag
@@ -1222,6 +1224,13 @@ export default function StudyClient({
         ? [{ sentence: currentWord.words.example, translation: null, scene: null, isPrimary: true }]
         : []
   const previewExamples = wordExamples.slice(0, 2)
+  const primaryDefinition = wordProfile?.coreMeaning?.trim() || currentWord.words.definition || ""
+  const secondaryDefinition =
+    wordProfile?.coreMeaning?.trim() &&
+    currentWord.words.definition &&
+    wordProfile.coreMeaning.trim() !== currentWord.words.definition.trim()
+      ? currentWord.words.definition
+      : null
   const sceneTags = wordProfile?.sceneTags ?? []
   const collocations = wordProfile?.collocations.slice(0, 6) ?? []
   const contrastWords = wordProfile?.contrastWords.slice(0, 2) ?? []
@@ -1455,10 +1464,15 @@ export default function StudyClient({
         </div>
 
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 text-zinc-300">
-          <p className="flex items-start gap-3">
+          <div className="flex items-start gap-3">
             <BookOpen className="mt-1 h-5 w-5 shrink-0 text-blue-400/70" />
-            <span>{currentWord.words.definition}</span>
-          </p>
+            <div className="space-y-2">
+              <p>{primaryDefinition}</p>
+              {secondaryDefinition ? (
+                <p className="text-sm leading-7 text-zinc-500">{secondaryDefinition}</p>
+              ) : null}
+            </div>
+          </div>
         </div>
 
         {(wordProfile || previewExamples.length > 0) && (

@@ -168,6 +168,8 @@ Useful flags:
 
 - The free pipeline works without AI, but the `fallback` profile is intentionally conservative.
 - If `OPENAI_ENRICH_API_KEY` / `OPENAI_ENRICH_MODEL` are set, the script will try to produce better Chinese usage notes and contrast hints.
+- For Zhipu GLM ordinary API, set `OPENAI_ENRICH_API_BASE=https://open.bigmodel.cn/api/paas/v4` and `OPENAI_ENRICH_MODEL=glm-4.7`.
+- `OPENAI_*_API_BASE` can be either a base URL like `.../paas/v4` or the full `.../chat/completions` endpoint.
 - Even without any frontend changes, importing enriched data improves the current sentence-help flow because the primary example is copied back into `words.example`.
 
 ## AI Configuration
@@ -184,6 +186,8 @@ The frontend no longer accepts API keys from users. The server reads:
 - `OPENAI_API_KEY`
 - `OPENAI_API_BASE`
 - `OPENAI_MODEL`
+- `OPENAI_HINT_API_KEY` / `OPENAI_HINT_API_BASE` / `OPENAI_HINT_MODEL`
+- `OPENAI_ENRICH_API_KEY` / `OPENAI_ENRICH_API_BASE` / `OPENAI_ENRICH_MODEL`
 
 ## Recommended Model Setup
 
@@ -191,6 +195,7 @@ For this project:
 
 - Default: `gpt-4o-mini`
 - Lower-friction alternative: `deepseek-chat`
+- If you already have Zhipu quota: `glm-4.7` through `OPENAI_ENRICH_*`
 
 If OpenAI billing or availability is inconvenient, use DeepSeek through the same server-side variables.
 

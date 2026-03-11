@@ -33,6 +33,11 @@ function readProviderContent(payload: string): string | null {
   return typeof content === 'string' ? content : null
 }
 
+function getChatCompletionsUrl(apiBase: string) {
+  const trimmed = apiBase.trim().replace(/\/+$/, '')
+  return trimmed.endsWith('/chat/completions') ? trimmed : `${trimmed}/chat/completions`
+}
+
 export async function POST(request: NextRequest) {
   let body: EvaluateRequestBody
 
@@ -111,7 +116,7 @@ export async function POST(request: NextRequest) {
     refreshProviderTimeout()
     request.signal.addEventListener('abort', abortProvider, { once: true })
 
-    const response = await fetch(`${apiBase}/chat/completions`, {
+    const response = await fetch(getChatCompletionsUrl(apiBase), {
       method: 'POST',
       cache: 'no-store',
       headers: {

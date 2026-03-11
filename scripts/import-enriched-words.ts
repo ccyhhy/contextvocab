@@ -88,18 +88,20 @@ async function importChunk(
     generation_method: item.profile.generationMethod,
   }))
 
-  const exampleRows = chunk.flatMap((item) =>
-    item.examples.map((example) => ({
-      word_id: item.wordId,
-      sentence: example.sentence,
-      translation: example.translation,
-      scene: example.scene,
-      source_name: example.sourceName,
-      source_url: example.sourceUrl,
-      license: example.license,
-      quality_score: example.qualityScore,
-      is_primary: example.isPrimary,
-    }))
+  const exampleRows = dedupeExampleRows(
+    chunk.flatMap((item) =>
+      item.examples.map((example) => ({
+        word_id: item.wordId,
+        sentence: example.sentence,
+        translation: example.translation,
+        scene: example.scene,
+        source_name: example.sourceName,
+        source_url: example.sourceUrl,
+        license: example.license,
+        quality_score: example.qualityScore,
+        is_primary: example.isPrimary,
+      }))
+    )
   )
 
   const sourceRows = chunk.flatMap((item) =>
@@ -194,6 +196,46 @@ async function importChunk(
   summary.examplesInserted += exampleRows.length
   summary.sourcesInserted += sourceRows.length
   summary.syncedPrimaryExamples += primaryExampleRows.length
+}
+
+function dedupeExampleRows(
+  rows: Array<{
+    word_id: string
+    sentence: string
+    translation: string | null
+    scene: string | null
+    source_name: string
+    source_url: string | null
+    license: string | null
+    quality_score: number
+    is_primary: boolean
+  }>
+) {
+  const map = new Map<string, (typeof rows)[number]>()
+
+  for (const row of rows) {
+    const key = `${row.word_id}::${row.sentence.trim().toLowerCase()}`
+    const existing = map.get(key)
+    if (!existing) {
+      map.set(key, row)
+      continue
+    }
+
+    const existingRank =
+      (existing.is_primary ? 100 : 0) +
+      (existing.translation ? 10 : 0) +
+      (existing.quality_score ?? 0)
+    const nextRank =
+      (row.is_primary ? 100 : 0) +
+      (row.translation ? 10 : 0) +
+      (row.quality_score ?? 0)
+
+    if (nextRank > existingRank) {
+      map.set(key, row)
+    }
+  }
+
+  return Array.from(map.values())
 }
 
 main().catch((error) => {

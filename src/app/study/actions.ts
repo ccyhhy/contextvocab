@@ -508,6 +508,11 @@ function formatModelLabel(model: string, apiBase: string) {
   return `${getModelProviderLabel(apiBase)} / ${model}`
 }
 
+function getChatCompletionsUrl(apiBase: string) {
+  const trimmed = apiBase.trim().replace(/\/+$/, '')
+  return trimmed.endsWith('/chat/completions') ? trimmed : `${trimmed}/chat/completions`
+}
+
 function makeErrorResult(message: string): EvaluationResult {
   return {
     score: 0,
@@ -1994,7 +1999,7 @@ export async function generateSentenceHelp(
   try {
     const { supabase, user } = await requireActionSession()
     const learningHistory = await getWordLearningHistory(supabase, user.id, wordId)
-    const response = await fetch(`${apiBase}/chat/completions`, {
+    const response = await fetch(getChatCompletionsUrl(apiBase), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2142,7 +2147,7 @@ export async function evaluateSentence(
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000)
 
-      const response = await fetch(`${apiBase}/chat/completions`, {
+      const response = await fetch(getChatCompletionsUrl(apiBase), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
