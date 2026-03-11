@@ -1223,7 +1223,13 @@ export default function StudyClient({
       : currentWord.words.example
         ? [{ sentence: currentWord.words.example, translation: null, scene: null, isPrimary: true }]
         : []
-  const previewExamples = wordExamples.slice(0, 2)
+  const previewExamples = [...wordExamples]
+    .sort((left, right) => {
+      const leftScore = (left.translation ? 10 : 0) + (left.scene && left.scene !== "general" ? 3 : 0)
+      const rightScore = (right.translation ? 10 : 0) + (right.scene && right.scene !== "general" ? 3 : 0)
+      return rightScore - leftScore
+    })
+    .slice(0, 2)
   const primaryDefinition = wordProfile?.coreMeaning?.trim() || currentWord.words.definition || ""
   const secondaryDefinition =
     wordProfile?.coreMeaning?.trim() &&
