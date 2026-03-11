@@ -25,6 +25,8 @@ interface PastSentenceRow {
   original_text: string | null
 }
 
+const PROVIDER_TIMEOUT_MS = 30000
+
 function readProviderContent(payload: string): string | null {
   const parsed = JSON.parse(payload) as ProviderDeltaChunk
   const content = parsed.choices?.[0]?.delta?.content
@@ -32,7 +34,14 @@ function readProviderContent(payload: string): string | null {
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json() as EvaluateRequestBody
+  let body: EvaluateRequestBody
+
+  try {
+    body = await request.json() as EvaluateRequestBody
+  } catch {
+    return Response.json({ error: 'invalid-json' }, { status: 400 })
+  }
+
   const { word, sentence, definition = '', tags = '', wordId } = body
 
   const apiKey = process.env.OPENAI_API_KEY
@@ -77,7 +86,31 @@ export async function POST(request: NextRequest) {
     learningHistory,
   })
 
+  const providerController = new AbortController()
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+  const clearProviderTimeout = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+      timeoutId = null
+    }
+  }
+
+  const refreshProviderTimeout = () => {
+    clearProviderTimeout()
+    timeoutId = setTimeout(() => {
+      providerController.abort('provider-timeout')
+    }, PROVIDER_TIMEOUT_MS)
+  }
+
+  const abortProvider = () => {
+    providerController.abort('client-abort')
+  }
+
   try {
+    refreshProviderTimeout()
+    request.signal.addEventListener('abort', abortProvider, { once: true })
+
     const response = await fetch(`${apiBase}/chat/completions`, {
       method: 'POST',
       cache: 'no-store',
@@ -94,9 +127,12 @@ export async function POST(request: NextRequest) {
         ],
         temperature: 0.3,
       }),
+      signal: providerController.signal,
     })
 
     if (!response.ok) {
+      clearProviderTimeout()
+      request.signal.removeEventListener('abort', abortProvider)
       const errText = await response.text()
       return Response.json(
         { error: `API error (${response.status}): ${errText.slice(0, 200)}` },
@@ -106,6 +142,8 @@ export async function POST(request: NextRequest) {
 
     const providerBody = response.body
     if (!providerBody) {
+      clearProviderTimeout()
+      request.signal.removeEventListener('abort', abortProvider)
       return Response.json({ error: 'Empty provider stream' }, { status: 502 })
     }
 
@@ -164,6 +202,8 @@ export async function POST(request: NextRequest) {
               break
             }
 
+            refreshProviderTimeout()
+
             streamBuffer += decoder.decode(value, { stream: true })
 
             let newlineIndex = streamBuffer.indexOf('\n')
@@ -189,6 +229,9 @@ export async function POST(request: NextRequest) {
             encoder.encode(`data: ${JSON.stringify({ error: 'Stream interrupted' })}\n\n`)
           )
         } finally {
+          clearProviderTimeout()
+          request.signal.removeEventListener('abort', abortProvider)
+          reader.releaseLock()
           controller.close()
         }
       },
@@ -203,6 +246,13 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error: unknown) {
+    clearProviderTimeout()
+    request.signal.removeEventListener('abort', abortProvider)
+
+    if (error instanceof Error && error.name === 'AbortError') {
+      return Response.json({ error: 'provider-timeout' }, { status: 504 })
+    }
+
     const message = error instanceof Error ? error.message : 'Unknown error'
     return Response.json({ error: message }, { status: 500 })
   }

@@ -88,6 +88,8 @@ npm run import:words
 npm run import:cet6
 ```
 
+If you update `schema.sql` later, rerun the latest schema before using the enrichment pipeline below.
+
 ### 5. Start the app
 
 ```bash
@@ -108,9 +110,65 @@ npm run dev
 npm run build
 npm run start
 npm run lint
+npm run enrich:words
+npm run import:enriched
 npm run import:words
 npm run import:cet6
 ```
+
+## Enrichment Pipeline
+
+The project now includes a free-source enrichment pipeline for turning a thin word entry into a richer learner profile.
+
+What it does:
+
+- reads seed words from `public.words`
+- fetches extra evidence from `dictionaryapi.dev` and Datamuse
+- generates a learner profile with scenes, collocations, usage notes, and contrast words
+- writes a reviewable JSON file before any database import
+- imports the profile tables and syncs the best example sentence back to `words.example`
+
+New tables added in [schema.sql](e:/codework/words/supabase/schema.sql):
+
+- `word_profiles`
+- `word_profile_examples`
+- `word_profile_sources`
+
+### Typical Workflow
+
+1. Regenerate the latest database schema in Supabase.
+2. Create a pilot enrichment file:
+
+```bash
+npm run enrich:words -- --tag CET-4 --limit 20 --output data/enriched/cet4-pilot.json
+```
+
+Useful flags:
+
+- `--dry-run`: show a preview without writing the JSON file
+- `--no-ai`: force pure free-source + rule-based mode
+- `--with-ai`: use `OPENAI_ENRICH_*` or fallback `OPENAI_*` env vars if available
+- `--words abandon,commit,issue`: enrich specific words instead of a tag slice
+
+3. Review the generated JSON in `data/enriched/`.
+4. Import it into Supabase:
+
+```bash
+npm run import:enriched -- --input data/enriched/cet4-pilot.json
+```
+
+Useful flags:
+
+- `--dry-run`: validate the import plan without writing to Supabase
+- `--skip-sync-example`: keep the original `words.example` unchanged
+- `--min-examples 1`: only import items that have at least this many examples
+- `--min-collocations 1`: only import items that have at least this many collocations
+
+### Notes
+
+- The free pipeline works without AI, but the `fallback` profile is intentionally conservative.
+- If `OPENAI_ENRICH_API_KEY` / `OPENAI_ENRICH_MODEL` are set, the script will try to produce better Chinese usage notes and contrast hints.
+- Even without any frontend changes, importing enriched data improves the current sentence-help flow because the primary example is copied back into `words.example`.
 
 ## AI Configuration
 

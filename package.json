@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "enrich:words": "tsx --env-file=.env.local scripts/enrich-words.ts",
+    "import:enriched": "tsx --env-file=.env.local scripts/import-enriched-words.ts",
     "import:words": "tsx --env-file=.env.local scripts/import-words.ts",
     "import:cet4": "tsx --env-file=.env.local scripts/import-words.ts",
     "import:cet6": "tsx --env-file=.env.local scripts/import-cet6.ts",

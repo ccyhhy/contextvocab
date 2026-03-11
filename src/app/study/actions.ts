@@ -65,12 +65,36 @@ export interface StudySubmissionResult {
   userWordId: string | null
 }
 
+export interface StudyWordContrast {
+  word: string
+  note: string
+}
+
+export interface StudyWordExample {
+  sentence: string
+  translation?: string | null
+  scene?: string | null
+  isPrimary: boolean
+}
+
+export interface StudyWordProfile {
+  coreMeaning: string
+  semanticFeel?: string | null
+  usageNote?: string | null
+  usageRegister?: string | null
+  sceneTags: string[]
+  collocations: string[]
+  contrastWords: StudyWordContrast[]
+}
+
 export interface StudyWordInfo {
   word: string
   definition?: string | null
   tags?: string | null
   phonetic?: string | null
   example?: string | null
+  profile?: StudyWordProfile | null
+  examples?: StudyWordExample[]
 }
 
 export interface StudyBatchItem {
@@ -173,6 +197,26 @@ interface WordRow extends WordRecord {
   tags?: string | null
   phonetic?: string | null
   example?: string | null
+}
+
+interface WordProfileRow {
+  word_id: string
+  core_meaning?: string | null
+  semantic_feel?: string | null
+  usage_note?: string | null
+  usage_register?: string | null
+  scene_tags?: string[] | null
+  collocations?: unknown
+  contrast_words?: unknown
+}
+
+interface WordProfileExampleRow {
+  word_id: string
+  sentence?: string | null
+  translation?: string | null
+  scene?: string | null
+  is_primary?: boolean | null
+  quality_score?: number | null
 }
 
 interface UserWordRecord {
@@ -674,6 +718,11 @@ function isMissingLibrariesTableError(error: { message?: string; details?: strin
   )
 }
 
+function isMissingWordProfileTableError(error: { message?: string; details?: string } | null) {
+  const message = `${error?.message ?? ''} ${error?.details ?? ''}`.toLowerCase()
+  return message.includes('word_profiles') || message.includes('word_profile_examples')
+}
+
 function isWordRecord(value: unknown): value is WordRecord {
   return typeof value === 'object' && value !== null && typeof (value as WordRecord).id === 'string'
 }
@@ -713,7 +762,75 @@ function normalizeWordInfo(value: unknown): StudyWordInfo | null {
     tags: row.tags ?? null,
     phonetic: row.phonetic ?? null,
     example: row.example ?? null,
+    profile: null,
+    examples: [],
   }
+}
+
+function normalizeStringArray(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [] as string[]
+  }
+
+  return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+}
+
+function normalizeStudyWordProfile(value: unknown): StudyWordProfile | null {
+  if (typeof value !== 'object' || value === null) {
+    return null
+  }
+
+  const row = value as WordProfileRow
+  if (typeof row.word_id !== 'string' || typeof row.core_meaning !== 'string') {
+    return null
+  }
+
+  const contrastWords = Array.isArray(row.contrast_words)
+    ? row.contrast_words
+        .map((item) => {
+          if (typeof item !== 'object' || item === null) {
+            return null
+          }
+
+          const record = item as Record<string, unknown>
+          const word = sanitizeText(record.word).trim()
+          const note = sanitizeText(record.note).trim()
+          if (!word || !note) {
+            return null
+          }
+
+          return { word, note }
+        })
+        .filter((item): item is StudyWordContrast => item !== null)
+    : []
+
+  return {
+    coreMeaning: row.core_meaning,
+    semanticFeel: row.semantic_feel ?? null,
+    usageNote: row.usage_note ?? null,
+    usageRegister: row.usage_register ?? null,
+    sceneTags: normalizeStringArray(row.scene_tags),
+    collocations: normalizeStringArray(row.collocations),
+    contrastWords,
+  }
+}
+
+function normalizeStudyWordExamples(rows: WordProfileExampleRow[]) {
+  return rows
+    .filter((row) => typeof row.sentence === 'string' && row.sentence.trim().length > 0)
+    .sort((left, right) => {
+      if (Boolean(left.is_primary) !== Boolean(right.is_primary)) {
+        return left.is_primary ? -1 : 1
+      }
+
+      return (right.quality_score ?? 0) - (left.quality_score ?? 0)
+    })
+    .map((row) => ({
+      sentence: row.sentence as string,
+      translation: row.translation ?? null,
+      scene: row.scene ?? null,
+      isPrimary: row.is_primary === true,
+    }))
 }
 
 function normalizeStudyBatchItem(
@@ -1062,6 +1179,88 @@ async function getStartedWordIds(
   return startedWordIds
 }
 
+async function isWordStartedOutsideUserWords(
+  supabase: SupabaseClient,
+  userId: string,
+  wordId: string
+) {
+  const [
+    { data: sentenceRow, error: sentenceError },
+    { data: libraryWordRow, error: libraryWordError },
+  ] = await Promise.all([
+    supabase
+      .from('sentences')
+      .select('word_id')
+      .eq('user_id', userId)
+      .eq('word_id', wordId)
+      .maybeSingle(),
+    supabase
+      .from('user_library_words')
+      .select('word_id')
+      .eq('user_id', userId)
+      .eq('word_id', wordId)
+      .maybeSingle(),
+  ])
+
+  if (sentenceError) {
+    console.error('Failed to check sentence history for unseen-word RPC candidate:', sentenceError)
+  }
+
+  if (libraryWordError) {
+    console.error(
+      'Failed to check user_library_words for unseen-word RPC candidate:',
+      libraryWordError
+    )
+  }
+
+  return (
+    typeof (sentenceRow as { word_id?: string | null } | null)?.word_id === 'string' ||
+    typeof (libraryWordRow as { word_id?: string | null } | null)?.word_id === 'string'
+  )
+}
+
+async function pickUnseenWordViaRpc(
+  tag: string,
+  skippedWordIds: string[],
+  supabase: SupabaseClient,
+  userId: string,
+  attempts = 8
+): Promise<WordRecord | null> {
+  const excludedWordIds = [...new Set(skippedWordIds)]
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const { data, error } = await supabase.rpc('pick_unstudied_word', {
+      p_user_id: userId,
+      p_tag: tag === 'All' ? null : tag,
+      p_skipped_ids: excludedWordIds,
+    })
+
+    if (error) {
+      console.error('Failed to pick unseen word via RPC:', error)
+      return null
+    }
+
+    const candidate = Array.isArray(data) ? data[0] : null
+    if (!isWordRecord(candidate)) {
+      return null
+    }
+
+    const startedOutsideUserWords = await isWordStartedOutsideUserWords(
+      supabase,
+      userId,
+      candidate.id
+    )
+
+    if (!startedOutsideUserWords) {
+      return candidate
+    }
+
+    excludedWordIds.push(candidate.id)
+  }
+
+  return null
+}
+
 async function pickRandomUnseenWord(
   tag: string,
   skippedWordIds: string[],
@@ -1139,6 +1338,13 @@ async function pickUnseenWord(
   supabase: SupabaseClient,
   userId: string
 ): Promise<WordRecord | null> {
+  if (preferredWordIds.length === 0) {
+    const rpcCandidate = await pickUnseenWordViaRpc(tag, skippedWordIds, supabase, userId)
+    if (rpcCandidate) {
+      return rpcCandidate
+    }
+  }
+
   const startedWordIds = await getStartedWordIds(supabase, userId)
 
   const randomCandidate = await pickRandomUnseenWord(
@@ -1505,6 +1711,73 @@ function composeStudyBatch(
   }
 
   return batch
+}
+
+async function hydrateStudyBatchWordDetails(
+  supabase: SupabaseClient,
+  batch: StudyBatchItem[]
+): Promise<StudyBatchItem[]> {
+  if (batch.length === 0) {
+    return batch
+  }
+
+  const wordIds = Array.from(new Set(batch.map((item) => item.word_id)))
+  const [profilesResponse, examplesResponse] = await Promise.all([
+    supabase
+      .from('word_profiles')
+      .select(
+        'word_id, core_meaning, semantic_feel, usage_note, usage_register, scene_tags, collocations, contrast_words'
+      )
+      .in('word_id', wordIds),
+    supabase
+      .from('word_profile_examples')
+      .select('word_id, sentence, translation, scene, is_primary, quality_score')
+      .in('word_id', wordIds),
+  ])
+
+  if (profilesResponse.error || examplesResponse.error) {
+    const relevantError = profilesResponse.error ?? examplesResponse.error
+
+    if (!isMissingWordProfileTableError(relevantError)) {
+      console.error('Failed to hydrate study word details:', relevantError)
+    }
+
+    return batch
+  }
+
+  const profileMap = new Map<string, StudyWordProfile>()
+  for (const row of (profilesResponse.data ?? []) as WordProfileRow[]) {
+    const normalized = normalizeStudyWordProfile(row)
+    if (normalized) {
+      profileMap.set(row.word_id, normalized)
+    }
+  }
+
+  const exampleRowsByWordId = new Map<string, WordProfileExampleRow[]>()
+  for (const row of (examplesResponse.data ?? []) as WordProfileExampleRow[]) {
+    if (typeof row.word_id !== 'string') {
+      continue
+    }
+
+    const existingRows = exampleRowsByWordId.get(row.word_id) ?? []
+    existingRows.push(row)
+    exampleRowsByWordId.set(row.word_id, existingRows)
+  }
+
+  return batch.map((item) => {
+    const hydratedExamples = normalizeStudyWordExamples(exampleRowsByWordId.get(item.word_id) ?? [])
+    const hydratedProfile = profileMap.get(item.word_id) ?? null
+
+    return {
+      ...item,
+      words: {
+        ...item.words,
+        profile: hydratedProfile,
+        examples: hydratedExamples,
+        example: hydratedExamples[0]?.sentence ?? item.words.example ?? null,
+      },
+    }
+  })
 }
 
 async function getWordLearningHistory(
@@ -2000,7 +2273,15 @@ export async function getStudyBatch(params: GetStudyBatchParams = {}) {
         libraryWordIds
       )
 
-  return composeStudyBatch(dueItems, newItems, dueCount, isReviewOnlyView(resolvedStudyView), batchSize)
+  const batch = composeStudyBatch(
+    dueItems,
+    newItems,
+    dueCount,
+    isReviewOnlyView(resolvedStudyView),
+    batchSize
+  )
+
+  return hydrateStudyBatchWordDetails(supabase, batch)
 }
 
 export async function getNextWord(

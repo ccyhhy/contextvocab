@@ -27,6 +27,62 @@ END $$;
 
 CREATE INDEX IF NOT EXISTS idx_words_tags ON public.words (tags);
 
+-- 1.25 enriched word profiles
+CREATE TABLE IF NOT EXISTS public.word_profiles (
+    id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    word_id           UUID NOT NULL UNIQUE REFERENCES public.words(id) ON DELETE CASCADE,
+    core_meaning      TEXT NOT NULL,
+    semantic_feel     TEXT,
+    usage_note        TEXT,
+    usage_register    TEXT,
+    scene_tags        TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+    collocations      JSONB NOT NULL DEFAULT '[]'::JSONB,
+    contrast_words    JSONB NOT NULL DEFAULT '[]'::JSONB,
+    confidence_score  REAL,
+    generation_method TEXT NOT NULL DEFAULT 'fallback',
+    created_at        TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS public.word_profile_examples (
+    id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    word_id       UUID NOT NULL REFERENCES public.words(id) ON DELETE CASCADE,
+    sentence      TEXT NOT NULL,
+    translation   TEXT,
+    scene         TEXT,
+    source_name   TEXT NOT NULL,
+    source_url    TEXT,
+    license       TEXT,
+    quality_score REAL,
+    is_primary    BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at    TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (word_id, sentence)
+);
+
+CREATE TABLE IF NOT EXISTS public.word_profile_sources (
+    id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    word_id      UUID NOT NULL REFERENCES public.words(id) ON DELETE CASCADE,
+    source_name  TEXT NOT NULL,
+    source_kind  TEXT NOT NULL,
+    source_url   TEXT,
+    license      TEXT,
+    payload      JSONB NOT NULL DEFAULT '{}'::JSONB,
+    payload_hash TEXT NOT NULL,
+    fetched_at   TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (word_id, source_name, source_kind, payload_hash)
+);
+
+CREATE INDEX IF NOT EXISTS idx_word_profiles_word_id
+  ON public.word_profiles (word_id);
+CREATE INDEX IF NOT EXISTS idx_word_profiles_scene_tags
+  ON public.word_profiles USING GIN (scene_tags);
+CREATE INDEX IF NOT EXISTS idx_word_profiles_collocations
+  ON public.word_profiles USING GIN (collocations);
+CREATE INDEX IF NOT EXISTS idx_word_profile_examples_word_id
+  ON public.word_profile_examples (word_id, is_primary DESC, quality_score DESC NULLS LAST);
+CREATE INDEX IF NOT EXISTS idx_word_profile_sources_word_id
+  ON public.word_profile_sources (word_id);
+
 -- 1.5 libraries / wordbooks
 CREATE TABLE IF NOT EXISTS public.libraries (
     id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -160,6 +216,11 @@ CREATE TRIGGER trg_user_words_updated_at
   BEFORE UPDATE ON public.user_words
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
+DROP TRIGGER IF EXISTS trg_word_profiles_updated_at ON public.word_profiles;
+CREATE TRIGGER trg_word_profiles_updated_at
+  BEFORE UPDATE ON public.word_profiles
+  FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
 DROP TRIGGER IF EXISTS trg_user_library_plans_updated_at ON public.user_library_plans;
 CREATE TRIGGER trg_user_library_plans_updated_at
   BEFORE UPDATE ON public.user_library_plans
@@ -235,6 +296,9 @@ ON CONFLICT (library_id, word_id) DO NOTHING;
 
 -- row level security
 ALTER TABLE public.words ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.word_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.word_profile_examples ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.word_profile_sources ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.libraries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.library_words ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_words ENABLE ROW LEVEL SECURITY;
@@ -253,6 +317,24 @@ CREATE POLICY "Libraries are readable"
   ON public.libraries
   FOR SELECT
   USING (is_public = true OR created_by = auth.uid());
+
+DROP POLICY IF EXISTS "Word profiles are publicly readable" ON public.word_profiles;
+CREATE POLICY "Word profiles are publicly readable"
+  ON public.word_profiles
+  FOR SELECT
+  USING (true);
+
+DROP POLICY IF EXISTS "Word profile examples are publicly readable" ON public.word_profile_examples;
+CREATE POLICY "Word profile examples are publicly readable"
+  ON public.word_profile_examples
+  FOR SELECT
+  USING (true);
+
+DROP POLICY IF EXISTS "Word profile sources are publicly readable" ON public.word_profile_sources;
+CREATE POLICY "Word profile sources are publicly readable"
+  ON public.word_profile_sources
+  FOR SELECT
+  USING (true);
 
 DROP POLICY IF EXISTS "Users can manage their own libraries" ON public.libraries;
 CREATE POLICY "Users can manage their own libraries"

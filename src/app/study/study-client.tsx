@@ -205,6 +205,38 @@ function getSentenceHelpItemSourceLabel(source: SentenceHelpItem["source"]) {
   }
 }
 
+function getUsageRegisterLabel(register?: string | null) {
+  switch (register) {
+    case "formal":
+      return "偏正式"
+    case "informal":
+      return "偏口语"
+    case "neutral":
+      return "中性"
+    default:
+      return ""
+  }
+}
+
+function getSceneTagLabel(tag: string) {
+  const labels: Record<string, string> = {
+    general: "通用",
+    study: "学习",
+    work: "工作",
+    money: "金钱",
+    health: "健康",
+    time: "时间",
+    travel: "出行",
+    technology: "科技",
+    relationships: "关系",
+    communication: "沟通",
+    emotions: "情绪",
+    government: "公共事务",
+  }
+
+  return labels[tag] ?? tag
+}
+
 function AnimatedScore({ score }: { score: number }) {
   const [displayScore, setDisplayScore] = useState(0)
 
@@ -1182,6 +1214,18 @@ export default function StudyClient({
 
   const evaluation: EvaluationResult | null = result?.evaluation ?? null
   const isFavorite = favoriteWordIds.includes(currentWord.word_id)
+  const wordProfile = currentWord.words.profile ?? null
+  const wordExamples =
+    (currentWord.words.examples ?? []).length > 0
+      ? currentWord.words.examples ?? []
+      : currentWord.words.example
+        ? [{ sentence: currentWord.words.example, translation: null, scene: null, isPrimary: true }]
+        : []
+  const previewExamples = wordExamples.slice(0, 2)
+  const sceneTags = wordProfile?.sceneTags ?? []
+  const collocations = wordProfile?.collocations.slice(0, 6) ?? []
+  const contrastWords = wordProfile?.contrastWords.slice(0, 2) ?? []
+  const usageRegisterLabel = getUsageRegisterLabel(wordProfile?.usageRegister)
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
@@ -1416,6 +1460,98 @@ export default function StudyClient({
             <span>{currentWord.words.definition}</span>
           </p>
         </div>
+
+        {(wordProfile || previewExamples.length > 0) && (
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {(wordProfile?.semanticFeel || wordProfile?.usageNote) && (
+              <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-5 md:col-span-2">
+                <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+                  <Lightbulb className="h-3.5 w-3.5 text-amber-300/70" />
+                  使用画像
+                </div>
+                {wordProfile?.semanticFeel ? (
+                  <p className="mt-3 text-sm leading-7 text-zinc-200">{wordProfile.semanticFeel}</p>
+                ) : null}
+                {wordProfile?.usageNote ? (
+                  <p className="mt-3 text-sm leading-7 text-zinc-400">{wordProfile.usageNote}</p>
+                ) : null}
+              </div>
+            )}
+
+            {(sceneTags.length > 0 || collocations.length > 0 || usageRegisterLabel) && (
+              <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-5">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">场景与搭配</p>
+                {sceneTags.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {sceneTags.map((tag) => (
+                      <span
+                        key={`${currentWord.word_id}-scene-${tag}`}
+                        className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs text-blue-100"
+                      >
+                        {getSceneTagLabel(tag)}
+                      </span>
+                    ))}
+                    {usageRegisterLabel ? (
+                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
+                        {usageRegisterLabel}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
+                {collocations.length > 0 ? (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {collocations.map((item) => (
+                      <span
+                        key={`${currentWord.word_id}-collocation-${item}`}
+                        className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-200"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            )}
+
+            {previewExamples.length > 0 && (
+              <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">可仿写例句</p>
+                  <span className="text-[11px] text-zinc-500">点击可直接填入</span>
+                </div>
+                <div className="mt-3 space-y-3">
+                  {previewExamples.map((item) => (
+                    <button
+                      key={`${currentWord.word_id}-preview-${item.sentence}`}
+                      type="button"
+                      onClick={() => applySentenceHelp(item.sentence)}
+                      className="block w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-left transition-colors hover:bg-white/5"
+                    >
+                      <div className="text-sm leading-7 text-zinc-100">{item.sentence}</div>
+                      {item.translation ? (
+                        <div className="mt-1 text-xs leading-6 text-zinc-500">{item.translation}</div>
+                      ) : null}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {contrastWords.length > 0 && (
+              <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-5 md:col-span-2">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">近义提醒</p>
+                <div className="mt-3 space-y-3">
+                  {contrastWords.map((item) => (
+                    <div key={`${currentWord.word_id}-contrast-${item.word}`} className="text-sm leading-7 text-zinc-300">
+                      <span className="font-semibold text-white">{item.word}</span>
+                      <span className="text-zinc-400">: {item.note}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {currentWord.words.tags ? (
           <p className="mt-3 text-xs text-zinc-500">标签：{currentWord.words.tags}</p>
