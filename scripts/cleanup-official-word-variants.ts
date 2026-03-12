@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from 'fs'
 import path from 'path'
-import { createServiceRoleClient, normalizeWord } from './official-word-utils'
+import { createServiceRoleClient, normalizeWord, sanitizeOfficialWordEntry } from './official-word-utils'
 
 interface WordRow {
   id: string
@@ -118,8 +118,9 @@ function loadOfficialSourceWords() {
     }>
 
     for (const row of rows) {
-      const word = normalizeWord(row.word ?? '')
-      const definition = row.mean?.trim() ?? ''
+      const cleaned = sanitizeOfficialWordEntry(row.word ?? '', row.mean ?? '')
+      const word = cleaned.word
+      const definition = cleaned.definition
       if (word && definition) {
         sourceWords.add(word)
       }
@@ -133,11 +134,14 @@ function loadOfficialSourceWords() {
       continue
     }
 
-    const word = normalizeWord(trimmed.split(/[\s\[]/)[0] ?? '')
+    const parsedWord = trimmed.split(/[\s\[]/)[0] ?? ''
     const phoneticMatch = trimmed.match(/\[([^\]]+)\]/)
-    const definition = phoneticMatch
+    const rawDefinition = phoneticMatch
       ? trimmed.slice(trimmed.indexOf(']') + 1).trim()
-      : trimmed.slice(word.length).trim()
+      : trimmed.slice(parsedWord.length).trim()
+    const cleaned = sanitizeOfficialWordEntry(parsedWord, rawDefinition)
+    const word = cleaned.word
+    const definition = cleaned.definition
 
     if (word && definition) {
       sourceWords.add(word)

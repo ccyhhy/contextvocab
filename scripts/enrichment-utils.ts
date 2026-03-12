@@ -1,8 +1,8 @@
 import { createHash } from 'crypto'
-import { mkdirSync, writeFileSync } from 'fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import path from 'path'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createServiceRoleClient, normalizeWord } from './official-word-utils'
+import { createServiceRoleClient, normalizeLexicalWord, normalizeWord } from './official-word-utils'
 
 const DEFAULT_TIMEOUT_MS = 12000
 const AI_TIMEOUT_MS = Number(process.env.OPENAI_ENRICH_TIMEOUT_MS || 65000)
@@ -11,14 +11,49 @@ const ENRICHED_DATA_VERSION = 2
 const DEFAULT_OUTPUT_FILE = path.join(process.cwd(), 'data', 'enriched', 'word-profiles.generated.json')
 const AI_MAX_EXAMPLES = 2
 const CHAT_COMPLETIONS_SUFFIX = '/chat/completions'
+const EVIDENCE_CACHE_VERSION = 1
+const DEFAULT_EVIDENCE_CACHE_DIR = path.join(process.cwd(), 'data', 'enriched', 'cache')
+const SOURCE_WORD_PAGE_SIZE = 1000
+const CACHE_MISS = Symbol('CACHE_MISS')
 
 export type EnrichmentStage = 'base' | 'refine'
 type AiTask = 'base' | 'refine' | 'example'
+type ExternalEvidenceSource = 'dictionaryapi' | 'datamuse'
+type JsonFetchFailureReason = 'timeout' | 'http_error' | 'parse_error' | 'network_error'
+type AiFailureReason =
+  | 'timeout'
+  | '429'
+  | 'parse_error'
+  | 'validation_failed'
+  | 'empty_response'
+  | 'network_error'
+  | `http_${number}`
 
 interface AiConfig {
   apiKey: string
   apiBase: string
   model: string
+}
+
+interface JsonFetchSuccess<T> {
+  ok: true
+  status: number
+  data: T
+}
+
+interface JsonFetchFailure {
+  ok: false
+  status: number | null
+  failReason: JsonFetchFailureReason
+  errorMessage: string | null
+}
+
+type JsonFetchResult<T> = JsonFetchSuccess<T> | JsonFetchFailure
+
+interface FileCacheEnvelope<T> {
+  version: number
+  cachedAt: string
+  value: T
 }
 
 const SCENE_LABELS: Record<string, string> = {
@@ -267,30 +302,53 @@ export interface DatamuseEvidence {
 }
 
 const SCENE_KEYWORDS: Record<string, string[]> = {
-  safety: ['danger', 'risk', 'safety', 'safe', 'hazard', 'warning', 'injury', 'accident', 'fire', 'emergency'],
-  study: ['study', 'student', 'school', 'class', 'teacher', 'exam', 'homework', 'university'],
-  work: ['work', 'job', 'office', 'company', 'manager', 'team', 'project', 'meeting', 'boss'],
-  money: ['money', 'price', 'cost', 'budget', 'market', 'tax', 'pay', 'payment'],
-  health: ['health', 'doctor', 'hospital', 'patient', 'pain', 'wound', 'blood', 'exercise'],
-  time: ['time', 'deadline', 'schedule', 'urgent', 'late', 'early', 'today', 'tomorrow'],
-  travel: ['travel', 'trip', 'airport', 'train', 'flight', 'hotel', 'road', 'bus'],
-  technology: ['computer', 'software', 'internet', 'phone', 'data', 'system', 'online', 'digital'],
-  environment: ['environment', 'pollution', 'waste', 'climate', 'chemical', 'toxic', 'smoke', 'water', 'air'],
-  relationships: ['friend', 'family', 'mother', 'father', 'child', 'children', 'wife', 'husband', 'baby', 'girl', 'boy'],
-  communication: ['say', 'speak', 'tell', 'talk', 'ask', 'answer', 'report', 'message'],
-  emotions: ['happy', 'sad', 'angry', 'worried', 'afraid', 'fear', 'love', 'stress'],
-  government: ['government', 'policy', 'law', 'public', 'official', 'tax', 'vote'],
+  safety: ['danger', 'risk', 'safety', 'safe', 'hazard', 'warning', 'injury', 'accident', 'fire', 'emergency', '危险', '风险', '安全', '警告', '事故', '紧急'],
+  study: ['study', 'student', 'school', 'class', 'teacher', 'exam', 'homework', 'university', 'grammar', 'grammatical', 'syntax', 'linguistic', 'linguistics', 'tense', 'clause', 'conjugation', 'infinitive', 'non-finite', 'finite verb', '学习', '学校', '课堂', '考试', '作业', '大学', '语法', '句法', '时态', '从句', '限定式', '非限定', '词形变化'],
+  work: ['work', 'job', 'office', 'company', 'manager', 'team', 'project', 'meeting', 'boss', '工作', '职场', '公司', '经理', '团队', '项目', '会议', '老板', '办公室'],
+  money: ['money', 'price', 'cost', 'budget', 'market', 'tax', 'pay', 'payment', 'money', '金钱', '价格', '成本', '预算', '市场', '税', '付款', '工资'],
+  health: ['health', 'doctor', 'hospital', 'patient', 'pain', 'wound', 'blood', 'exercise', '健康', '医生', '医院', '病人', '疼痛', '伤口', '血液', '锻炼'],
+  time: ['time', 'deadline', 'schedule', 'urgent', 'late', 'early', 'today', 'tomorrow', '时间', '截止', '日程', '紧急', '迟到', '提前', '今天', '明天'],
+  travel: ['travel', 'trip', 'airport', 'train', 'flight', 'hotel', 'road', 'bus', '旅行', '旅程', '机场', '火车', '航班', '酒店', '道路', '公交'],
+  technology: ['computer', 'software', 'internet', 'phone', 'data', 'system', 'online', 'digital', '电脑', '软件', '网络', '手机', '数据', '系统', '线上', '数字'],
+  environment: ['environment', 'pollution', 'waste', 'climate', 'chemical', 'toxic', 'smoke', 'water', 'air', '环境', '污染', '废弃物', '气候', '化学', '有毒', '烟雾', '水', '空气'],
+  relationships: ['friend', 'family', 'mother', 'father', 'child', 'children', 'wife', 'husband', 'baby', 'girl', 'boy', '朋友', '家庭', '母亲', '父亲', '孩子', '妻子', '丈夫', '婴儿'],
+  communication: ['say', 'speak', 'tell', 'talk', 'ask', 'answer', 'report', 'message', '沟通', '表达', '消息', '提问', '回答', '汇报', '发言'],
+  emotions: ['happy', 'sad', 'angry', 'worried', 'afraid', 'fear', 'love', 'stress', '快乐', '悲伤', '生气', '担心', '害怕', '恐惧', '爱', '压力'],
+  government: ['government', 'policy', 'law', 'public', 'official', 'tax', 'vote', '政府', '政策', '法律', '公共', '官员', '税务', '投票'],
 }
+
+const STUDY_SCENE_STRONG_KEYWORDS = [
+  'grammar',
+  'grammatical',
+  'syntax',
+  'linguistic',
+  'linguistics',
+  'tense',
+  'clause',
+  'conjugation',
+  'infinitive',
+  'non-finite',
+  'finite verb',
+  '语法',
+  '句法',
+  '时态',
+  '从句',
+  '限定式',
+  '非限定',
+  '词形变化',
+]
 
 export function parseEnrichCliArgs(argv: string[]): EnrichCliOptions {
   const stage = normalizeEnrichmentStage(getStringArg(argv, '--stage')) ?? 'base'
   const defaultConcurrency = getDefaultConcurrencyForStage(stage)
+  const words = getWordsArg(argv)
+  const hasExplicitLimit = argv.includes('--limit')
   return {
     stage,
     tag: getStringArg(argv, '--tag') ?? null,
-    limit: getNumberArg(argv, '--limit', 50),
+    limit: words.length > 0 && !hasExplicitLimit ? words.length : getNumberArg(argv, '--limit', 50),
     offset: getNumberArg(argv, '--offset', 0),
-    words: getListArg(argv, '--words'),
+    words,
     output: getStringArg(argv, '--output') ?? DEFAULT_OUTPUT_FILE,
     dryRun: hasFlag(argv, '--dry-run'),
     withAi: hasFlag(argv, '--with-ai') || (!hasFlag(argv, '--no-ai') && hasAnyAiConfig()),
@@ -320,18 +378,21 @@ export async function fetchSourceWords(
   supabase: SupabaseClient,
   options: Pick<EnrichCliOptions, 'tag' | 'limit' | 'offset' | 'words'>
 ) {
-  let query = supabase
+  const selectedWords = dedupeStrings(options.words.map((item) => normalizeWord(item)))
+  const baseQuery = supabase
     .from('words')
     .select('id, word, phonetic, definition, tags, example')
     .order('word', { ascending: true })
 
-  if (options.words.length > 0) {
-    query = query.in('word', options.words.map((item) => normalizeWord(item)))
-  } else if (options.tag) {
-    query = query.ilike('tags', `%${options.tag}%`)
+  if (selectedWords.length > 0) {
+    return matchExplicitSourceWords(await fetchAllSourceWordRows(supabase), selectedWords)
   }
 
-  query = query.range(options.offset, options.offset + Math.max(options.limit - 1, 0))
+  let query = baseQuery
+  if (options.tag) {
+    query = query.ilike('tags', `%${options.tag}%`)
+    query = query.range(options.offset, options.offset + Math.max(options.limit - 1, 0))
+  }
 
   const { data, error } = await query
   if (error) {
@@ -344,16 +405,34 @@ export async function fetchSourceWords(
 }
 
 export async function fetchDictionaryEvidence(word: string): Promise<DictionaryEvidence | null> {
-  const normalizedWord = normalizeWord(word)
+  const normalizedWord = getLookupWord(word)
   if (!normalizedWord) {
     return null
   }
 
-  const payload = await fetchJsonWithTimeout<unknown>(
+  const cachedEvidence = readEvidenceCache<DictionaryEvidence | null>('dictionaryapi', normalizedWord)
+  if (cachedEvidence !== CACHE_MISS) {
+    return cachedEvidence
+  }
+
+  const response = await fetchJsonWithTimeoutDetailed<unknown>(
     `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(normalizedWord)}`
   )
+  if (!response.ok) {
+    if (response.status === 404) {
+      writeEvidenceCache('dictionaryapi', normalizedWord, null)
+    }
+    return null
+  }
 
-  if (!Array.isArray(payload) || payload.length === 0) {
+  const payload = response.data
+
+  if (!Array.isArray(payload)) {
+    return null
+  }
+
+  if (payload.length === 0) {
+    writeEvidenceCache('dictionaryapi', normalizedWord, null)
     return null
   }
 
@@ -411,7 +490,7 @@ export async function fetchDictionaryEvidence(word: string): Promise<DictionaryE
     }))
   )
 
-  return {
+  const evidence: DictionaryEvidence = {
     phonetic,
     meanings,
     examples,
@@ -419,11 +498,23 @@ export async function fetchDictionaryEvidence(word: string): Promise<DictionaryE
     license,
     rawPayload: payload,
   }
+
+  writeEvidenceCache('dictionaryapi', normalizedWord, evidence)
+  return evidence
 }
 
 export async function fetchDatamuseEvidence(word: string): Promise<DatamuseEvidence> {
-  const normalizedWord = normalizeWord(word)
-  const [meaningHints, synonymHints, associationHints, leftCollocationHints, rightCollocationHints] =
+  const normalizedWord = getLookupWord(word)
+  if (!normalizedWord) {
+    return buildEmptyDatamuseEvidence()
+  }
+
+  const cachedEvidence = readEvidenceCache<DatamuseEvidence>('datamuse', normalizedWord)
+  if (cachedEvidence !== CACHE_MISS) {
+    return cachedEvidence
+  }
+
+  const results =
     await Promise.all([
       fetchDatamuseWordList(`https://api.datamuse.com/words?ml=${encodeURIComponent(normalizedWord)}&max=8&md=p`),
       fetchDatamuseWordList(`https://api.datamuse.com/words?rel_syn=${encodeURIComponent(normalizedWord)}&max=8&md=p`),
@@ -431,30 +522,44 @@ export async function fetchDatamuseEvidence(word: string): Promise<DatamuseEvide
       fetchDatamuseWordList(`https://api.datamuse.com/words?rel_jjb=${encodeURIComponent(normalizedWord)}&max=8&md=p`),
       fetchDatamuseWordList(`https://api.datamuse.com/words?rel_jja=${encodeURIComponent(normalizedWord)}&max=8&md=p`),
     ])
+  const [meaningHints, synonymHints, associationHints, leftCollocationHints, rightCollocationHints] = results
 
-  return {
-    meaningHints: pickDatamuseWords(meaningHints),
-    synonymHints: pickDatamuseWords(synonymHints),
-    associationHints: pickDatamuseWords(associationHints),
-    leftCollocationHints: pickDatamuseWords(leftCollocationHints),
-    rightCollocationHints: pickDatamuseWords(rightCollocationHints),
+  const evidence: DatamuseEvidence = {
+    meaningHints: pickDatamuseWords(meaningHints.items),
+    synonymHints: pickDatamuseWords(synonymHints.items),
+    associationHints: pickDatamuseWords(associationHints.items),
+    leftCollocationHints: pickDatamuseWords(leftCollocationHints.items),
+    rightCollocationHints: pickDatamuseWords(rightCollocationHints.items),
     rawPayload: {
-      meaningHints,
-      synonymHints,
-      associationHints,
-      leftCollocationHints,
-      rightCollocationHints,
+      meaningHints: meaningHints.items,
+      synonymHints: synonymHints.items,
+      associationHints: associationHints.items,
+      leftCollocationHints: leftCollocationHints.items,
+      rightCollocationHints: rightCollocationHints.items,
     },
   }
+
+  if (results.every((result) => result.cacheable)) {
+    writeEvidenceCache('datamuse', normalizedWord, evidence)
+  }
+  return evidence
 }
 
 export async function generateEnrichedRecord(
   wordRow: SourceWordRow,
   options: { withAi: boolean; stage: EnrichmentStage }
 ): Promise<EnrichedWordRecord> {
-  const dictionaryEvidence = await fetchDictionaryEvidence(wordRow.word)
-  const datamuseEvidence = await fetchDatamuseEvidence(wordRow.word)
-  const seedExample = buildSeedExample(wordRow)
+  const lexicalWord = getLookupWord(wordRow.word)
+  const lexicalWordRow =
+    lexicalWord && lexicalWord !== wordRow.word
+      ? {
+          ...wordRow,
+          word: lexicalWord,
+        }
+      : wordRow
+  const dictionaryEvidence = await fetchDictionaryEvidence(lexicalWordRow.word)
+  const datamuseEvidence = await fetchDatamuseEvidence(lexicalWordRow.word)
+  const seedExample = buildSeedExample(lexicalWordRow)
   const evidenceExamples = selectBestExamples([
     ...(dictionaryEvidence?.examples ?? []),
     ...(seedExample ? [seedExample] : []),
@@ -462,19 +567,37 @@ export async function generateEnrichedRecord(
 
   const primaryPartOfSpeech = dictionaryEvidence?.meanings[0]?.partOfSpeech ?? null
   const collocations = deriveCollocations(
-    wordRow.word,
+    lexicalWordRow.word,
     evidenceExamples,
     datamuseEvidence,
     primaryPartOfSpeech
   )
-  const fallbackProfile = buildFallbackProfile(wordRow, dictionaryEvidence, datamuseEvidence, collocations, evidenceExamples)
+  const fallbackProfile = buildFallbackProfile(
+    lexicalWordRow,
+    dictionaryEvidence,
+    datamuseEvidence,
+    collocations,
+    evidenceExamples
+  )
   const baseFallbackProfile = buildBaseProfile(fallbackProfile)
 
   const aiResult =
     options.withAi && options.stage === 'base'
-      ? await tryGenerateAiBaseProfile(wordRow, dictionaryEvidence, datamuseEvidence, collocations, evidenceExamples)
+      ? await tryGenerateAiBaseProfile(
+          lexicalWordRow,
+          dictionaryEvidence,
+          datamuseEvidence,
+          collocations,
+          evidenceExamples
+        )
       : options.withAi
-        ? await tryGenerateAiRefineProfile(wordRow, dictionaryEvidence, datamuseEvidence, collocations, evidenceExamples)
+        ? await tryGenerateAiRefineProfile(
+            lexicalWordRow,
+            dictionaryEvidence,
+            datamuseEvidence,
+            collocations,
+            evidenceExamples
+          )
         : null
 
   const examples =
@@ -517,7 +640,7 @@ export async function generateEnrichedRecord(
     {
       sourceName: 'datamuse',
       sourceKind: 'association_lookup',
-      sourceUrl: `https://api.datamuse.com/words?ml=${encodeURIComponent(wordRow.word)}`,
+      sourceUrl: `https://api.datamuse.com/words?ml=${encodeURIComponent(lexicalWordRow.word)}`,
       license: null,
       payload: datamuseEvidence.rawPayload,
       payloadHash: computePayloadHash(datamuseEvidence.rawPayload),
@@ -547,7 +670,7 @@ export async function generateEnrichedRecord(
   }
 
   return {
-    word: wordRow.word,
+    word: lexicalWordRow.word,
     wordId: wordRow.id,
     definition: wordRow.definition,
     phonetic: dictionaryEvidence?.phonetic ?? wordRow.phonetic ?? null,
@@ -699,7 +822,7 @@ async function tryGenerateAiBaseProfile(
   }
 
   for (let attempt = 0; attempt < AI_RETRY_COUNT; attempt += 1) {
-    const response = await fetchJsonWithTimeout<{
+    const response = await fetchJsonWithTimeoutDetailed<{
       choices?: Array<{
         message?: {
           content?: unknown
@@ -726,10 +849,12 @@ async function tryGenerateAiBaseProfile(
                 'Write all explanatory text in Simplified Chinese.',
                 `sceneTags must come from this closed set: ${AI_SCENE_TAGS.join(', ')}.`,
                 'Keep only the most learnable sense.',
+                'Prefer the most specific sceneTags supported by the evidence. Use general only as a last resort when no concrete scene signal exists.',
+                'usageRegister: return formal or informal only when the evidence clearly supports it. Otherwise return null.',
                 'Only fill these fields: coreMeaning, usageRegister, sceneTags, collocations, confidenceScore.',
                 'collocations: keep 3 to 6 high-value items only. Remove fragments, stopwords, and awkward leftovers.',
                 'Schema:',
-                '{"coreMeaning":"...", "usageRegister":"formal|neutral|informal|null", "sceneTags":["..."], "collocations":["..."], "confidenceScore":0.0}',
+                '{"coreMeaning":"...", "usageRegister":"formal|informal|null", "sceneTags":["..."], "collocations":["..."], "confidenceScore":0.0}',
               ].join('\n'),
             },
             {
@@ -766,7 +891,11 @@ async function tryGenerateAiBaseProfile(
       AI_TIMEOUT_MS
     )
 
-    const content = extractChatContent(response?.choices?.[0]?.message?.content)
+    if (!response.ok) {
+      continue
+    }
+
+    const content = extractChatContent(response.data.choices?.[0]?.message?.content)
     if (!content) {
       continue
     }
@@ -817,6 +946,7 @@ async function tryGenerateAiRefineProfile(
 ) {
   const aiConfig = resolveAiConfig('refine')
   const primaryPartOfSpeech = dictionaryEvidence?.meanings[0]?.partOfSpeech ?? null
+  const fallbackProfile = buildFallbackProfile(wordRow, dictionaryEvidence, datamuseEvidence, collocations, examples)
   const shouldRefreshExamples = needsExampleUpgrade(examples)
 
   if (!aiConfig) {
@@ -824,7 +954,7 @@ async function tryGenerateAiRefineProfile(
   }
 
   for (let attempt = 0; attempt < AI_RETRY_COUNT; attempt += 1) {
-    const response = await fetchJsonWithTimeout<{
+    const response = await fetchJsonWithTimeoutDetailed<{
       choices?: Array<{
         message?: {
           content?: unknown
@@ -851,18 +981,16 @@ async function tryGenerateAiRefineProfile(
                 'Return JSON only.',
                 'Write all explanatory text in Simplified Chinese.',
                 `sceneTags must come from this closed set: ${AI_SCENE_TAGS.join(', ')}.`,
+                'Prefer the most specific sceneTags supported by the evidence. Use general only as a last resort when no concrete scene signal exists.',
                 'coreMeaning: one concise Chinese paraphrase of the most learnable sense. Do not copy the full seed definition verbatim.',
                 'semanticFeel: explain what kind of situation, tone, or implied meaning the word usually carries.',
                 'usageNote: tell the learner how to reuse the word naturally.',
+                'usageRegister: return formal or informal only when the evidence clearly supports it. Otherwise return null.',
                 'collocations: keep 3 to 6 high-value items only. Remove fragments, stopwords, and awkward leftovers. Prefer adjective+noun, noun phrase, verb+object, verb+preposition, or fixed phrases.',
                 'contrastWords: keep at most 3 items, and each note must explain the difference in Chinese instead of saying they are merely similar.',
-                'When generating exampleSuggestions, do not reuse, translate, or lightly rewrite any sentence from realExamples.',
                 'Avoid archaic, literary, gambling, golf, war, or CPU-specific senses unless the evidence strongly shows that they are the main learner sense.',
-                'Prefer everyday CET-style examples in safety, health, environment, school, or work contexts.',
-                'Each exampleSuggestion must use the exact target word, or its normal plural form for nouns. Do not replace it with a derived form like hazardous.',
                 'Schema:',
-                '{"coreMeaning":"...", "semanticFeel":"...", "usageNote":"...", "usageRegister":"formal|neutral|informal|null", "sceneTags":["..."], "collocations":["..."], "contrastWords":[{"word":"...","note":"..."}], "confidenceScore":0.0, "exampleSuggestions":[{"sentence":"...","translation":"...","scene":"..."}]}',
-                `If shouldRefreshExamples is true, include 1 or 2 short, natural, easy-to-adapt B1-B2 exampleSuggestions with Chinese translations. Cap them at ${AI_MAX_EXAMPLES}.`,
+                '{"coreMeaning":"...", "semanticFeel":"...", "usageNote":"...", "usageRegister":"formal|informal|null", "sceneTags":["..."], "collocations":["..."], "contrastWords":[{"word":"...","note":"..."}], "confidenceScore":0.0}',
               ].join('\n'),
             },
             {
@@ -888,7 +1016,6 @@ async function tryGenerateAiRefineProfile(
                     qualityScore: item.qualityScore,
                     sourceName: item.sourceName,
                   })),
-                  shouldRefreshExamples,
                 },
                 null,
                 2
@@ -900,108 +1027,62 @@ async function tryGenerateAiRefineProfile(
       AI_TIMEOUT_MS
     )
 
-    const content = extractChatContent(response?.choices?.[0]?.message?.content)
+    if (!response.ok) {
+      logAiAttemptFailure('refine', wordRow.word, aiConfig.model, attempt + 1, mapFetchFailureToAiReason(response), {
+        status: response.status,
+        details: response.errorMessage,
+      })
+      continue
+    }
+
+    const content = extractChatContent(response.data.choices?.[0]?.message?.content)
     if (!content) {
+      logAiAttemptFailure('refine', wordRow.word, aiConfig.model, attempt + 1, 'empty_response')
       continue
     }
 
     try {
       const parsed = parseJsonObject(content) as Record<string, unknown>
-      const profile: WordProfileInput = {
-        coreMeaning: toOptionalString(parsed.coreMeaning) ?? wordRow.definition,
-        semanticFeel:
-          toOptionalString(parsed.semanticFeel) ??
-          buildLearnerSemanticFeel(inferSceneTags([wordRow.definition]), collocations),
-        usageNote:
-          toOptionalString(parsed.usageNote) ??
-          buildLearnerUsageNote(inferSceneTags([wordRow.definition]), collocations, examples.length),
-        usageRegister: normalizeRegisterValue(parsed.usageRegister),
-        sceneTags: normalizeAiSceneTags(parsed.sceneTags),
-        collocations: normalizeAiCollocations(wordRow.word, parsed.collocations, primaryPartOfSpeech, collocations),
-        contrastWords: dedupeContrastWords(
-          (Array.isArray(parsed.contrastWords) ? parsed.contrastWords : [])
-            .map((item) => {
-              if (typeof item !== "object" || item === null) {
-                return null
-              }
-
-              const record = item as Record<string, unknown>
-              const word = toOptionalString(record.word)
-              const note = toOptionalString(record.note)
-              if (!word || !note) {
-                return null
-              }
-
-              return { word, note }
-            })
-            .filter((item): item is WordContrastInput => item !== null)
-        ).slice(0, 6),
-        confidenceScore: clamp(Number(parsed.confidenceScore) || 0.6, 0.3, 0.98),
-        generationMethod: 'ai_refine',
-      }
-
-      if (profile.sceneTags.length === 0) {
-        profile.sceneTags = inferSceneTags([wordRow.definition, ...examples.map((item) => item.sentence)])
-      }
-
-      if (profile.collocations.length === 0) {
-        profile.collocations = collocations.slice(0, 8)
-      }
-
-      const existingExampleTexts = new Set(
-        examples.map((item) => normalizeExampleKey(item.sentence))
-      )
-      const generatedExampleItems = (Array.isArray(parsed.exampleSuggestions) ? parsed.exampleSuggestions : [])
-        .map((item): WordExampleInput | null => {
-          if (typeof item !== 'object' || item === null) {
-            return null
-          }
-
-          const record = item as Record<string, unknown>
-          const sentence = toOptionalString(record.sentence)
-          if (!sentence) {
-            return null
-          }
-
-          if (
-            existingExampleTexts.has(normalizeExampleKey(sentence)) ||
-            !sentenceContainsTargetWord(sentence, wordRow.word)
-          ) {
-            return null
-          }
-
-          return {
-            sentence,
-            translation: toOptionalString(record.translation),
-            scene: toOptionalString(record.scene),
-            sourceName: 'ai_generated',
-            sourceUrl: null,
-            license: null,
-            qualityScore: scoreExampleSentence(wordRow.word, sentence),
-            isPrimary: false,
-          }
+      const validatedProfile = buildValidatedRefineProfile({
+        word: wordRow.word,
+        parsed,
+        primaryPartOfSpeech,
+        fallbackProfile,
+      })
+      if (!validatedProfile.ok) {
+        logAiAttemptFailure('refine', wordRow.word, aiConfig.model, attempt + 1, 'validation_failed', {
+          details: validatedProfile.details,
         })
-        .filter((item): item is WordExampleInput => item !== null)
+        continue
+      }
 
-      const generatedExamples = selectBestExamples(generatedExampleItems).slice(0, AI_MAX_EXAMPLES)
-      const finalizedExamples =
-        generatedExamples.length > 0 || !shouldRefreshExamples
-          ? generatedExamples
-          : await tryGenerateAiExamples({
+      const exampleResult =
+        shouldRefreshExamples
+          ? await tryGenerateAiExamples({
               ...(resolveAiConfig('example') ?? aiConfig),
               word: wordRow.word,
-              coreMeaning: profile.coreMeaning,
-              sceneTags: profile.sceneTags,
-              collocations: profile.collocations,
+              coreMeaning: validatedProfile.profile.coreMeaning,
+              sceneTags: validatedProfile.profile.sceneTags,
+              collocations: validatedProfile.profile.collocations,
               existingExamples: examples,
             })
+          : {
+              examples: [] as WordExampleInput[],
+              rawPayload: null,
+            }
 
       return {
-        profile,
-        examples: finalizedExamples,
-        rawPayload: parsed,
+        profile: validatedProfile.profile,
+        examples: exampleResult.examples,
+        rawPayload: {
+          profile: parsed,
+          exampleGeneration: exampleResult.rawPayload,
+        },
       }
-    } catch {
+    } catch (error) {
+      logAiAttemptFailure('refine', wordRow.word, aiConfig.model, attempt + 1, 'parse_error', {
+        details: error instanceof Error ? error.message : String(error),
+      })
       continue
     }
   }
@@ -1019,7 +1100,7 @@ async function tryGenerateAiExamples(args: {
   collocations: string[]
   existingExamples: WordExampleInput[]
 }) {
-  const response = await fetchJsonWithTimeout<{
+  const response = await fetchJsonWithTimeoutDetailed<{
     choices?: Array<{
       message?: {
         content?: unknown
@@ -1071,16 +1152,34 @@ async function tryGenerateAiExamples(args: {
     AI_TIMEOUT_MS
   )
 
-  const content = extractChatContent(response?.choices?.[0]?.message?.content)
+  if (!response.ok) {
+    logAiAttemptFailure('example', args.word, args.model, 1, mapFetchFailureToAiReason(response), {
+      totalAttempts: 1,
+      status: response.status,
+      details: response.errorMessage,
+    })
+    return {
+      examples: [] as WordExampleInput[],
+      rawPayload: null,
+    }
+  }
+
+  const content = extractChatContent(response.data.choices?.[0]?.message?.content)
   if (!content) {
-    return []
+    logAiAttemptFailure('example', args.word, args.model, 1, 'empty_response', {
+      totalAttempts: 1,
+    })
+    return {
+      examples: [] as WordExampleInput[],
+      rawPayload: null,
+    }
   }
 
   try {
     const parsed = parseJsonObject(content) as Record<string, unknown>
     const bannedExamples = new Set(args.existingExamples.map((item) => normalizeExampleKey(item.sentence)))
 
-    return selectBestExamples(
+    const examples = selectBestExamples(
       (Array.isArray(parsed.examples) ? parsed.examples : [])
         .map((item): WordExampleInput | null => {
           if (typeof item !== 'object' || item === null) {
@@ -1110,8 +1209,103 @@ async function tryGenerateAiExamples(args: {
         })
         .filter((item): item is WordExampleInput => item !== null)
     ).slice(0, AI_MAX_EXAMPLES)
-  } catch {
-    return []
+
+    if (examples.length === 0) {
+      logAiAttemptFailure('example', args.word, args.model, 1, 'validation_failed', {
+        totalAttempts: 1,
+        details: 'no usable generated examples',
+      })
+    }
+
+    return {
+      examples,
+      rawPayload: parsed,
+    }
+  } catch (error) {
+    logAiAttemptFailure('example', args.word, args.model, 1, 'parse_error', {
+      totalAttempts: 1,
+      details: error instanceof Error ? error.message : String(error),
+    })
+    return {
+      examples: [] as WordExampleInput[],
+      rawPayload: null,
+    }
+  }
+}
+
+function buildValidatedRefineProfile(args: {
+  word: string
+  parsed: Record<string, unknown>
+  primaryPartOfSpeech: string | null
+  fallbackProfile: WordProfileInput
+}) {
+  const coreMeaning = toOptionalString(args.parsed.coreMeaning)
+  const semanticFeel = toOptionalString(args.parsed.semanticFeel)
+  const usageNote = toOptionalString(args.parsed.usageNote)
+  const sceneTags = normalizeAiSceneTags(args.parsed.sceneTags)
+  const collocations = normalizeAiCollocations(args.word, args.parsed.collocations, args.primaryPartOfSpeech, [])
+  const issues: string[] = []
+
+  if (!coreMeaning) {
+    issues.push('missing coreMeaning')
+  }
+  if (!semanticFeel) {
+    issues.push('missing semanticFeel')
+  }
+  if (!usageNote) {
+    issues.push('missing usageNote')
+  }
+  if (sceneTags.length === 0) {
+    issues.push('invalid sceneTags')
+  }
+  if (collocations.length === 0) {
+    issues.push('invalid collocations')
+  }
+
+  if (issues.length > 0) {
+    return {
+      ok: false as const,
+      details: issues.join(', '),
+    }
+  }
+
+  const contrastWords = dedupeContrastWords(
+    (Array.isArray(args.parsed.contrastWords) ? args.parsed.contrastWords : [])
+      .map((item) => {
+        if (typeof item !== 'object' || item === null) {
+          return null
+        }
+
+        const record = item as Record<string, unknown>
+        const word = toOptionalString(record.word)
+        const note = toOptionalString(record.note)
+        if (!word || !note) {
+          return null
+        }
+
+        return { word, note }
+      })
+      .filter((item): item is WordContrastInput => item !== null)
+  ).slice(0, 3)
+
+  return {
+    ok: true as const,
+    profile: {
+      ...args.fallbackProfile,
+      coreMeaning: coreMeaning as string,
+      semanticFeel: semanticFeel as string,
+      usageNote: usageNote as string,
+      usageRegister: normalizeRegisterValue(args.parsed.usageRegister) ?? args.fallbackProfile.usageRegister,
+      sceneTags,
+      collocations,
+      contrastWords: contrastWords.length > 0 ? contrastWords : args.fallbackProfile.contrastWords,
+      confidenceScore: clamp(
+        Number(args.parsed.confidenceScore) || args.fallbackProfile.confidenceScore,
+        0.3,
+        0.98
+      ),
+      generationMethod: 'ai_refine',
+    } satisfies WordProfileInput,
   }
 }
 
@@ -1121,7 +1315,7 @@ function deriveCollocations(
   datamuseEvidence: DatamuseEvidence,
   primaryPartOfSpeech: string | null
 ) {
-  const normalizedWord = word.toLowerCase()
+  const normalizedWord = getLookupWord(word).toLowerCase()
   const normalizedPos = primaryPartOfSpeech?.toLowerCase() ?? ''
   const candidateScores = new Map<string, number>()
 
@@ -1320,6 +1514,10 @@ function inferSceneTags(texts: string[]) {
   const scoreMap = new Map<string, number>()
   const combinedText = texts.join(' ').toLowerCase()
 
+  if (STUDY_SCENE_STRONG_KEYWORDS.some((keyword) => combinedText.includes(keyword))) {
+    return ['study']
+  }
+
   for (const [scene, keywords] of Object.entries(SCENE_KEYWORDS)) {
     const score = keywords.reduce((count, keyword) => {
       if (!combinedText.includes(keyword)) {
@@ -1410,7 +1608,7 @@ function inferUsageRegister(dictionaryEvidence: DictionaryEvidence | null, tags:
   if (combined.includes('informal') || combined.includes('spoken')) {
     return 'informal'
   }
-  return 'neutral'
+  return null
 }
 
 function scoreExampleSentence(word: string, sentence: string) {
@@ -1422,7 +1620,7 @@ function scoreExampleSentence(word: string, sentence: string) {
   let score = 0.45
   const wordCount = trimmed.split(/\s+/).length
 
-  if (new RegExp(`\\b${escapeRegExp(normalizeWord(word).toLowerCase())}\\b`, 'i').test(trimmed)) {
+  if (new RegExp(`\\b${escapeRegExp(getLookupWord(word).toLowerCase())}\\b`, 'i').test(trimmed)) {
     score += 0.2
   }
 
@@ -1525,7 +1723,7 @@ function dedupeContrastWords(items: WordContrastInput[]) {
   const deduped: WordContrastInput[] = []
 
   for (const item of items) {
-    const normalized = normalizeWord(item.word).toLowerCase()
+    const normalized = getLookupWord(item.word).toLowerCase()
     if (!normalized || seen.has(normalized)) {
       continue
     }
@@ -1541,8 +1739,18 @@ function dedupeContrastWords(items: WordContrastInput[]) {
 }
 
 async function fetchDatamuseWordList(url: string) {
-  const payload = await fetchJsonWithTimeout<unknown>(url)
-  return Array.isArray(payload) ? (payload as DatamuseWord[]) : []
+  const response = await fetchJsonWithTimeoutDetailed<unknown>(url)
+  if (!response.ok) {
+    return {
+      items: [] as DatamuseWord[],
+      cacheable: false,
+    }
+  }
+
+  return {
+    items: Array.isArray(response.data) ? (response.data as DatamuseWord[]) : [],
+    cacheable: Array.isArray(response.data),
+  }
 }
 
 function pickDatamuseWords(items: DatamuseWord[]) {
@@ -1553,7 +1761,61 @@ function pickDatamuseWords(items: DatamuseWord[]) {
   ).slice(0, 8)
 }
 
-async function fetchJsonWithTimeout<T>(input: string, init?: RequestInit, timeoutMs = DEFAULT_TIMEOUT_MS) {
+function buildEmptyDatamuseEvidence(): DatamuseEvidence {
+  return {
+    meaningHints: [],
+    synonymHints: [],
+    associationHints: [],
+    leftCollocationHints: [],
+    rightCollocationHints: [],
+    rawPayload: {
+      meaningHints: [],
+      synonymHints: [],
+      associationHints: [],
+      leftCollocationHints: [],
+      rightCollocationHints: [],
+    },
+  }
+}
+
+function readEvidenceCache<T>(source: ExternalEvidenceSource, key: string): T | typeof CACHE_MISS {
+  try {
+    const cachePath = getEvidenceCachePath(source, key)
+    const parsed = JSON.parse(readFileSync(cachePath, 'utf-8')) as FileCacheEnvelope<T> | null
+    if (!parsed || typeof parsed !== 'object' || parsed.version !== EVIDENCE_CACHE_VERSION || !('value' in parsed)) {
+      return CACHE_MISS
+    }
+
+    return parsed.value
+  } catch {
+    return CACHE_MISS
+  }
+}
+
+function writeEvidenceCache<T>(source: ExternalEvidenceSource, key: string, value: T) {
+  const cachePath = getEvidenceCachePath(source, key)
+  mkdirSync(path.dirname(cachePath), { recursive: true })
+  writeFileSync(
+    cachePath,
+    `${JSON.stringify({ version: EVIDENCE_CACHE_VERSION, cachedAt: new Date().toISOString(), value }, null, 2)}\n`,
+    'utf-8'
+  )
+}
+
+function getEvidenceCachePath(source: ExternalEvidenceSource, key: string) {
+  return path.join(DEFAULT_EVIDENCE_CACHE_DIR, source, `${sanitizeCacheKey(key)}.json`)
+}
+
+function sanitizeCacheKey(value: string) {
+  const normalized = getLookupWord(value).toLowerCase().replace(/[^a-z0-9._-]+/g, '_').replace(/^_+|_+$/g, '')
+  return normalized || computePayloadHash(value).slice(0, 16)
+}
+
+async function fetchJsonWithTimeoutDetailed<T>(
+  input: string,
+  init?: RequestInit,
+  timeoutMs = DEFAULT_TIMEOUT_MS
+): Promise<JsonFetchResult<T>> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
@@ -1568,15 +1830,90 @@ async function fetchJsonWithTimeout<T>(input: string, init?: RequestInit, timeou
     })
 
     if (!response.ok) {
-      return null
+      return {
+        ok: false,
+        status: response.status,
+        failReason: 'http_error',
+        errorMessage: response.statusText || null,
+      }
     }
 
-    return (await response.json()) as T
-  } catch {
-    return null
+    try {
+      return {
+        ok: true,
+        status: response.status,
+        data: (await response.json()) as T,
+      }
+    } catch (error) {
+      return {
+        ok: false,
+        status: response.status,
+        failReason: 'parse_error',
+        errorMessage: error instanceof Error ? error.message : String(error),
+      }
+    }
+  } catch (error) {
+    const isTimeout =
+      error instanceof Error &&
+      (error.name === 'AbortError' || /aborted|timeout/i.test(error.message))
+
+    return {
+      ok: false,
+      status: null,
+      failReason: isTimeout ? 'timeout' : 'network_error',
+      errorMessage: error instanceof Error ? error.message : String(error),
+    }
   } finally {
     clearTimeout(timeoutId)
   }
+}
+
+function mapFetchFailureToAiReason(result: JsonFetchFailure): AiFailureReason {
+  if (result.status === 429) {
+    return '429'
+  }
+  if (result.failReason === 'timeout') {
+    return 'timeout'
+  }
+  if (result.failReason === 'parse_error') {
+    return 'parse_error'
+  }
+  if (result.failReason === 'network_error') {
+    return 'network_error'
+  }
+
+  return typeof result.status === 'number' ? `http_${result.status}` : 'network_error'
+}
+
+function logAiAttemptFailure(
+  task: AiTask,
+  word: string,
+  model: string,
+  attempt: number,
+  reason: AiFailureReason,
+  options?: {
+    totalAttempts?: number
+    status?: number | null
+    details?: string | null
+  }
+) {
+  const parts = [
+    `[ai:${task}]`,
+    `word=${word}`,
+    `model=${model}`,
+    `attempt=${attempt}/${options?.totalAttempts ?? AI_RETRY_COUNT}`,
+    `fail_reason=${reason}`,
+  ]
+
+  if (typeof options?.status === 'number') {
+    parts.push(`status=${options.status}`)
+  }
+
+  if (options?.details) {
+    parts.push(`details=${options.details.replace(/\s+/g, ' ').trim().slice(0, 200)}`)
+  }
+
+  console.warn(parts.join(' '))
 }
 
 function extractChatContent(content: unknown) {
@@ -1704,6 +2041,20 @@ function getListArg(argv: string[], name: string) {
     .filter(Boolean)
 }
 
+function getWordsArg(argv: string[]) {
+  const inlineWords = getListArg(argv, '--words')
+  const wordsFile = getStringArg(argv, '--words-file')
+  const fileWords =
+    wordsFile
+      ? readFileSync(path.resolve(wordsFile), 'utf-8')
+          .split(/[\r\n,]+/)
+          .map((item) => normalizeWord(item))
+          .filter(Boolean)
+      : []
+
+  return dedupeStrings([...inlineWords, ...fileWords])
+}
+
 function normalizeAiSceneTags(value: unknown) {
   const tags = dedupeStrings(normalizeStringList(value))
     .map((item) => item.toLowerCase())
@@ -1718,7 +2069,7 @@ function normalizeAiCollocations(
   primaryPartOfSpeech: string | null,
   fallbackCollocations: string[]
 ) {
-  const normalizedWord = normalizeWord(word).toLowerCase()
+  const normalizedWord = getLookupWord(word).toLowerCase()
   const normalizedPos = primaryPartOfSpeech?.toLowerCase() ?? ''
   const aiCollocations = dedupeStrings(normalizeStringList(value))
     .map((item) => normalizeCollocationCandidate(normalizedWord, item))
@@ -1740,7 +2091,7 @@ function normalizeExampleKey(sentence: string) {
 }
 
 function sentenceContainsTargetWord(sentence: string, word: string) {
-  const normalizedWord = normalizeWord(word).toLowerCase()
+  const normalizedWord = getLookupWord(word).toLowerCase()
   const tokens = sentence
     .toLowerCase()
     .replace(/[^a-z\s'-]/g, ' ')
@@ -1750,6 +2101,67 @@ function sentenceContainsTargetWord(sentence: string, word: string) {
     .filter(Boolean)
 
   return tokens.some((token) => token === normalizedWord || token === `${normalizedWord}s`)
+}
+
+function matchExplicitSourceWords(rows: SourceWordRow[], requestedWords: string[]) {
+  const candidates = rows.map((row) => ({
+    row,
+    exact: normalizeWord(row.word),
+    lookup: getLookupWord(row.word),
+  }))
+  const usedIndexes = new Set<number>()
+
+  return requestedWords.flatMap((requestedWord) => {
+    const exactWord = normalizeWord(requestedWord)
+    const lookupWord = getLookupWord(requestedWord)
+    let matchIndex = candidates.findIndex(
+      (candidate, index) => !usedIndexes.has(index) && candidate.exact === exactWord
+    )
+
+    if (matchIndex === -1 && lookupWord) {
+      matchIndex = candidates.findIndex(
+        (candidate, index) => !usedIndexes.has(index) && candidate.lookup === lookupWord
+      )
+    }
+
+    if (matchIndex === -1) {
+      return []
+    }
+
+    usedIndexes.add(matchIndex)
+    return [candidates[matchIndex].row]
+  })
+}
+
+async function fetchAllSourceWordRows(supabase: SupabaseClient) {
+  const rows: SourceWordRow[] = []
+
+  for (let from = 0; ; from += SOURCE_WORD_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('words')
+      .select('id, word, phonetic, definition, tags, example')
+      .order('word', { ascending: true })
+      .range(from, from + SOURCE_WORD_PAGE_SIZE - 1)
+
+    if (error) {
+      throw error
+    }
+
+    const page = ((data ?? []) as SourceWordRow[]).filter(
+      (item) => typeof item.id === 'string' && typeof item.word === 'string' && typeof item.definition === 'string'
+    )
+    rows.push(...page)
+
+    if (page.length < SOURCE_WORD_PAGE_SIZE) {
+      break
+    }
+  }
+
+  return rows
+}
+
+function getLookupWord(value: string) {
+  return normalizeLexicalWord(value) || normalizeWord(value)
 }
 
 function toOptionalString(value: unknown) {
@@ -1769,7 +2181,7 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function normalizeRegisterValue(value: unknown) {
-  if (value === 'formal' || value === 'neutral' || value === 'informal') {
+  if (value === 'formal' || value === 'informal') {
     return value
   }
 

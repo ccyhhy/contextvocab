@@ -24,6 +24,15 @@ export interface ImportSummary {
 }
 
 export const CHUNK_SIZE = 200
+const LOOKUP_SYMBOL_REPLACEMENTS = [
+  [/[\u2018\u2019\u201B\u2032\uFF07`´]/g, "'"],
+  [/[\u2010-\u2015\u2212]/g, '-'],
+  [/ɔ/g, 'o'],
+  [/ŋ/g, 'n'],
+  [/ʃ/g, 'f'],
+] as const
+const OPTIONAL_VARIANT_PATTERN = /^([A-Za-z-]+)\(([A-Za-z-]+)\)$/
+const TRAILING_POS_MARKERS = ['vt', 'vi'] as const
 
 export function createServiceRoleClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -40,6 +49,41 @@ export function createServiceRoleClient() {
 
 export function normalizeWord(value: string) {
   return value.replace(/^\uFEFF/, '').trim()
+}
+
+export function normalizeLexicalWord(value: string) {
+  let normalized = normalizeWord(value).normalize('NFKC')
+
+  for (const [pattern, replacement] of LOOKUP_SYMBOL_REPLACEMENTS) {
+    normalized = normalized.replace(pattern, replacement)
+  }
+
+  const optionalVariantMatch = normalized.match(OPTIONAL_VARIANT_PATTERN)
+  if (optionalVariantMatch) {
+    normalized = optionalVariantMatch[1]
+  }
+
+  const trailingPosMarker = getTrailingPartOfSpeechMarker(normalized)
+  if (trailingPosMarker) {
+    normalized = normalized.slice(0, -trailingPosMarker.length)
+  }
+
+  return normalized.trim()
+}
+
+export function sanitizeOfficialWordEntry(word: string, definition: string) {
+  const normalizedDefinition = normalizeWord(definition)
+  const normalizedSurface = normalizeWord(word).normalize('NFKC')
+  const cleanedWord = normalizeLexicalWord(normalizedSurface)
+  const trailingPosMarker = getTrailingPartOfSpeechMarker(normalizedSurface)
+  const needsDefinitionRepair = trailingPosMarker && /^[.。;；,:：、]/.test(normalizedDefinition)
+
+  return {
+    word: cleanedWord,
+    definition: needsDefinitionRepair
+      ? `${trailingPosMarker}. ${normalizedDefinition.replace(/^[.。;；,:：、\s]+/, '')}`.trim()
+      : normalizedDefinition,
+  }
 }
 
 export function normalizeTags(tags: string | null | undefined) {
@@ -178,4 +222,22 @@ export function hasTag(tags: string | null | undefined, target: string) {
     .split(',')
     .map((item) => item.trim().toLowerCase())
     .includes(normalizedTarget)
+}
+
+function getTrailingPartOfSpeechMarker(value: string) {
+  const normalized = normalizeWord(value)
+  const asciiOnly = normalized.replace(OPTIONAL_VARIANT_PATTERN, '$1')
+
+  if (!/^[A-Za-z-]+$/.test(asciiOnly)) {
+    return null
+  }
+
+  const lower = asciiOnly.toLowerCase()
+  for (const marker of TRAILING_POS_MARKERS) {
+    if (lower.endsWith(marker) && asciiOnly.length > marker.length + 2) {
+      return marker
+    }
+  }
+
+  return null
 }

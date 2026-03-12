@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "enrich:words": "tsx --env-file=.env.local scripts/enrich-words.ts",
+    "find:base-rerun-candidates": "tsx --env-file=.env.local scripts/find-base-rerun-candidates.ts",
+    "prepare:base-rerun-batches": "tsx --env-file=.env.local scripts/prepare-base-rerun-batches.ts",
     "import:enriched": "tsx --env-file=.env.local scripts/import-enriched-words.ts",
     "cleanup:official-variants": "tsx --env-file=.env.local scripts/cleanup-official-word-variants.ts",
     "import:words": "tsx --env-file=.env.local scripts/import-words.ts",

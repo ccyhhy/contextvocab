@@ -2,7 +2,7 @@ import { readFileSync } from 'fs'
 import path from 'path'
 import {
   createServiceRoleClient,
-  normalizeWord,
+  sanitizeOfficialWordEntry,
   type WordInsertInput,
   upsertWords,
 } from './official-word-utils'
@@ -15,15 +15,18 @@ function parseLine(line: string): WordInsertInput | null {
 
   const phoneticMatch = trimmed.match(/\[([^\]]+)\]/)
   const phonetic = phoneticMatch ? `[${phoneticMatch[1]}]` : ''
-  const word = normalizeWord(trimmed.split(/[\s\[]/)[0] ?? '')
+  const parsedWord = trimmed.split(/[\s\[]/)[0] ?? ''
+  const rawDefinition = phoneticMatch
+    ? trimmed.slice(trimmed.indexOf(']') + 1).trim()
+    : trimmed.slice(parsedWord.length).trim()
+  const cleaned = sanitizeOfficialWordEntry(parsedWord, rawDefinition)
+  const word = cleaned.word
 
   if (!word || !/^[a-z][a-z-]*$/i.test(word)) {
     return null
   }
 
-  const definition = phoneticMatch
-    ? trimmed.slice(trimmed.indexOf(']') + 1).trim()
-    : trimmed.slice(word.length).trim()
+  const definition = cleaned.definition
 
   if (!definition) {
     return null

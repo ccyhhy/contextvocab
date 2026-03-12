@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from 'fs'
 import path from 'path'
 import {
   createServiceRoleClient,
-  normalizeWord,
+  sanitizeOfficialWordEntry,
   type WordInsertInput,
   upsertWords,
 } from './official-word-utils'
@@ -18,13 +18,16 @@ function parseCet4File(filePath: string) {
   const raw = JSON.parse(readFileSync(filePath, 'utf-8')) as RawCet4Word[]
 
   return raw
-    .map((item) => ({
-      word: normalizeWord(item.word),
-      phonetic: item.phonetic_symbol?.trim() ?? '',
-      definition: item.mean?.trim() ?? '',
-      tags: 'CET-4',
-      example: null,
-    }))
+    .map((item) => {
+      const cleaned = sanitizeOfficialWordEntry(item.word, item.mean)
+      return {
+        word: cleaned.word,
+        phonetic: item.phonetic_symbol?.trim() ?? '',
+        definition: cleaned.definition,
+        tags: 'CET-4',
+        example: null,
+      }
+    })
     .filter((item) => item.word.length > 0 && item.definition.length > 0)
 }
 
