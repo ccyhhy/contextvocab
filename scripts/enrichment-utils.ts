@@ -17,7 +17,9 @@ const SOURCE_WORD_PAGE_SIZE = 1000
 const CACHE_MISS = Symbol('CACHE_MISS')
 
 export type EnrichmentStage = 'base' | 'refine'
+export type RefineMode = 'lite' | 'full'
 type AiTask = 'base' | 'refine' | 'example'
+type AiStreamMode = 'auto' | 'force'
 type ExternalEvidenceSource = 'dictionaryapi' | 'datamuse'
 type JsonFetchFailureReason = 'timeout' | 'http_error' | 'parse_error' | 'network_error'
 type AiFailureReason =
@@ -33,6 +35,15 @@ interface AiConfig {
   apiKey: string
   apiBase: string
   model: string
+  streamMode: AiStreamMode
+}
+
+interface ChatCompletionsResponse {
+  choices?: Array<{
+    message?: {
+      content?: unknown
+    }
+  }>
 }
 
 interface JsonFetchSuccess<T> {
@@ -251,12 +262,14 @@ export interface EnrichedWordDataset {
     offset: number
     words: string[]
     stage: EnrichmentStage
+    refineMode?: RefineMode | null
   }
   items: EnrichedWordRecord[]
 }
 
 export interface EnrichCliOptions {
   stage: EnrichmentStage
+  refineMode: RefineMode
   tag: string | null
   limit: number
   offset: number
@@ -273,6 +286,8 @@ export interface ImportCliOptions {
   syncPrimaryExample: boolean
   minExamples: number
   minCollocations: number
+  requireGenerationMethods: string[]
+  examplesOnly: boolean
 }
 
 export interface DictionaryMeaningSummary {
@@ -345,6 +360,7 @@ export function parseEnrichCliArgs(argv: string[]): EnrichCliOptions {
   const hasExplicitLimit = argv.includes('--limit')
   return {
     stage,
+    refineMode: stage === 'refine' ? normalizeRefineMode(getStringArg(argv, '--refine-mode')) ?? 'lite' : 'full',
     tag: getStringArg(argv, '--tag') ?? null,
     limit: words.length > 0 && !hasExplicitLimit ? words.length : getNumberArg(argv, '--limit', 50),
     offset: getNumberArg(argv, '--offset', 0),
@@ -363,6 +379,8 @@ export function parseImportCliArgs(argv: string[]): ImportCliOptions {
     syncPrimaryExample: !hasFlag(argv, '--skip-sync-example'),
     minExamples: getNumberArg(argv, '--min-examples', 0),
     minCollocations: getNumberArg(argv, '--min-collocations', 0),
+    requireGenerationMethods: getListArg(argv, '--require-generation-method'),
+    examplesOnly: hasFlag(argv, '--examples-only'),
   }
 }
 
@@ -547,7 +565,7 @@ export async function fetchDatamuseEvidence(word: string): Promise<DatamuseEvide
 
 export async function generateEnrichedRecord(
   wordRow: SourceWordRow,
-  options: { withAi: boolean; stage: EnrichmentStage }
+  options: { withAi: boolean; stage: EnrichmentStage; refineMode: RefineMode }
 ): Promise<EnrichedWordRecord> {
   const lexicalWord = getLookupWord(wordRow.word)
   const lexicalWordRow =
@@ -596,7 +614,8 @@ export async function generateEnrichedRecord(
             dictionaryEvidence,
             datamuseEvidence,
             collocations,
-            evidenceExamples
+            evidenceExamples,
+            options.refineMode
           )
         : null
 
@@ -822,21 +841,10 @@ async function tryGenerateAiBaseProfile(
   }
 
   for (let attempt = 0; attempt < AI_RETRY_COUNT; attempt += 1) {
-    const response = await fetchJsonWithTimeoutDetailed<{
-      choices?: Array<{
-        message?: {
-          content?: unknown
-        }
-      }>
-    }>(
+    const response = await fetchAiChatCompletionWithTimeoutDetailed(
       buildChatCompletionsUrl(aiConfig.apiBase),
+      aiConfig,
       {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${aiConfig.apiKey}`,
-        },
-        body: JSON.stringify({
           model: aiConfig.model,
           temperature: 0.1,
           messages: [
@@ -886,7 +894,6 @@ async function tryGenerateAiBaseProfile(
               ),
             },
           ],
-        }),
       },
       AI_TIMEOUT_MS
     )
@@ -942,65 +949,81 @@ async function tryGenerateAiRefineProfile(
   dictionaryEvidence: DictionaryEvidence | null,
   datamuseEvidence: DatamuseEvidence,
   collocations: string[],
-  examples: WordExampleInput[]
+  examples: WordExampleInput[],
+  refineMode: RefineMode
 ) {
   const aiConfig = resolveAiConfig('refine')
   const primaryPartOfSpeech = dictionaryEvidence?.meanings[0]?.partOfSpeech ?? null
   const fallbackProfile = buildFallbackProfile(wordRow, dictionaryEvidence, datamuseEvidence, collocations, examples)
-  const shouldRefreshExamples = needsExampleUpgrade(examples)
+  const shouldRefreshExamples = refineMode === 'full' && needsExampleUpgrade(examples)
+
+  const systemInstructions =
+    refineMode === 'lite'
+      ? [
+          'You enrich only the learner usage profile for a Chinese CET-4/CET-6 English learner.',
+          'Use the supplied evidence as the factual boundary. Rephrase and rank it, but do not invent unsupported dictionary facts or niche senses.',
+          'Optimize for learning value, not exhaustive dictionary coverage.',
+          'Return JSON only.',
+          'Write all explanatory text in Simplified Chinese.',
+          'Do not rewrite coreMeaning, sceneTags, collocations, or examples.',
+          'semanticFeel: explain what kind of situation, tone, or implied meaning the word usually carries.',
+          'usageNote: tell the learner how to reuse the word naturally.',
+          'contrastWords: keep at most 3 items, and each note must explain the difference in Chinese instead of saying they are merely similar.',
+          'Avoid archaic, literary, gambling, golf, war, or CPU-specific senses unless the evidence strongly shows that they are the main learner sense.',
+          'Schema:',
+          '{"semanticFeel":"...", "usageNote":"...", "contrastWords":[{"word":"...","note":"..."}], "confidenceScore":0.0}',
+        ]
+      : [
+          'You build learner-friendly lexical profiles for a Chinese CET-4/CET-6 English learner.',
+          'Use the supplied evidence as the factual boundary. Rephrase and rank it, but do not invent unsupported dictionary facts or niche senses.',
+          'Optimize for learning value, not exhaustive dictionary coverage.',
+          'Return JSON only.',
+          'Write all explanatory text in Simplified Chinese.',
+          `sceneTags must come from this closed set: ${AI_SCENE_TAGS.join(', ')}.`,
+          'Prefer the most specific sceneTags supported by the evidence. Use general only as a last resort when no concrete scene signal exists.',
+          'coreMeaning: one concise Chinese paraphrase of the most learnable sense. Do not copy the full seed definition verbatim.',
+          'semanticFeel: explain what kind of situation, tone, or implied meaning the word usually carries.',
+          'usageNote: tell the learner how to reuse the word naturally.',
+          'usageRegister: return formal or informal only when the evidence clearly supports it. Otherwise return null.',
+          'collocations: keep 3 to 6 high-value items only. Remove fragments, stopwords, and awkward leftovers. Prefer adjective+noun, noun phrase, verb+object, verb+preposition, or fixed phrases.',
+          'contrastWords: keep at most 3 items, and each note must explain the difference in Chinese instead of saying they are merely similar.',
+          'Avoid archaic, literary, gambling, golf, war, or CPU-specific senses unless the evidence strongly shows that they are the main learner sense.',
+          'Schema:',
+          '{"coreMeaning":"...", "semanticFeel":"...", "usageNote":"...", "usageRegister":"formal|informal|null", "sceneTags":["..."], "collocations":["..."], "contrastWords":[{"word":"...","note":"..."}], "confidenceScore":0.0}',
+        ]
 
   if (!aiConfig) {
     return null
   }
 
   for (let attempt = 0; attempt < AI_RETRY_COUNT; attempt += 1) {
-    const response = await fetchJsonWithTimeoutDetailed<{
-      choices?: Array<{
-        message?: {
-          content?: unknown
-        }
-      }>
-    }>(
+    const response = await fetchAiChatCompletionWithTimeoutDetailed(
       buildChatCompletionsUrl(aiConfig.apiBase),
+      aiConfig,
       {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${aiConfig.apiKey}`,
-        },
-        body: JSON.stringify({
           model: aiConfig.model,
           temperature: 0.2,
           messages: [
             {
               role: 'system',
-              content: [
-                'You build learner-friendly lexical profiles for a Chinese CET-4/CET-6 English learner.',
-                'Use the supplied evidence as the factual boundary. Rephrase and rank it, but do not invent unsupported dictionary facts or niche senses.',
-                'Optimize for learning value, not exhaustive dictionary coverage.',
-                'Return JSON only.',
-                'Write all explanatory text in Simplified Chinese.',
-                `sceneTags must come from this closed set: ${AI_SCENE_TAGS.join(', ')}.`,
-                'Prefer the most specific sceneTags supported by the evidence. Use general only as a last resort when no concrete scene signal exists.',
-                'coreMeaning: one concise Chinese paraphrase of the most learnable sense. Do not copy the full seed definition verbatim.',
-                'semanticFeel: explain what kind of situation, tone, or implied meaning the word usually carries.',
-                'usageNote: tell the learner how to reuse the word naturally.',
-                'usageRegister: return formal or informal only when the evidence clearly supports it. Otherwise return null.',
-                'collocations: keep 3 to 6 high-value items only. Remove fragments, stopwords, and awkward leftovers. Prefer adjective+noun, noun phrase, verb+object, verb+preposition, or fixed phrases.',
-                'contrastWords: keep at most 3 items, and each note must explain the difference in Chinese instead of saying they are merely similar.',
-                'Avoid archaic, literary, gambling, golf, war, or CPU-specific senses unless the evidence strongly shows that they are the main learner sense.',
-                'Schema:',
-                '{"coreMeaning":"...", "semanticFeel":"...", "usageNote":"...", "usageRegister":"formal|informal|null", "sceneTags":["..."], "collocations":["..."], "contrastWords":[{"word":"...","note":"..."}], "confidenceScore":0.0}',
-              ].join('\n'),
+              content: systemInstructions.join('\n'),
             },
             {
               role: 'user',
               content: JSON.stringify(
                 {
+                  refineMode,
                   word: wordRow.word,
                   seedDefinition: wordRow.definition,
                   seedExample: wordRow.example,
                   tags: wordRow.tags,
+                  currentProfile: {
+                    coreMeaning: fallbackProfile.coreMeaning,
+                    usageRegister: fallbackProfile.usageRegister,
+                    sceneTags: fallbackProfile.sceneTags,
+                    collocations: fallbackProfile.collocations,
+                    contrastWords: fallbackProfile.contrastWords,
+                  },
                   dictionaryEvidence: dictionaryEvidence
                     ? {
                         phonetic: dictionaryEvidence.phonetic,
@@ -1022,7 +1045,6 @@ async function tryGenerateAiRefineProfile(
               ),
             },
           ],
-        }),
       },
       AI_TIMEOUT_MS
     )
@@ -1048,6 +1070,7 @@ async function tryGenerateAiRefineProfile(
         parsed,
         primaryPartOfSpeech,
         fallbackProfile,
+        refineMode,
       })
       if (!validatedProfile.ok) {
         logAiAttemptFailure('refine', wordRow.word, aiConfig.model, attempt + 1, 'validation_failed', {
@@ -1075,6 +1098,7 @@ async function tryGenerateAiRefineProfile(
         profile: validatedProfile.profile,
         examples: exampleResult.examples,
         rawPayload: {
+          refineMode,
           profile: parsed,
           exampleGeneration: exampleResult.rawPayload,
         },
@@ -1094,27 +1118,22 @@ async function tryGenerateAiExamples(args: {
   apiKey: string
   apiBase: string
   model: string
+  streamMode: AiStreamMode
   word: string
   coreMeaning: string
   sceneTags: string[]
   collocations: string[]
   existingExamples: WordExampleInput[]
 }) {
-  const response = await fetchJsonWithTimeoutDetailed<{
-    choices?: Array<{
-      message?: {
-        content?: unknown
-      }
-    }>
-  }>(
+  const response = await fetchAiChatCompletionWithTimeoutDetailed(
     buildChatCompletionsUrl(args.apiBase),
     {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${args.apiKey}`,
-      },
-      body: JSON.stringify({
+      apiKey: args.apiKey,
+      apiBase: args.apiBase,
+      model: args.model,
+      streamMode: args.streamMode,
+    },
+    {
         model: args.model,
         temperature: 0.2,
         messages: [
@@ -1147,7 +1166,6 @@ async function tryGenerateAiExamples(args: {
             ),
           },
         ],
-      }),
     },
     AI_TIMEOUT_MS
   )
@@ -1238,28 +1256,39 @@ function buildValidatedRefineProfile(args: {
   parsed: Record<string, unknown>
   primaryPartOfSpeech: string | null
   fallbackProfile: WordProfileInput
+  refineMode: RefineMode
 }) {
-  const coreMeaning = toOptionalString(args.parsed.coreMeaning)
   const semanticFeel = toOptionalString(args.parsed.semanticFeel)
   const usageNote = toOptionalString(args.parsed.usageNote)
-  const sceneTags = normalizeAiSceneTags(args.parsed.sceneTags)
-  const collocations = normalizeAiCollocations(args.word, args.parsed.collocations, args.primaryPartOfSpeech, [])
   const issues: string[] = []
 
-  if (!coreMeaning) {
-    issues.push('missing coreMeaning')
-  }
   if (!semanticFeel) {
     issues.push('missing semanticFeel')
   }
   if (!usageNote) {
     issues.push('missing usageNote')
   }
-  if (sceneTags.length === 0) {
-    issues.push('invalid sceneTags')
-  }
-  if (collocations.length === 0) {
-    issues.push('invalid collocations')
+
+  let coreMeaning = args.fallbackProfile.coreMeaning
+  let sceneTags = args.fallbackProfile.sceneTags
+  let collocations = args.fallbackProfile.collocations
+  let usageRegister = args.fallbackProfile.usageRegister
+
+  if (args.refineMode === 'full') {
+    coreMeaning = toOptionalString(args.parsed.coreMeaning) ?? ''
+    sceneTags = normalizeAiSceneTags(args.parsed.sceneTags)
+    collocations = normalizeAiCollocations(args.word, args.parsed.collocations, args.primaryPartOfSpeech, [])
+    usageRegister = normalizeRegisterValue(args.parsed.usageRegister) ?? args.fallbackProfile.usageRegister
+
+    if (!coreMeaning) {
+      issues.push('missing coreMeaning')
+    }
+    if (sceneTags.length === 0) {
+      issues.push('invalid sceneTags')
+    }
+    if (collocations.length === 0) {
+      issues.push('invalid collocations')
+    }
   }
 
   if (issues.length > 0) {
@@ -1289,16 +1318,16 @@ function buildValidatedRefineProfile(args: {
   ).slice(0, 3)
 
   return {
-    ok: true as const,
-    profile: {
-      ...args.fallbackProfile,
-      coreMeaning: coreMeaning as string,
-      semanticFeel: semanticFeel as string,
-      usageNote: usageNote as string,
-      usageRegister: normalizeRegisterValue(args.parsed.usageRegister) ?? args.fallbackProfile.usageRegister,
-      sceneTags,
-      collocations,
-      contrastWords: contrastWords.length > 0 ? contrastWords : args.fallbackProfile.contrastWords,
+      ok: true as const,
+      profile: {
+        ...args.fallbackProfile,
+        coreMeaning,
+        semanticFeel: semanticFeel as string,
+        usageNote: usageNote as string,
+        usageRegister,
+        sceneTags,
+        collocations,
+        contrastWords: contrastWords.length > 0 ? contrastWords : args.fallbackProfile.contrastWords,
       confidenceScore: clamp(
         Number(args.parsed.confidenceScore) || args.fallbackProfile.confidenceScore,
         0.3,
@@ -1885,6 +1914,211 @@ function mapFetchFailureToAiReason(result: JsonFetchFailure): AiFailureReason {
   return typeof result.status === 'number' ? `http_${result.status}` : 'network_error'
 }
 
+async function fetchAiChatCompletionWithTimeoutDetailed(
+  url: string,
+  aiConfig: Pick<AiConfig, 'apiKey' | 'apiBase' | 'model' | 'streamMode'>,
+  body: Record<string, unknown>,
+  timeoutMs = AI_TIMEOUT_MS
+): Promise<JsonFetchResult<ChatCompletionsResponse>> {
+  const initialResponse = await postAiChatCompletion(url, aiConfig.apiKey, body, timeoutMs, aiConfig.streamMode === 'force')
+
+  if (
+    initialResponse.ok ||
+    aiConfig.streamMode === 'force' ||
+    !shouldRetryAiRequestWithStreaming(initialResponse)
+  ) {
+    return initialResponse
+  }
+
+  return postAiChatCompletion(url, aiConfig.apiKey, body, timeoutMs, true)
+}
+
+async function postAiChatCompletion(
+  url: string,
+  apiKey: string,
+  body: Record<string, unknown>,
+  timeoutMs: number,
+  stream: boolean
+): Promise<JsonFetchResult<ChatCompletionsResponse>> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        ...body,
+        ...(stream ? { stream: true } : {}),
+      }),
+      signal: controller.signal,
+    })
+
+    const text = await response.text()
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: response.status,
+        failReason: 'http_error',
+        errorMessage: compactResponseError(text || response.statusText),
+      }
+    }
+
+    const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
+
+    if (stream || contentType.includes('text/event-stream')) {
+      const parsedStreamResponse = parseChatCompletionSse(text)
+      if (!parsedStreamResponse) {
+        return {
+          ok: false,
+          status: response.status,
+          failReason: 'parse_error',
+          errorMessage: 'Unable to parse streamed chat completion response.',
+        }
+      }
+
+      return {
+        ok: true,
+        status: response.status,
+        data: parsedStreamResponse,
+      }
+    }
+
+    try {
+      return {
+        ok: true,
+        status: response.status,
+        data: JSON.parse(text) as ChatCompletionsResponse,
+      }
+    } catch (error) {
+      return {
+        ok: false,
+        status: response.status,
+        failReason: 'parse_error',
+        errorMessage: error instanceof Error ? error.message : String(error),
+      }
+    }
+  } catch (error) {
+    const isTimeout =
+      error instanceof Error &&
+      (error.name === 'AbortError' || /aborted|timeout/i.test(error.message))
+
+    return {
+      ok: false,
+      status: null,
+      failReason: isTimeout ? 'timeout' : 'network_error',
+      errorMessage: error instanceof Error ? error.message : String(error),
+    }
+  } finally {
+    clearTimeout(timeoutId)
+  }
+}
+
+function shouldRetryAiRequestWithStreaming(result: JsonFetchFailure) {
+  return result.status === 400 && /stream must be set to true/i.test(result.errorMessage ?? '')
+}
+
+function parseChatCompletionSse(text: string): ChatCompletionsResponse | null {
+  const events = text.split(/\r?\n\r?\n/)
+  const contentParts: string[] = []
+  let latestFullContent: string | null = null
+  let sawPayload = false
+
+  for (const event of events) {
+    const payload = event
+      .split(/\r?\n/)
+      .filter((line) => line.startsWith('data:'))
+      .map((line) => line.slice('data:'.length).trim())
+      .join('\n')
+
+    if (!payload || payload === '[DONE]') {
+      continue
+    }
+
+    try {
+      const parsed = JSON.parse(payload) as {
+        choices?: Array<{
+          delta?: {
+            content?: unknown
+          }
+          message?: {
+            content?: unknown
+          }
+        }>
+      }
+
+      for (const choice of parsed.choices ?? []) {
+        const fullContent = joinChatContentFragments(choice.message?.content)
+        if (fullContent) {
+          latestFullContent = fullContent
+          sawPayload = true
+        }
+
+        const deltaContent = joinChatContentFragments(choice.delta?.content)
+        if (deltaContent) {
+          contentParts.push(deltaContent)
+          sawPayload = true
+        }
+      }
+    } catch {
+      continue
+    }
+  }
+
+  const content = latestFullContent ?? contentParts.join('')
+  if (!sawPayload || !content.trim()) {
+    return null
+  }
+
+  return {
+    choices: [
+      {
+        message: {
+          content,
+        },
+      },
+    ],
+  }
+}
+
+function joinChatContentFragments(content: unknown) {
+  if (typeof content === 'string') {
+    return content
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map((item) => {
+        if (typeof item === 'string') {
+          return item
+        }
+
+        if (typeof item === 'object' && item !== null) {
+          const text = (item as Record<string, unknown>).text
+          return typeof text === 'string' ? text : ''
+        }
+
+        return ''
+      })
+      .join('')
+  }
+
+  if (typeof content === 'object' && content !== null) {
+    const text = (content as Record<string, unknown>).text
+    return typeof text === 'string' ? text : ''
+  }
+
+  return ''
+}
+
+function compactResponseError(value: string) {
+  return value.replace(/\s+/g, ' ').trim().slice(0, 240) || null
+}
+
 function logAiAttemptFailure(
   task: AiTask,
   word: string,
@@ -1959,26 +2193,26 @@ function resolveAiConfig(task: AiTask): AiConfig | null {
   const candidates =
     task === 'base'
       ? [
-          ['OPENAI_ENRICH_BASE_API_KEY', 'OPENAI_ENRICH_BASE_API_BASE', 'OPENAI_ENRICH_BASE_MODEL'],
-          ['OPENAI_HINT_API_KEY', 'OPENAI_HINT_API_BASE', 'OPENAI_HINT_MODEL'],
-          ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL'],
-          ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL'],
+          ['OPENAI_ENRICH_BASE_API_KEY', 'OPENAI_ENRICH_BASE_API_BASE', 'OPENAI_ENRICH_BASE_MODEL', 'OPENAI_ENRICH_BASE_STREAM'],
+          ['OPENAI_HINT_API_KEY', 'OPENAI_HINT_API_BASE', 'OPENAI_HINT_MODEL', 'OPENAI_HINT_STREAM'],
+          ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL', 'OPENAI_ENRICH_STREAM'],
+          ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL', 'OPENAI_STREAM'],
         ]
       : task === 'example'
         ? [
-            ['OPENAI_ENRICH_EXAMPLE_API_KEY', 'OPENAI_ENRICH_EXAMPLE_API_BASE', 'OPENAI_ENRICH_EXAMPLE_MODEL'],
-            ['OPENAI_ENRICH_BASE_API_KEY', 'OPENAI_ENRICH_BASE_API_BASE', 'OPENAI_ENRICH_BASE_MODEL'],
-            ['OPENAI_HINT_API_KEY', 'OPENAI_HINT_API_BASE', 'OPENAI_HINT_MODEL'],
-            ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL'],
-            ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL'],
+            ['OPENAI_ENRICH_EXAMPLE_API_KEY', 'OPENAI_ENRICH_EXAMPLE_API_BASE', 'OPENAI_ENRICH_EXAMPLE_MODEL', 'OPENAI_ENRICH_EXAMPLE_STREAM'],
+            ['OPENAI_ENRICH_BASE_API_KEY', 'OPENAI_ENRICH_BASE_API_BASE', 'OPENAI_ENRICH_BASE_MODEL', 'OPENAI_ENRICH_BASE_STREAM'],
+            ['OPENAI_HINT_API_KEY', 'OPENAI_HINT_API_BASE', 'OPENAI_HINT_MODEL', 'OPENAI_HINT_STREAM'],
+            ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL', 'OPENAI_ENRICH_STREAM'],
+            ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL', 'OPENAI_STREAM'],
           ]
         : [
-            ['OPENAI_ENRICH_REFINE_API_KEY', 'OPENAI_ENRICH_REFINE_API_BASE', 'OPENAI_ENRICH_REFINE_MODEL'],
-            ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL'],
-            ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL'],
+            ['OPENAI_ENRICH_REFINE_API_KEY', 'OPENAI_ENRICH_REFINE_API_BASE', 'OPENAI_ENRICH_REFINE_MODEL', 'OPENAI_ENRICH_REFINE_STREAM'],
+            ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL', 'OPENAI_ENRICH_STREAM'],
+            ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL', 'OPENAI_STREAM'],
           ]
 
-  for (const [apiKeyName, apiBaseName, modelName] of candidates) {
+  for (const [apiKeyName, apiBaseName, modelName, streamName] of candidates) {
     const apiKey = process.env[apiKeyName]
     const model = process.env[modelName]
 
@@ -1990,14 +2224,27 @@ function resolveAiConfig(task: AiTask): AiConfig | null {
       apiKey,
       apiBase: process.env[apiBaseName] || 'https://api.openai.com/v1',
       model,
+      streamMode: normalizeAiStreamMode(process.env[streamName] ?? process.env.OPENAI_STREAM),
     }
   }
 
   return null
 }
 
+function normalizeAiStreamMode(value: string | undefined): AiStreamMode {
+  if (typeof value === 'string' && /^(1|true|yes|on|force)$/i.test(value.trim())) {
+    return 'force'
+  }
+
+  return 'auto'
+}
+
 export function normalizeEnrichmentStage(value: string | null | undefined): EnrichmentStage | null {
   return value === 'base' || value === 'refine' ? value : null
+}
+
+export function normalizeRefineMode(value: string | null | undefined): RefineMode | null {
+  return value === 'lite' || value === 'full' ? value : null
 }
 
 function getDefaultConcurrencyForStage(stage: EnrichmentStage) {

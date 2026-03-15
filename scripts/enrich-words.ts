@@ -21,14 +21,15 @@ async function main() {
 
   const concurrency = Math.min(options.concurrency, sourceWords.length)
   console.log(
-    `Starting enrichment: stage=${options.stage} words=${sourceWords.length} concurrency=${concurrency} ai=${options.withAi ? 'yes' : 'no'}`
+    `Starting enrichment: stage=${options.stage} refineMode=${options.refineMode} words=${sourceWords.length} concurrency=${concurrency} ai=${options.withAi ? 'yes' : 'no'}`
   )
 
   const items = await enrichWordsInParallel(sourceWords, {
     concurrency,
-    withAi: options.withAi,
-    stage: options.stage,
-  })
+      withAi: options.withAi,
+      stage: options.stage,
+      refineMode: options.refineMode,
+    })
 
   const dataset = buildDataset(items, {
     stage: options.stage,
@@ -36,6 +37,7 @@ async function main() {
     limit: options.limit,
     offset: options.offset,
     words: options.words,
+    refineMode: options.stage === 'refine' ? options.refineMode : null,
   })
 
   const outputPath = path.resolve(options.output || getDefaultOutputFile())
@@ -52,6 +54,9 @@ async function main() {
   console.log(`  words: ${items.length}`)
   console.log(`  stage: ${options.stage}`)
   console.log(`  with AI: ${options.withAi ? 'yes' : 'no'}`)
+  if (options.stage === 'refine') {
+    console.log(`  refine mode: ${options.refineMode}`)
+  }
   console.log(`  concurrency: ${concurrency}`)
 }
 
@@ -61,6 +66,7 @@ async function enrichWordsInParallel(
     concurrency: number
     withAi: boolean
     stage: 'base' | 'refine'
+    refineMode: 'lite' | 'full'
   }
 ) {
   const items = new Array(sourceWords.length)
@@ -83,6 +89,7 @@ async function enrichWordsInParallel(
         const enriched = await generateEnrichedRecord(wordRow, {
           withAi: options.withAi,
           stage: options.stage,
+          refineMode: options.refineMode,
         })
         items[currentIndex] = enriched
         completed += 1
