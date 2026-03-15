@@ -1563,6 +1563,7 @@ async function getDueWordCount(
   studyView: StudyView,
   libraryWordIds: string[] = []
 ) {
+  const startedAt = Date.now()
   let query = supabase
     .from('user_words')
     .select('id, words!inner(id)', { count: 'exact', head: true })
@@ -1600,7 +1601,18 @@ async function getDueWordCount(
   }
 
   const { count } = await query
-  return count ?? 0
+  const total = count ?? 0
+
+  logStudyPerformance('getDueWordCount', startedAt, {
+    studyView,
+    tag,
+    libraryScoped: libraryWordIds.length > 0,
+    skipped: skippedWordIds.length,
+    preferred: preferredWordIds.length,
+    count: total,
+  })
+
+  return total
 }
 
 async function getDueRowsByCategory(
@@ -1615,6 +1627,7 @@ async function getDueRowsByCategory(
   category: DueStudyCategory,
   limit: number
 ) {
+  const startedAt = Date.now()
   let query = supabase
     .from('user_words')
     .select('*, words!inner(*)')
@@ -1683,9 +1696,22 @@ async function getDueRowsByCategory(
   }
 
   const { data } = await query.limit(limit)
-  return sortDueCandidates((data ?? []) as UserWordRecord[], today).filter(
+  const rows = sortDueCandidates((data ?? []) as UserWordRecord[], today).filter(
     (row) => getStudyPriorityReason(row, today) === category
   )
+
+  logStudyPerformance('getDueRowsByCategory', startedAt, {
+    category,
+    studyView,
+    tag,
+    libraryScoped: libraryWordIds.length > 0,
+    preferred: preferredWordIds.length,
+    skipped: skippedWordIds.length,
+    rows: rows.length,
+    limit,
+  })
+
+  return rows
 }
 
 async function getDueStudyItems(
@@ -1699,6 +1725,7 @@ async function getDueStudyItems(
   studyView: StudyView,
   libraryWordIds: string[] = []
 ) {
+  const startedAt = Date.now()
   const targetSize = Math.max(batchSize * 6, 24)
   const categories: DueStudyCategory[] = ['leech_due', 'overdue', 'weak_due', 'due']
   const items: StudyBatchItem[] = []
@@ -1729,10 +1756,25 @@ async function getDueStudyItems(
 
       items.push(item)
       if (items.length >= targetSize) {
+        logStudyPerformance('getDueStudyItems', startedAt, {
+          studyView,
+          tag,
+          targetSize,
+          resultCount: items.length,
+          libraryScoped: libraryWordIds.length > 0,
+        })
         return items
       }
     }
   }
+
+  logStudyPerformance('getDueStudyItems', startedAt, {
+    studyView,
+    tag,
+    targetSize,
+    resultCount: items.length,
+    libraryScoped: libraryWordIds.length > 0,
+  })
 
   return items
 }
@@ -1746,6 +1788,7 @@ async function getNewStudyItems(
   batchSize: number,
   libraryWordIds: string[] = []
 ) {
+  const startedAt = Date.now()
   const items: StudyBatchItem[] = []
   const excludedWordIds = new Set(skippedWordIds)
   let libraryUnseenWordIds = libraryWordIds
@@ -1790,6 +1833,15 @@ async function getNewStudyItems(
       items.push(item)
     }
   }
+
+  logStudyPerformance('getNewStudyItems', startedAt, {
+    tag,
+    batchSize,
+    resultCount: items.length,
+    libraryScoped: libraryWordIds.length > 0,
+    preferred: preferredWordIds.length,
+    skipped: skippedWordIds.length,
+  })
 
   return items
 }
@@ -1848,6 +1900,7 @@ async function hydrateStudyBatchWordDetails(
   supabase: SupabaseClient,
   batch: StudyBatchItem[]
 ): Promise<StudyBatchItem[]> {
+  const startedAt = Date.now()
   if (batch.length === 0) {
     return batch
   }
@@ -1873,6 +1926,12 @@ async function hydrateStudyBatchWordDetails(
       console.error('Failed to hydrate study word details:', relevantError)
     }
 
+    logStudyPerformance('hydrateStudyBatchWordDetails', startedAt, {
+      batchSize: batch.length,
+      hydratedWords: 0,
+      fallback: true,
+    })
+
     return batch
   }
 
@@ -1895,7 +1954,7 @@ async function hydrateStudyBatchWordDetails(
     exampleRowsByWordId.set(row.word_id, existingRows)
   }
 
-  return batch.map((item) => {
+  const hydratedBatch = batch.map((item) => {
     const hydratedExamples = normalizeStudyWordExamples(exampleRowsByWordId.get(item.word_id) ?? [])
     const hydratedProfile = profileMap.get(item.word_id) ?? null
 
@@ -1909,6 +1968,13 @@ async function hydrateStudyBatchWordDetails(
       },
     }
   })
+
+  logStudyPerformance('hydrateStudyBatchWordDetails', startedAt, {
+    batchSize: batch.length,
+    hydratedWords: hydratedBatch.length,
+  })
+
+  return hydratedBatch
 }
 
 async function getWordLearningHistory(
@@ -2599,6 +2665,7 @@ export async function evaluateSentence(
 }
 
 export async function getStudyBatch(params: GetStudyBatchParams = {}) {
+  const startedAt = Date.now()
   const {
     librarySlug,
     studyView,
@@ -2631,31 +2698,39 @@ export async function getStudyBatch(params: GetStudyBatchParams = {}) {
   }
 
   if (resolvedStudyView === 'favorites' && preferredWordIds.length === 0) {
+    logStudyPerformance('getStudyBatch', startedAt, {
+      librarySlug: resolvedLibrarySlug,
+      studyView: resolvedStudyView,
+      batchSize,
+      emptyFavorites: true,
+    })
+
     return [] as StudyBatchItem[]
   }
 
-  const dueCount = await getDueWordCount(
-    supabase,
-    user.id,
-    tagFilter,
-    today,
-    skippedWordIds,
-    preferredWordIds,
-    resolvedStudyView,
-    libraryWordIds
-  )
-
-  const dueItems = await getDueStudyItems(
-    supabase,
-    user.id,
-    tagFilter,
-    today,
-    skippedWordIds,
-    preferredWordIds,
-    batchSize,
-    resolvedStudyView,
-    libraryWordIds
-  )
+  const [dueCount, dueItems] = await Promise.all([
+    getDueWordCount(
+      supabase,
+      user.id,
+      tagFilter,
+      today,
+      skippedWordIds,
+      preferredWordIds,
+      resolvedStudyView,
+      libraryWordIds
+    ),
+    getDueStudyItems(
+      supabase,
+      user.id,
+      tagFilter,
+      today,
+      skippedWordIds,
+      preferredWordIds,
+      batchSize,
+      resolvedStudyView,
+      libraryWordIds
+    ),
+  ])
 
   const newItems = isReviewOnlyView(resolvedStudyView)
     ? []
@@ -2677,7 +2752,22 @@ export async function getStudyBatch(params: GetStudyBatchParams = {}) {
     batchSize
   )
 
-  return hydrateStudyBatchWordDetails(supabase, batch)
+  const hydratedBatch = await hydrateStudyBatchWordDetails(supabase, batch)
+
+  logStudyPerformance('getStudyBatch', startedAt, {
+    librarySlug: resolvedLibrarySlug,
+    studyView: resolvedStudyView,
+    batchSize,
+    dueCount,
+    dueItems: dueItems.length,
+    newItems: newItems.length,
+    hydratedItems: hydratedBatch.length,
+    libraryScoped: libraryWordIds.length > 0,
+    preferred: preferredWordIds.length,
+    skipped: skippedWordIds.length,
+  })
+
+  return hydratedBatch
 }
 
 export async function getNextWord(
