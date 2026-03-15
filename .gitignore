@@ -40,5 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# generated enrichment output
-/data/enriched/*.json
+# generated enrichment output and runtime logs
+/data/enriched/**
+/data/logs/**

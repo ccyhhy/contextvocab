@@ -286,11 +286,24 @@ interface SentenceHelpItemPayload {
 let favoriteColumnSupported: boolean | null = null
 const DEFAULT_STUDY_BATCH_SIZE = 5
 const SUPABASE_PAGE_SIZE = 1000
+const STUDY_LIBRARY_MEMBERSHIP_CACHE_TTL_MS = 60 * 60 * 1000
+const STUDY_ENRICHMENT_PROGRESS_CACHE_TTL_MS = 60 * 60 * 1000
+const STUDY_PERFORMANCE_LOG_THRESHOLD_MS = 150
 const LEGACY_LIBRARY_OPTIONS = [
   { slug: 'all', name: '全部词库', tag: 'All' },
   { slug: 'cet-4', name: 'CET-4', tag: 'CET-4' },
   { slug: 'cet-6', name: 'CET-6', tag: 'CET-6' },
 ] as const
+
+interface TimedCacheEntry<T> {
+  value: T
+  expiresAt: number
+}
+
+const libraryWordIdsCache = new Map<string, TimedCacheEntry<string[]>>()
+const officialTagWordIdsCache = new Map<string, TimedCacheEntry<string[]>>()
+let studyEnrichmentProgressCache: TimedCacheEntry<StudyEnrichmentProgress[]> | null = null
+let studyEnrichmentProgressCacheKey = ''
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value))
@@ -316,6 +329,64 @@ function getErrorMessage(error: unknown) {
     return error.message
   }
   return 'Unknown error'
+}
+
+function getActiveTimedCacheValue<T>(entry?: TimedCacheEntry<T> | null) {
+  if (!entry) {
+    return null
+  }
+
+  if (entry.expiresAt <= Date.now()) {
+    return null
+  }
+
+  return entry.value
+}
+
+function setTimedCacheValue<T>(
+  cache: Map<string, TimedCacheEntry<T>>,
+  key: string,
+  value: T,
+  ttlMs: number
+) {
+  cache.set(key, {
+    value,
+    expiresAt: Date.now() + ttlMs,
+  })
+
+  return value
+}
+
+function countMatchingWordIds(wordIds: string[], lookup: Set<string>) {
+  let count = 0
+
+  for (const wordId of wordIds) {
+    if (lookup.has(wordId)) {
+      count += 1
+    }
+  }
+
+  return count
+}
+
+function logStudyPerformance(
+  label: string,
+  startedAt: number,
+  metadata?: Record<string, string | number | boolean | null | undefined>
+) {
+  const durationMs = Date.now() - startedAt
+  if (durationMs < STUDY_PERFORMANCE_LOG_THRESHOLD_MS) {
+    return
+  }
+
+  const details =
+    metadata && Object.keys(metadata).length > 0
+      ? ` ${Object.entries(metadata)
+          .map(([key, value]) => `${key}=${String(value)}`)
+          .join(' ')}`
+      : ''
+
+  console.info(`[study:perf] ${label} ${durationMs}ms${details}`)
 }
 
 function normalizeLibrarySlug(value?: string | null) {
@@ -921,6 +992,11 @@ async function getLibraryBySlug(supabase: SupabaseClient, librarySlug: string) {
 }
 
 async function getLibraryWordIds(supabase: SupabaseClient, libraryId: string) {
+  const cached = getActiveTimedCacheValue(libraryWordIdsCache.get(libraryId))
+  if (cached) {
+    return cached
+  }
+
   const collectedWordIds: string[] = []
   let from = 0
 
@@ -954,7 +1030,12 @@ async function getLibraryWordIds(supabase: SupabaseClient, libraryId: string) {
     from += SUPABASE_PAGE_SIZE
   }
 
-  return collectedWordIds
+  return setTimedCacheValue(
+    libraryWordIdsCache,
+    libraryId,
+    collectedWordIds,
+    STUDY_LIBRARY_MEMBERSHIP_CACHE_TTL_MS
+  )
 }
 
 async function ensureUserLibraryPlan(
@@ -1191,6 +1272,42 @@ async function getStartedWordIds(
   }
 
   return startedWordIds
+}
+
+async function getDueWordIds(
+  supabase: SupabaseClient,
+  userId: string,
+  today: string
+) {
+  const dueWordIds = new Set<string>()
+
+  for (let from = 0; ; from += SUPABASE_PAGE_SIZE) {
+    const to = from + SUPABASE_PAGE_SIZE - 1
+    const { data, error } = await supabase
+      .from('user_words')
+      .select('word_id')
+      .eq('user_id', userId)
+      .lte('next_review_date', today)
+      .range(from, to)
+
+    if (error) {
+      console.error('Failed to load due word ids:', error)
+      break
+    }
+
+    const rows = (data ?? []) as Array<{ word_id?: string | null }>
+    for (const row of rows) {
+      if (typeof row.word_id === 'string') {
+        dueWordIds.add(row.word_id)
+      }
+    }
+
+    if (rows.length < SUPABASE_PAGE_SIZE) {
+      break
+    }
+  }
+
+  return dueWordIds
 }
 
 async function isWordStartedOutsideUserWords(
@@ -1813,93 +1930,29 @@ async function getWordLearningHistory(
     .reverse()
 }
 
-async function getStartedLibraryWordIds(
-  supabase: SupabaseClient,
-  userId: string,
-  libraryWordIds: string[]
-) {
-  const startedWordIds = new Set<string>()
-
-  for (let from = 0; from < libraryWordIds.length; from += SUPABASE_PAGE_SIZE) {
-    const chunk = libraryWordIds.slice(from, from + SUPABASE_PAGE_SIZE)
-    if (chunk.length === 0) {
-      continue
-    }
-
-    const [
-      { data: userWordRows, error: userWordError },
-      { data: sentenceRows, error: sentenceError },
-      { data: libraryWordRows, error: libraryWordError },
-    ] = await Promise.all([
-      supabase
-        .from('user_words')
-        .select('word_id')
-        .eq('user_id', userId)
-        .in('word_id', chunk),
-      supabase
-        .from('sentences')
-        .select('word_id')
-        .eq('user_id', userId)
-        .in('word_id', chunk),
-      supabase
-        .from('user_library_words')
-        .select('word_id')
-        .eq('user_id', userId)
-        .in('word_id', chunk),
-    ])
-
-    if (userWordError) {
-      console.error('Failed to load started library user_words:', userWordError)
-    }
-
-    if (sentenceError) {
-      console.error('Failed to load started library sentences:', sentenceError)
-    }
-
-    if (libraryWordError) {
-      console.error('Failed to load started user_library_words:', libraryWordError)
-    }
-
-    for (const row of (userWordRows ?? []) as Array<{ word_id?: string | null }>) {
-      if (typeof row.word_id === 'string') {
-        startedWordIds.add(row.word_id)
-      }
-    }
-
-    for (const row of (sentenceRows ?? []) as Array<{ word_id?: string | null }>) {
-      if (typeof row.word_id === 'string') {
-        startedWordIds.add(row.word_id)
-      }
-    }
-
-    for (const row of (libraryWordRows ?? []) as Array<{ word_id?: string | null }>) {
-      if (typeof row.word_id === 'string') {
-        startedWordIds.add(row.word_id)
-      }
-    }
-  }
-
-  return startedWordIds
-}
-
 async function buildLibrarySummary(
   supabase: SupabaseClient,
   userId: string,
-  library: LibraryRow
+  library: LibraryRow,
+  startedWordIds: Set<string>,
+  dueWordIds: Set<string>
 ): Promise<StudyLibrary> {
-  const libraryWordIds = await getLibraryWordIds(supabase, library.id)
-  const wordCount = libraryWordIds.length
+  const startedAt = Date.now()
   const planPromise = supabase
     .from('user_library_plans')
     .select('status, daily_new_limit')
     .eq('user_id', userId)
     .eq('library_id', library.id)
     .maybeSingle()
+  const [libraryWordIds, { data: plan }] = await Promise.all([
+    getLibraryWordIds(supabase, library.id),
+    planPromise,
+  ])
+  const wordCount = libraryWordIds.length
 
   if (libraryWordIds.length === 0) {
-    const { data: plan } = await planPromise
     const planRow = (plan as UserLibraryPlanRow | null) ?? null
-    return {
+    const summary = {
       id: library.id,
       slug: library.slug,
       name: library.name,
@@ -1912,24 +1965,22 @@ async function buildLibrarySummary(
       planStatus: planRow?.status ?? 'not_started',
       dailyNewLimit: planRow?.daily_new_limit ?? null,
     }
+
+    logStudyPerformance('buildLibrarySummary', startedAt, {
+      library: library.slug,
+      wordCount: 0,
+      activeCount: 0,
+      dueCount: 0,
+    })
+
+    return summary
   }
 
-  const today = getTodayDateString()
-  const [startedWordIds, { count: due }, { data: plan }] = await Promise.all([
-    getStartedLibraryWordIds(supabase, userId, libraryWordIds),
-    supabase
-      .from('user_words')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .in('word_id', libraryWordIds)
-      .lte('next_review_date', today),
-    planPromise,
-  ])
-
   const planRow = (plan as UserLibraryPlanRow | null) ?? null
-  const activeCount = startedWordIds.size
+  const activeCount = countMatchingWordIds(libraryWordIds, startedWordIds)
+  const dueCount = countMatchingWordIds(libraryWordIds, dueWordIds)
 
-  return {
+  const summary = {
     id: library.id,
     slug: library.slug,
     name: library.name,
@@ -1937,11 +1988,20 @@ async function buildLibrarySummary(
     sourceType: library.source_type === 'custom' ? 'custom' : 'official',
     wordCount,
     activeCount,
-    dueCount: due ?? 0,
+    dueCount,
     remainingCount: Math.max(wordCount - activeCount, 0),
     planStatus: planRow?.status ?? 'not_started',
     dailyNewLimit: planRow?.daily_new_limit ?? null,
   }
+
+  logStudyPerformance('buildLibrarySummary', startedAt, {
+    library: library.slug,
+    wordCount,
+    activeCount,
+    dueCount,
+  })
+
+  return summary
 }
 
 interface WordProfileProgressRow {
@@ -1997,6 +2057,11 @@ function getLegacyStudyLibraryOptions(): StudyLibrary[] {
 }
 
 async function getWordIdsByOfficialTag(supabase: SupabaseClient, tag: string) {
+  const cached = getActiveTimedCacheValue(officialTagWordIdsCache.get(tag))
+  if (cached) {
+    return cached
+  }
+
   const ids: string[] = []
   let from = 0
 
@@ -2024,7 +2089,12 @@ async function getWordIdsByOfficialTag(supabase: SupabaseClient, tag: string) {
     from += SUPABASE_PAGE_SIZE
   }
 
-  return ids
+  return setTimedCacheValue(
+    officialTagWordIdsCache,
+    tag,
+    ids,
+    STUDY_LIBRARY_MEMBERSHIP_CACHE_TTL_MS
+  )
 }
 
 async function getAllWordProfileProgressRows(supabase: SupabaseClient) {
@@ -2096,16 +2166,27 @@ async function getAllExampleWordIds(supabase: SupabaseClient) {
 }
 
 export async function getStudyLibraries(): Promise<StudyLibrary[]> {
+  const startedAt = Date.now()
   const { supabase, user } = await requireActionSession()
-  const { data, error } = await supabase
-    .from('libraries')
-    .select('id, slug, name, description, source_type')
-    .order('name', { ascending: true })
+  const today = getTodayDateString()
+  const [{ data, error }, startedWordIds, dueWordIds] = await Promise.all([
+    supabase
+      .from('libraries')
+      .select('id, slug, name, description, source_type')
+      .order('name', { ascending: true }),
+    getStartedWordIds(supabase, user.id),
+    getDueWordIds(supabase, user.id, today),
+  ])
 
   if (error || !data) {
     if (error && !isMissingLibrariesTableError(error)) {
       console.error('Failed to load study libraries:', error)
     }
+
+    logStudyPerformance('getStudyLibraries', startedAt, {
+      libraryCount: 0,
+      fallback: true,
+    })
 
     return getLegacyStudyLibraryOptions()
   }
@@ -2114,7 +2195,17 @@ export async function getStudyLibraries(): Promise<StudyLibrary[]> {
     (row) => typeof row.id === 'string' && typeof row.slug === 'string' && typeof row.name === 'string'
   )
 
-  return Promise.all(libraries.map((library) => buildLibrarySummary(supabase, user.id, library)))
+  const summaries = await Promise.all(
+    libraries.map((library) => buildLibrarySummary(supabase, user.id, library, startedWordIds, dueWordIds))
+  )
+
+  logStudyPerformance('getStudyLibraries', startedAt, {
+    libraryCount: summaries.length,
+    startedWordIds: startedWordIds.size,
+    dueWordIds: dueWordIds.size,
+  })
+
+  return summaries
 }
 
 export async function getStudyLibraryOptions(): Promise<StudyLibrary[]> {
@@ -2146,6 +2237,24 @@ export async function getStudyLibraryOptions(): Promise<StudyLibrary[]> {
 export async function getStudyEnrichmentProgress(
   libraries: StudyLibrary[] = []
 ): Promise<StudyEnrichmentProgress[]> {
+  const startedAt = Date.now()
+  const cacheKey = JSON.stringify(
+    libraries.map((library) => ({
+      id: library.id,
+      slug: library.slug,
+      name: library.name,
+      wordCount: library.wordCount,
+    }))
+  )
+  const cachedProgress = getActiveTimedCacheValue(studyEnrichmentProgressCache)
+  if (cachedProgress && studyEnrichmentProgressCacheKey === cacheKey) {
+    logStudyPerformance('getStudyEnrichmentProgress', startedAt, {
+      libraryCount: libraries.length,
+      cacheHit: true,
+    })
+    return cachedProgress
+  }
+
   const { supabase } = await requireActionSession()
   const [{ count: totalWordsCount }, profileRows, exampleWordIds] = await Promise.all([
     supabase.from('words').select('id', { count: 'exact', head: true }),
@@ -2177,6 +2286,8 @@ export async function getStudyEnrichmentProgress(
       exampleWords: exampleWordIds.size,
     },
   ]
+
+  progressItems[0]!.name = '全部词库'
 
   for (const library of libraries) {
     let libraryWordIds: string[] = []
@@ -2215,6 +2326,18 @@ export async function getStudyEnrichmentProgress(
     })
   }
 
+  studyEnrichmentProgressCache = {
+    value: progressItems,
+    expiresAt: Date.now() + STUDY_ENRICHMENT_PROGRESS_CACHE_TTL_MS,
+  }
+  studyEnrichmentProgressCacheKey = cacheKey
+
+  logStudyPerformance('getStudyEnrichmentProgress', startedAt, {
+    libraryCount: libraries.length,
+    cacheHit: false,
+    progressItems: progressItems.length,
+  })
+
   return progressItems
 }
 
@@ -2222,8 +2345,14 @@ export async function getStudySidebarData(): Promise<{
   libraries: StudyLibrary[]
   enrichmentProgress: StudyEnrichmentProgress[]
 }> {
+  const startedAt = Date.now()
   const libraries = await getStudyLibraries()
   const enrichmentProgress = await getStudyEnrichmentProgress(libraries)
+
+  logStudyPerformance('getStudySidebarData', startedAt, {
+    libraryCount: libraries.length,
+    progressItems: enrichmentProgress.length,
+  })
 
   return {
     libraries,
