@@ -8,21 +8,27 @@ import {
   type StudyLibrary,
   type StudyView,
 } from "./actions"
-import { StudyEmptyState } from "./components/study-empty-state"
-import { StudyContextSummary } from "./components/study-context-summary"
-import { StudyEvaluationResult } from "./components/study-evaluation-result"
-import { StudyEnrichmentSummary } from "./components/study-enrichment-summary"
-import { StudySentenceComposer } from "./components/study-sentence-composer"
-import { StudySentenceHelpPanel } from "./components/study-sentence-help-panel"
-import { StudySpeechSettingsDialog } from "./components/study-speech-settings-dialog"
-import { StudyStreamingPreview } from "./components/study-streaming-preview"
-import { StudyToolbar } from "./components/study-toolbar"
-import { StudyWordPanel } from "./components/study-word-panel"
-import { useSentenceHelp } from "./hooks/use-sentence-help"
-import { DEFAULT_PREVIEW_SENTENCE, useSpeechSynthesis } from "./hooks/use-speech-synthesis"
-import { useStudySession } from "./hooks/use-study-session"
-import { useStudySidebarData } from "./hooks/use-study-sidebar-data"
-import { useStudySubmission, type SubmissionMode } from "./hooks/use-study-submission"
+import {
+  StudyContextSummary,
+  StudyEmptyState,
+  StudyEnrichmentSummary,
+  StudyEvaluationResult,
+  StudySentenceComposer,
+  StudySentenceHelpPanel,
+  StudySpeechSettingsDialog,
+  StudyStreamingPreview,
+  StudyToolbar,
+  StudyWordPanel,
+} from "./components"
+import {
+  DEFAULT_PREVIEW_SENTENCE,
+  type SubmissionMode,
+  useSentenceHelp,
+  useSpeechSynthesis,
+  useStudySession,
+  useStudySidebarData,
+  useStudySubmission,
+} from "./hooks"
 
 export default function StudyClient({
   initialBatch,

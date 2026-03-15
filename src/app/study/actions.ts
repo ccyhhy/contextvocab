@@ -11,22 +11,18 @@ import { type StudyPriorityReason } from '@/lib/study-scheduler'
 import { requireActionSession } from '@/lib/supabase/user'
 import { getTodayDateString } from '@/lib/app-date'
 import {
+  hydrateStudyBatchWordDetails as loadHydratedStudyBatchWordDetails,
+  loadNewStudyItems,
+  loadStudyBatch,
+  loadDueStudyItems,
+  loadDueWordCount,
+  rewriteStudySentence,
   loadStudyEnrichmentProgress,
   loadStudyLibraries,
   loadStudyLibraryOptions,
   loadStudySidebarData,
-} from './services/study-sidebar.service'
-import { loadStudyBatch } from './services/study-batch.service'
-import {
-  hydrateStudyBatchWordDetails as loadHydratedStudyBatchWordDetails,
-  loadDueStudyItems,
-  loadDueWordCount,
-} from './services/study-review-data.service'
-import { loadNewStudyItems } from './services/study-new-word.service'
-import {
-  rewriteStudySentence,
   submitStudySentence,
-} from './services/study-submission.service'
+} from './services'
 
 export type AttemptStatus = 'valid' | 'needs_help'
 export type UsageQuality = 'strong' | 'weak' | 'meta' | 'invalid'
