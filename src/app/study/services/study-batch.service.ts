@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { buildStudyMixPlan } from '@/lib/study-scheduler'
 import type { GetStudyBatchParams, StudyBatchItem, StudyView } from '../actions'
 
 interface StudyBatchScopeLibrary {
@@ -70,27 +71,34 @@ function composeStudyBatch(
   favoritesOnly: boolean,
   batchSize: number
 ) {
-  const targetReviewCount = favoritesOnly ? batchSize : Math.min(dueCount, Math.ceil(batchSize * 0.6))
-  const targetNewCount = favoritesOnly ? 0 : Math.max(batchSize - targetReviewCount, 0)
+  const plan = buildStudyMixPlan(dueCount, batchSize, favoritesOnly)
   const dueQueue = [...dueItems]
   const newQueue = [...newItems]
   const batch: StudyBatchItem[] = []
 
-  while (batch.length < batchSize) {
-    const nextDue = dueQueue[0]
-    const nextNew = newQueue[0]
-
-    if (!nextDue && !nextNew) {
-      break
+  for (const slot of plan) {
+    if (slot === 'review' && dueQueue.length > 0) {
+      batch.push(dueQueue.shift()!)
+      continue
     }
 
-    const useReview =
-      dueQueue.length > 0 &&
-      (batch.filter((item) => !item.isNew).length < targetReviewCount ||
-        newQueue.length === 0 ||
-        batch.filter((item) => item.isNew).length >= targetNewCount)
+    if (slot === 'new' && newQueue.length > 0) {
+      batch.push(newQueue.shift()!)
+      continue
+    }
 
-    if (useReview) {
+    if (dueQueue.length > 0) {
+      batch.push(dueQueue.shift()!)
+      continue
+    }
+
+    if (newQueue.length > 0) {
+      batch.push(newQueue.shift()!)
+    }
+  }
+
+  while (batch.length < batchSize) {
+    if (dueQueue.length > 0) {
       batch.push(dueQueue.shift()!)
       continue
     }
@@ -100,7 +108,7 @@ function composeStudyBatch(
       continue
     }
 
-    batch.push(dueQueue.shift()!)
+    break
   }
 
   return batch

@@ -6,14 +6,10 @@ import {
   buildEvaluationUserPrompt,
   extractEvaluationJson,
 } from '@/lib/evaluation-format'
-import { calculateNextReview, type ReviewBucket, type SRSData } from '@/lib/srs'
-import {
-  getStudyPriorityReason,
-  sortDueCandidates,
-  type StudyPriorityReason,
-} from '@/lib/study-scheduler'
+import { type ReviewBucket, type SRSData } from '@/lib/srs'
+import { type StudyPriorityReason } from '@/lib/study-scheduler'
 import { requireActionSession } from '@/lib/supabase/user'
-import { getTodayDateString, shiftDateString } from '@/lib/app-date'
+import { getTodayDateString } from '@/lib/app-date'
 import {
   loadStudyEnrichmentProgress,
   loadStudyLibraries,
@@ -21,6 +17,16 @@ import {
   loadStudySidebarData,
 } from './services/study-sidebar.service'
 import { loadStudyBatch } from './services/study-batch.service'
+import {
+  hydrateStudyBatchWordDetails as loadHydratedStudyBatchWordDetails,
+  loadDueStudyItems,
+  loadDueWordCount,
+} from './services/study-review-data.service'
+import { loadNewStudyItems } from './services/study-new-word.service'
+import {
+  rewriteStudySentence,
+  submitStudySentence,
+} from './services/study-submission.service'
 
 export type AttemptStatus = 'valid' | 'needs_help'
 export type UsageQuality = 'strong' | 'weak' | 'meta' | 'invalid'
@@ -267,9 +273,6 @@ interface LibraryRow {
 interface LibraryWordRow {
   word_id: string | null
 }
-
-type DueStudyCategory = Exclude<StudyPriorityReason, 'new'>
-
 
 interface SentenceHelpPayload {
   hints?: unknown
@@ -1295,197 +1298,6 @@ async function getDueWordIds(
   return dueWordIds
 }
 
-async function isWordStartedOutsideUserWords(
-  supabase: SupabaseClient,
-  userId: string,
-  wordId: string
-) {
-  const [
-    { data: sentenceRow, error: sentenceError },
-    { data: libraryWordRow, error: libraryWordError },
-  ] = await Promise.all([
-    supabase
-      .from('sentences')
-      .select('word_id')
-      .eq('user_id', userId)
-      .eq('word_id', wordId)
-      .maybeSingle(),
-    supabase
-      .from('user_library_words')
-      .select('word_id')
-      .eq('user_id', userId)
-      .eq('word_id', wordId)
-      .maybeSingle(),
-  ])
-
-  if (sentenceError) {
-    console.error('Failed to check sentence history for unseen-word RPC candidate:', sentenceError)
-  }
-
-  if (libraryWordError) {
-    console.error(
-      'Failed to check user_library_words for unseen-word RPC candidate:',
-      libraryWordError
-    )
-  }
-
-  return (
-    typeof (sentenceRow as { word_id?: string | null } | null)?.word_id === 'string' ||
-    typeof (libraryWordRow as { word_id?: string | null } | null)?.word_id === 'string'
-  )
-}
-
-async function pickUnseenWordViaRpc(
-  tag: string,
-  skippedWordIds: string[],
-  supabase: SupabaseClient,
-  userId: string,
-  attempts = 8
-): Promise<WordRecord | null> {
-  const excludedWordIds = [...new Set(skippedWordIds)]
-
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const { data, error } = await supabase.rpc('pick_unstudied_word', {
-      p_user_id: userId,
-      p_tag: tag === 'All' ? null : tag,
-      p_skipped_ids: excludedWordIds,
-    })
-
-    if (error) {
-      console.error('Failed to pick unseen word via RPC:', error)
-      return null
-    }
-
-    const candidate = Array.isArray(data) ? data[0] : null
-    if (!isWordRecord(candidate)) {
-      return null
-    }
-
-    const startedOutsideUserWords = await isWordStartedOutsideUserWords(
-      supabase,
-      userId,
-      candidate.id
-    )
-
-    if (!startedOutsideUserWords) {
-      return candidate
-    }
-
-    excludedWordIds.push(candidate.id)
-  }
-
-  return null
-}
-
-async function pickRandomUnseenWord(
-  tag: string,
-  skippedWordIds: string[],
-  preferredWordIds: string[],
-  supabase: SupabaseClient,
-  startedWordIds: Set<string>,
-  attempts = 8
-): Promise<WordRecord | null> {
-  let countQuery = supabase.from('words').select('id', { count: 'exact', head: true })
-  if (tag !== 'All') {
-    countQuery = countQuery.eq('tags', tag)
-  }
-  if (preferredWordIds.length > 0) {
-    countQuery = countQuery.in('id', preferredWordIds)
-  }
-
-  const { count } = await countQuery
-  if (!count || count <= 0) {
-    return null
-  }
-
-  const skippedSet = new Set(skippedWordIds)
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const randomOffset = Math.floor(Math.random() * count)
-    let pickQuery = supabase.from('words').select('*').range(randomOffset, randomOffset).limit(1)
-    if (tag !== 'All') {
-      pickQuery = pickQuery.eq('tags', tag)
-    }
-    if (preferredWordIds.length > 0) {
-      pickQuery = pickQuery.in('id', preferredWordIds)
-    }
-
-    const { data } = await pickQuery
-    const candidate = data?.[0]
-    if (!isWordRecord(candidate) || skippedSet.has(candidate.id)) {
-      continue
-    }
-
-    if (!startedWordIds.has(candidate.id)) {
-      return candidate
-    }
-  }
-
-  return null
-}
-
-async function findFallbackUnseenWord(
-  tag: string,
-  skippedWordIds: string[],
-  preferredWordIds: string[],
-  supabase: SupabaseClient,
-  startedWordIds: Set<string>
-): Promise<WordRecord | null> {
-  const excludeIds = [...new Set([...startedWordIds, ...skippedWordIds])]
-  let fallbackQuery = supabase.from('words').select('*')
-  if (tag !== 'All') {
-    fallbackQuery = fallbackQuery.eq('tags', tag)
-  }
-  if (preferredWordIds.length > 0) {
-    fallbackQuery = fallbackQuery.in('id', preferredWordIds)
-  }
-  if (excludeIds.length > 0) {
-    fallbackQuery = fallbackQuery.not('id', 'in', toPostgrestInList(excludeIds))
-  }
-
-  const { data: fallbackCandidates } = await fallbackQuery.limit(1)
-  const fallback = fallbackCandidates?.[0]
-  return isWordRecord(fallback) ? fallback : null
-}
-
-async function pickUnseenWord(
-  tag: string,
-  skippedWordIds: string[],
-  preferredWordIds: string[],
-  supabase: SupabaseClient,
-  userId: string
-): Promise<WordRecord | null> {
-  if (preferredWordIds.length === 0) {
-    const rpcCandidate = await pickUnseenWordViaRpc(tag, skippedWordIds, supabase, userId)
-    if (rpcCandidate) {
-      return rpcCandidate
-    }
-  }
-
-  const startedWordIds = await getStartedWordIds(supabase, userId)
-
-  const randomCandidate = await pickRandomUnseenWord(
-    tag,
-    skippedWordIds,
-    preferredWordIds,
-    supabase,
-    startedWordIds
-  )
-
-  if (randomCandidate) {
-    return randomCandidate
-  }
-
-  return findFallbackUnseenWord(tag, skippedWordIds, preferredWordIds, supabase, startedWordIds)
-}
-
-async function getWordById(supabase: SupabaseClient, wordId: string) {
-  const { data, error } = await supabase.from('words').select('*').eq('id', wordId).maybeSingle()
-  if (error) {
-    throw error
-  }
-  return isWordRecord(data) ? data : null
-}
-
 async function attachWordToUser(
   wordId: string,
   reviewDate: string,
@@ -1548,155 +1360,21 @@ async function getDueWordCount(
   studyView: StudyView,
   libraryWordIds: string[] = []
 ) {
-  const startedAt = Date.now()
-  let query = supabase
-    .from('user_words')
-    .select('id, words!inner(id)', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .lte('next_review_date', today)
-
-  switch (studyView) {
-    case 'favorites':
-      query = query.eq('is_favorite', true)
-      break
-    case 'weak':
-      query = query.or('last_score.lt.75,consecutive_failures.gte.2')
-      break
-    case 'recent_failures':
-      query = query
-        .or('last_score.lt.60,consecutive_failures.gte.1')
-        .gte('last_reviewed_at', getRecentFailureSince())
-      break
-    case 'all':
-    default:
-      break
-  }
-
-  if (tag !== 'All') {
-    query = query.eq('words.tags', tag)
-  }
-  if (libraryWordIds.length > 0) {
-    query = query.in('word_id', libraryWordIds)
-  }
-  if (preferredWordIds.length > 0) {
-    query = query.in('word_id', preferredWordIds)
-  }
-  if (skippedWordIds.length > 0) {
-    query = query.not('word_id', 'in', toPostgrestInList(skippedWordIds))
-  }
-
-  const { count } = await query
-  const total = count ?? 0
-
-  logStudyPerformance('getDueWordCount', startedAt, {
-    studyView,
+  return loadDueWordCount({
+    supabase,
+    userId,
     tag,
-    libraryScoped: libraryWordIds.length > 0,
-    skipped: skippedWordIds.length,
-    preferred: preferredWordIds.length,
-    count: total,
-  })
-
-  return total
-}
-
-async function getDueRowsByCategory(
-  supabase: SupabaseClient,
-  userId: string,
-  tag: string,
-  today: string,
-  skippedWordIds: string[],
-  preferredWordIds: string[],
-  studyView: StudyView,
-  libraryWordIds: string[],
-  category: DueStudyCategory,
-  limit: number
-) {
-  const startedAt = Date.now()
-  let query = supabase
-    .from('user_words')
-    .select('*, words!inner(*)')
-    .eq('user_id', userId)
-    .lte('next_review_date', today)
-
-  switch (studyView) {
-    case 'favorites':
-      query = query.eq('is_favorite', true)
-      break
-    case 'weak':
-      query = query.or('last_score.lt.75,consecutive_failures.gte.2')
-      break
-    case 'recent_failures':
-      query = query
-        .or('last_score.lt.60,consecutive_failures.gte.1')
-        .gte('last_reviewed_at', getRecentFailureSince())
-      break
-    case 'all':
-    default:
-      break
-  }
-
-  if (tag !== 'All') {
-    query = query.eq('words.tags', tag)
-  }
-  if (libraryWordIds.length > 0) {
-    query = query.in('word_id', libraryWordIds)
-  }
-  if (preferredWordIds.length > 0) {
-    query = query.in('word_id', preferredWordIds)
-  }
-  if (skippedWordIds.length > 0) {
-    query = query.not('word_id', 'in', toPostgrestInList(skippedWordIds))
-  }
-
-  switch (category) {
-    case 'leech_due':
-      query = query
-        .gte('consecutive_failures', 3)
-        .order('consecutive_failures', { ascending: false, nullsFirst: false })
-        .order('next_review_date', { ascending: true })
-        .order('last_reviewed_at', { ascending: true, nullsFirst: true })
-      break
-    case 'overdue':
-      query = query
-        .lt('next_review_date', today)
-        .order('next_review_date', { ascending: true })
-        .order('last_reviewed_at', { ascending: true, nullsFirst: true })
-      break
-    case 'weak_due':
-      query = query
-        .eq('next_review_date', today)
-        .lt('last_score', 75)
-        .order('last_score', { ascending: true, nullsFirst: false })
-        .order('last_reviewed_at', { ascending: true, nullsFirst: true })
-      break
-    case 'due':
-      query = query
-        .eq('next_review_date', today)
-        .order('last_reviewed_at', { ascending: true, nullsFirst: true })
-        .order('created_at', { ascending: true, nullsFirst: true })
-      break
-    default:
-      break
-  }
-
-  const { data } = await query.limit(limit)
-  const rows = sortDueCandidates((data ?? []) as UserWordRecord[], today).filter(
-    (row) => getStudyPriorityReason(row, today) === category
-  )
-
-  logStudyPerformance('getDueRowsByCategory', startedAt, {
-    category,
+    today,
+    skippedWordIds,
+    preferredWordIds,
     studyView,
-    tag,
-    libraryScoped: libraryWordIds.length > 0,
-    preferred: preferredWordIds.length,
-    skipped: skippedWordIds.length,
-    rows: rows.length,
-    limit,
+    libraryWordIds,
+    deps: {
+      getRecentFailureSince,
+      toPostgrestInList,
+      logStudyPerformance,
+    },
   })
-
-  return rows
 }
 
 async function getDueStudyItems(
@@ -1710,58 +1388,23 @@ async function getDueStudyItems(
   studyView: StudyView,
   libraryWordIds: string[] = []
 ) {
-  const startedAt = Date.now()
-  const targetSize = Math.max(batchSize * 6, 24)
-  const categories: DueStudyCategory[] = ['leech_due', 'overdue', 'weak_due', 'due']
-  const items: StudyBatchItem[] = []
-
-  for (const category of categories) {
-    const rows = await getDueRowsByCategory(
-      supabase,
-      userId,
-      tag,
-      today,
-      skippedWordIds,
-      preferredWordIds,
-      studyView,
-      libraryWordIds,
-      category,
-      targetSize
-    )
-
-    for (const row of rows) {
-      const item = normalizeStudyBatchItem(row, {
-        isNew: false,
-        priorityReason: category,
-      })
-
-      if (!item) {
-        continue
-      }
-
-      items.push(item)
-      if (items.length >= targetSize) {
-        logStudyPerformance('getDueStudyItems', startedAt, {
-          studyView,
-          tag,
-          targetSize,
-          resultCount: items.length,
-          libraryScoped: libraryWordIds.length > 0,
-        })
-        return items
-      }
-    }
-  }
-
-  logStudyPerformance('getDueStudyItems', startedAt, {
-    studyView,
+  return loadDueStudyItems({
+    supabase,
+    userId,
     tag,
-    targetSize,
-    resultCount: items.length,
-    libraryScoped: libraryWordIds.length > 0,
+    today,
+    skippedWordIds,
+    preferredWordIds,
+    batchSize,
+    studyView,
+    libraryWordIds,
+    deps: {
+      getRecentFailureSince,
+      toPostgrestInList,
+      normalizeStudyBatchItem,
+      logStudyPerformance,
+    },
   })
-
-  return items
 }
 
 async function getNewStudyItems(
@@ -1773,143 +1416,37 @@ async function getNewStudyItems(
   batchSize: number,
   libraryWordIds: string[] = []
 ) {
-  const startedAt = Date.now()
-  const items: StudyBatchItem[] = []
-  const excludedWordIds = new Set(skippedWordIds)
-  let libraryUnseenWordIds = libraryWordIds
-
-  if (libraryWordIds.length > 0) {
-    const startedWordIds = await getStartedWordIds(supabase, userId, libraryWordIds)
-    libraryUnseenWordIds = libraryWordIds.filter((wordId) => !startedWordIds.has(wordId))
-  }
-
-  while (items.length < batchSize) {
-    let candidate: WordRecord | null
-    if (libraryWordIds.length > 0) {
-      const availableWordIds = libraryUnseenWordIds.filter((wordId) => !excludedWordIds.has(wordId))
-
-      if (availableWordIds.length === 0) {
-        break
-      }
-
-      const randomIndex = Math.floor(Math.random() * availableWordIds.length)
-      candidate = await getWordById(supabase, availableWordIds[randomIndex]!)
-    } else {
-      candidate = await pickUnseenWord(
-        tag,
-        Array.from(excludedWordIds),
-        preferredWordIds,
-        supabase,
-        userId
-      )
-    }
-
-    if (!candidate) {
-      break
-    }
-
-    excludedWordIds.add(candidate.id)
-    const item = normalizeNewStudyBatchItem(candidate, {
-      isNew: true,
-      priorityReason: 'new',
-    })
-
-    if (item) {
-      items.push(item)
-    }
-  }
-
-  logStudyPerformance('getNewStudyItems', startedAt, {
+  return loadNewStudyItems({
+    supabase,
+    userId,
     tag,
+    skippedWordIds,
+    preferredWordIds,
     batchSize,
-    resultCount: items.length,
-    libraryScoped: libraryWordIds.length > 0,
-    preferred: preferredWordIds.length,
-    skipped: skippedWordIds.length,
+    libraryWordIds,
+    deps: {
+      getStartedWordIds,
+      toPostgrestInList,
+      normalizeNewStudyBatchItem,
+      logStudyPerformance,
+    },
   })
-
-  return items
 }
 
 async function hydrateStudyBatchWordDetails(
   supabase: SupabaseClient,
   batch: StudyBatchItem[]
 ): Promise<StudyBatchItem[]> {
-  const startedAt = Date.now()
-  if (batch.length === 0) {
-    return batch
-  }
-
-  const wordIds = Array.from(new Set(batch.map((item) => item.word_id)))
-  const [profilesResponse, examplesResponse] = await Promise.all([
-    supabase
-      .from('word_profiles')
-      .select(
-        'word_id, core_meaning, semantic_feel, usage_note, usage_register, scene_tags, collocations, contrast_words'
-      )
-      .in('word_id', wordIds),
-    supabase
-      .from('word_profile_examples')
-      .select('word_id, sentence, translation, scene, is_primary, quality_score')
-      .in('word_id', wordIds),
-  ])
-
-  if (profilesResponse.error || examplesResponse.error) {
-    const relevantError = profilesResponse.error ?? examplesResponse.error
-
-    if (!isMissingWordProfileTableError(relevantError)) {
-      console.error('Failed to hydrate study word details:', relevantError)
-    }
-
-    logStudyPerformance('hydrateStudyBatchWordDetails', startedAt, {
-      batchSize: batch.length,
-      hydratedWords: 0,
-      fallback: true,
-    })
-
-    return batch
-  }
-
-  const profileMap = new Map<string, StudyWordProfile>()
-  for (const row of (profilesResponse.data ?? []) as WordProfileRow[]) {
-    const normalized = normalizeStudyWordProfile(row)
-    if (normalized) {
-      profileMap.set(row.word_id, normalized)
-    }
-  }
-
-  const exampleRowsByWordId = new Map<string, WordProfileExampleRow[]>()
-  for (const row of (examplesResponse.data ?? []) as WordProfileExampleRow[]) {
-    if (typeof row.word_id !== 'string') {
-      continue
-    }
-
-    const existingRows = exampleRowsByWordId.get(row.word_id) ?? []
-    existingRows.push(row)
-    exampleRowsByWordId.set(row.word_id, existingRows)
-  }
-
-  const hydratedBatch = batch.map((item) => {
-    const hydratedExamples = normalizeStudyWordExamples(exampleRowsByWordId.get(item.word_id) ?? [])
-    const hydratedProfile = profileMap.get(item.word_id) ?? null
-
-    return {
-      ...item,
-      words: {
-        ...item.words,
-        profile: hydratedProfile,
-        examples: hydratedExamples,
-        example: hydratedExamples[0]?.sentence ?? item.words.example ?? null,
-      },
-    }
+  return loadHydratedStudyBatchWordDetails({
+    supabase,
+    batch,
+    deps: {
+      normalizeStudyWordProfile,
+      normalizeStudyWordExamples,
+      isMissingWordProfileTableError,
+      logStudyPerformance,
+    },
   })
-
-  logStudyPerformance('hydrateStudyBatchWordDetails', startedAt, {
-    batchSize: batch.length,
-    hydratedWords: hydratedBatch.length,
-  })
-
-  return hydratedBatch
 }
 
 async function getWordLearningHistory(
@@ -2287,134 +1824,31 @@ export async function submitSentence(
   streamedContent?: string | null
 ): Promise<StudySubmissionResult> {
   const { supabase, user } = await requireActionSession()
-  let evaluation: EvaluationResult | null = null
-  const today = getTodayDateString()
-
-  if (streamedContent?.trim()) {
-    try {
-      evaluation = parseEvaluationJson(streamedContent, sentence)
-    } catch (error) {
-      console.error('Failed to parse streamed evaluation content:', error)
-    }
-  }
-
-  if (!evaluation) {
-    const learningHistory = await getWordLearningHistory(supabase, user.id, wordId)
-    evaluation = await evaluateSentence(wordStr, sentence, definition, tags, learningHistory)
-  }
-
-  let currentSrs: UserWordRecord | null = null
-
-  if (userWordId) {
-    const { data } = await supabase
-      .from('user_words')
-      .select('*')
-      .eq('id', userWordId)
-      .single()
-
-    if (isUserWordRecord(data)) {
-      currentSrs = data
-    }
-  }
-
-  if (!currentSrs) {
-    const library = await getLibraryBySlug(supabase, librarySlug ?? 'all')
-    const attached = await attachWordToUser(wordId, today, supabase, user.id, library?.id)
-
-    if (!attached || !isUserWordRecord(attached)) {
-      throw new Error('User word not found')
-    }
-
-    currentSrs = attached
-  }
-
-  userWordId = currentSrs.id
-
-  const nextSrs = calculateNextReview(
-    {
-      repetitions: currentSrs.repetitions,
-      interval: currentSrs.interval,
-      easeFactor: currentSrs.ease_factor,
-    },
-    evaluation.score
-  )
-
-  const reviewStats = getNextFailureCounters(currentSrs, nextSrs.reviewBucket)
-  const reviewedAt = new Date().toISOString()
-  const nextReviewDate = shiftDateString(today, nextSrs.interval)
-
-  const { error: updateError } = await supabase
-    .from('user_words')
-    .update({
-      repetitions: nextSrs.repetitions,
-      interval: nextSrs.interval,
-      ease_factor: nextSrs.easeFactor,
-      next_review_date: nextReviewDate,
-      last_score: evaluation.score,
-      last_reviewed_at: reviewedAt,
-      consecutive_failures: reviewStats.consecutiveFailures,
-      lapse_count: reviewStats.lapseCount,
-    })
-    .eq('id', userWordId)
-
-  if (updateError) {
-    throw updateError
-  }
-
-  const { data: savedSentence, error: savedSentenceError } = await supabase
-    .from('sentences')
-    .insert({
-      user_id: user.id,
-      word_id: wordId,
-      original_text: sentence,
-      ai_score: evaluation.score,
-      ai_feedback: buildWordFeedbackForStorage(evaluation, sentence),
-      attempt_status: evaluation.attemptStatus,
-      usage_quality: evaluation.usageQuality,
-      uses_word_in_context: evaluation.usesWordInContext,
-      is_meta_sentence: evaluation.isMetaSentence,
-    })
-    .select()
-    .single()
-
-  if (savedSentenceError) {
-    const { error: rollbackError } = await supabase
-      .from('user_words')
-      .update({
-        repetitions: currentSrs.repetitions,
-        interval: currentSrs.interval,
-        ease_factor: currentSrs.ease_factor,
-        next_review_date: currentSrs.next_review_date ?? today,
-        last_score: currentSrs.last_score ?? null,
-        last_reviewed_at: currentSrs.last_reviewed_at ?? null,
-        consecutive_failures: currentSrs.consecutive_failures ?? 0,
-        lapse_count: currentSrs.lapse_count ?? 0,
-      })
-      .eq('id', userWordId)
-
-    if (rollbackError) {
-      console.error('Failed to rollback user_words after sentence insert error:', rollbackError)
-      throw new Error('Failed to save sentence history and rollback study state.')
-    }
-
-    throw savedSentenceError
-  }
-
-  await touchLibraryProgress(supabase, user.id, wordId, librarySlug)
-
-  const evaluationModel =
-    process.env.OPENAI_MODEL || 'gpt-4o-mini'
-  const evaluationApiBase =
-    process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-
-  return {
-    evaluation,
-    nextSrs,
-    savedSentence,
-    evaluationModelLabel: formatModelLabel(evaluationModel, evaluationApiBase),
-    reviewImpact: 'scheduled',
+  return submitStudySentence({
+    supabase,
+    userId: user.id,
+    today: getTodayDateString(),
     userWordId,
-  }
+    wordId,
+    wordStr,
+    definition,
+    tags,
+    sentence,
+    librarySlug,
+    streamedContent,
+    deps: {
+      parseEvaluationJson,
+      getWordLearningHistory,
+      evaluateSentence,
+      toUserWordRecord: (value) => (isUserWordRecord(value) ? value : null),
+      getLibraryBySlug,
+      attachWordToUser,
+      getNextFailureCounters,
+      buildWordFeedbackForStorage,
+      touchLibraryProgress,
+      formatModelLabel,
+    },
+  })
 }
 
 export async function rewriteSentence(
@@ -2427,34 +1861,24 @@ export async function rewriteSentence(
   streamedContent?: string | null
 ): Promise<StudySubmissionResult> {
   const { supabase, user } = await requireActionSession()
-  let evaluation: EvaluationResult | null = null
-
-  if (streamedContent?.trim()) {
-    try {
-      evaluation = parseEvaluationJson(streamedContent, sentence)
-    } catch (error) {
-      console.error('Failed to parse streamed rewrite evaluation content:', error)
-    }
-  }
-
-  if (!evaluation) {
-    const learningHistory = await getWordLearningHistory(supabase, user.id, wordId)
-    evaluation = await evaluateSentence(wordStr, sentence, definition, tags, learningHistory)
-  }
-
-  await touchLibraryProgress(supabase, user.id, wordId, librarySlug)
-
-  const evaluationModel = process.env.OPENAI_MODEL || 'gpt-4o-mini'
-  const evaluationApiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-
-  return {
-    evaluation,
-    nextSrs: null,
-    savedSentence: null,
-    evaluationModelLabel: formatModelLabel(evaluationModel, evaluationApiBase),
-    reviewImpact: 'practice_only',
-    userWordId: null,
-  }
+  return rewriteStudySentence({
+    supabase,
+    userId: user.id,
+    wordId,
+    wordStr,
+    definition,
+    tags,
+    sentence,
+    librarySlug,
+    streamedContent,
+    deps: {
+      parseEvaluationJson,
+      getWordLearningHistory,
+      evaluateSentence,
+      touchLibraryProgress,
+      formatModelLabel,
+    },
+  })
 }
 
 export async function getFavoriteWordIds() {
