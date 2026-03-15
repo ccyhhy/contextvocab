@@ -8,13 +8,19 @@ import {
 } from '@/lib/evaluation-format'
 import { calculateNextReview, type ReviewBucket, type SRSData } from '@/lib/srs'
 import {
-  buildStudyMixPlan,
   getStudyPriorityReason,
   sortDueCandidates,
   type StudyPriorityReason,
 } from '@/lib/study-scheduler'
 import { requireActionSession } from '@/lib/supabase/user'
 import { getTodayDateString, shiftDateString } from '@/lib/app-date'
+import {
+  loadStudyEnrichmentProgress,
+  loadStudyLibraries,
+  loadStudyLibraryOptions,
+  loadStudySidebarData,
+} from './services/study-sidebar.service'
+import { loadStudyBatch } from './services/study-batch.service'
 
 export type AttemptStatus = 'valid' | 'needs_help'
 export type UsageQuality = 'strong' | 'weak' | 'meta' | 'invalid'
@@ -262,11 +268,6 @@ interface LibraryWordRow {
   word_id: string | null
 }
 
-interface UserLibraryPlanRow {
-  status?: 'active' | 'paused' | 'completed' | null
-  daily_new_limit?: number | null
-}
-
 type DueStudyCategory = Exclude<StudyPriorityReason, 'new'>
 
 
@@ -287,7 +288,6 @@ let favoriteColumnSupported: boolean | null = null
 const DEFAULT_STUDY_BATCH_SIZE = 5
 const SUPABASE_PAGE_SIZE = 1000
 const STUDY_LIBRARY_MEMBERSHIP_CACHE_TTL_MS = 60 * 60 * 1000
-const STUDY_ENRICHMENT_PROGRESS_CACHE_TTL_MS = 60 * 60 * 1000
 const STUDY_PERFORMANCE_LOG_THRESHOLD_MS = 150
 const LEGACY_LIBRARY_OPTIONS = [
   { slug: 'all', name: '全部词库', tag: 'All' },
@@ -301,9 +301,6 @@ interface TimedCacheEntry<T> {
 }
 
 const libraryWordIdsCache = new Map<string, TimedCacheEntry<string[]>>()
-const officialTagWordIdsCache = new Map<string, TimedCacheEntry<string[]>>()
-let studyEnrichmentProgressCache: TimedCacheEntry<StudyEnrichmentProgress[]> | null = null
-let studyEnrichmentProgressCacheKey = ''
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value))
@@ -355,18 +352,6 @@ function setTimedCacheValue<T>(
   })
 
   return value
-}
-
-function countMatchingWordIds(wordIds: string[], lookup: Set<string>) {
-  let count = 0
-
-  for (const wordId of wordIds) {
-    if (lookup.has(wordId)) {
-      count += 1
-    }
-  }
-
-  return count
 }
 
 function logStudyPerformance(
@@ -1846,56 +1831,6 @@ async function getNewStudyItems(
   return items
 }
 
-function composeStudyBatch(
-  dueItems: StudyBatchItem[],
-  newItems: StudyBatchItem[],
-  dueCount: number,
-  favoritesOnly: boolean,
-  batchSize: number
-) {
-  const plan = buildStudyMixPlan(dueCount, batchSize, favoritesOnly)
-  const dueQueue = [...dueItems]
-  const newQueue = [...newItems]
-  const batch: StudyBatchItem[] = []
-
-  for (const slot of plan) {
-    if (slot === 'review' && dueQueue.length > 0) {
-      batch.push(dueQueue.shift()!)
-      continue
-    }
-
-    if (slot === 'new' && newQueue.length > 0) {
-      batch.push(newQueue.shift()!)
-      continue
-    }
-
-    if (dueQueue.length > 0) {
-      batch.push(dueQueue.shift()!)
-      continue
-    }
-
-    if (newQueue.length > 0) {
-      batch.push(newQueue.shift()!)
-    }
-  }
-
-  while (batch.length < batchSize) {
-    if (dueQueue.length > 0) {
-      batch.push(dueQueue.shift()!)
-      continue
-    }
-
-    if (newQueue.length > 0) {
-      batch.push(newQueue.shift()!)
-      continue
-    }
-
-    break
-  }
-
-  return batch
-}
-
 async function hydrateStudyBatchWordDetails(
   supabase: SupabaseClient,
   batch: StudyBatchItem[]
@@ -1996,434 +1931,69 @@ async function getWordLearningHistory(
     .reverse()
 }
 
-async function buildLibrarySummary(
-  supabase: SupabaseClient,
-  userId: string,
-  library: LibraryRow,
-  startedWordIds: Set<string>,
-  dueWordIds: Set<string>
-): Promise<StudyLibrary> {
-  const startedAt = Date.now()
-  const planPromise = supabase
-    .from('user_library_plans')
-    .select('status, daily_new_limit')
-    .eq('user_id', userId)
-    .eq('library_id', library.id)
-    .maybeSingle()
-  const [libraryWordIds, { data: plan }] = await Promise.all([
-    getLibraryWordIds(supabase, library.id),
-    planPromise,
-  ])
-  const wordCount = libraryWordIds.length
-
-  if (libraryWordIds.length === 0) {
-    const planRow = (plan as UserLibraryPlanRow | null) ?? null
-    const summary = {
-      id: library.id,
-      slug: library.slug,
-      name: library.name,
-      description: library.description ?? null,
-      sourceType: library.source_type === 'custom' ? 'custom' : 'official',
-      wordCount: 0,
-      activeCount: 0,
-      dueCount: 0,
-      remainingCount: 0,
-      planStatus: planRow?.status ?? 'not_started',
-      dailyNewLimit: planRow?.daily_new_limit ?? null,
-    }
-
-    logStudyPerformance('buildLibrarySummary', startedAt, {
-      library: library.slug,
-      wordCount: 0,
-      activeCount: 0,
-      dueCount: 0,
-    })
-
-    return summary
-  }
-
-  const planRow = (plan as UserLibraryPlanRow | null) ?? null
-  const activeCount = countMatchingWordIds(libraryWordIds, startedWordIds)
-  const dueCount = countMatchingWordIds(libraryWordIds, dueWordIds)
-
-  const summary = {
-    id: library.id,
-    slug: library.slug,
-    name: library.name,
-    description: library.description ?? null,
-    sourceType: library.source_type === 'custom' ? 'custom' : 'official',
-    wordCount,
-    activeCount,
-    dueCount,
-    remainingCount: Math.max(wordCount - activeCount, 0),
-    planStatus: planRow?.status ?? 'not_started',
-    dailyNewLimit: planRow?.daily_new_limit ?? null,
-  }
-
-  logStudyPerformance('buildLibrarySummary', startedAt, {
-    library: library.slug,
-    wordCount,
-    activeCount,
-    dueCount,
-  })
-
-  return summary
-}
-
-interface WordProfileProgressRow {
-  word_id?: string | null
-  generation_method?: string | null
-}
-
-interface WordIdRow {
-  id?: string | null
-}
-
-interface WordIdOnlyRow {
-  word_id?: string | null
-}
-
-const OFFICIAL_LIBRARY_TAG_MAP: Record<string, string> = {
-  'cet-4': 'CET-4',
-  'cet-6': 'CET-6',
-}
-
-function isBaseGenerationMethod(method?: string | null) {
-  return typeof method === 'string' && method.includes('base')
-}
-
-function createStudyLibraryPlaceholder(
-  library: Pick<LibraryRow, 'id' | 'slug' | 'name' | 'description' | 'source_type'>
-): StudyLibrary {
-  return {
-    id: library.id,
-    slug: library.slug,
-    name: library.name,
-    description: library.description ?? null,
-    sourceType: library.source_type === 'custom' ? 'custom' : 'official',
-    wordCount: 0,
-    activeCount: 0,
-    dueCount: 0,
-    remainingCount: 0,
-    planStatus: 'not_started',
-    dailyNewLimit: null,
-  }
-}
-
-function getLegacyStudyLibraryOptions(): StudyLibrary[] {
-  return LEGACY_LIBRARY_OPTIONS.filter((option) => option.slug !== 'all').map((option) =>
-    createStudyLibraryPlaceholder({
-      id: option.slug,
-      slug: option.slug,
-      name: option.name,
-      description: null,
-      source_type: 'official',
-    })
-  )
-}
-
-async function getWordIdsByOfficialTag(supabase: SupabaseClient, tag: string) {
-  const cached = getActiveTimedCacheValue(officialTagWordIdsCache.get(tag))
-  if (cached) {
-    return cached
-  }
-
-  const ids: string[] = []
-  let from = 0
-
-  while (true) {
-    const to = from + SUPABASE_PAGE_SIZE - 1
-    const { data, error } = await supabase
-      .from('words')
-      .select('id')
-      .ilike('tags', `%${tag}%`)
-      .order('word', { ascending: true })
-      .range(from, to)
-
-    if (error) {
-      console.error('Failed to load official library word ids for progress:', error)
-      return [] as string[]
-    }
-
-    const rows = (data ?? []) as WordIdRow[]
-    ids.push(...rows.map((row) => row.id).filter((id): id is string => typeof id === 'string'))
-
-    if (rows.length < SUPABASE_PAGE_SIZE) {
-      break
-    }
-
-    from += SUPABASE_PAGE_SIZE
-  }
-
-  return setTimedCacheValue(
-    officialTagWordIdsCache,
-    tag,
-    ids,
-    STUDY_LIBRARY_MEMBERSHIP_CACHE_TTL_MS
-  )
-}
-
-async function getAllWordProfileProgressRows(supabase: SupabaseClient) {
-  const rows: WordProfileProgressRow[] = []
-  let from = 0
-
-  while (true) {
-    const to = from + SUPABASE_PAGE_SIZE - 1
-    const { data, error } = await supabase
-      .from('word_profiles')
-      .select('word_id, generation_method')
-      .order('word_id', { ascending: true })
-      .range(from, to)
-
-    if (error) {
-      if (!isMissingWordProfileTableError(error)) {
-        console.error('Failed to load word profile progress:', error)
-      }
-      return [] as WordProfileProgressRow[]
-    }
-
-    const pageRows = (data ?? []) as WordProfileProgressRow[]
-    rows.push(...pageRows)
-
-    if (pageRows.length < SUPABASE_PAGE_SIZE) {
-      break
-    }
-
-    from += SUPABASE_PAGE_SIZE
-  }
-
-  return rows
-}
-
-async function getAllExampleWordIds(supabase: SupabaseClient) {
-  const ids = new Set<string>()
-  let from = 0
-
-  while (true) {
-    const to = from + SUPABASE_PAGE_SIZE - 1
-    const { data, error } = await supabase
-      .from('word_profile_examples')
-      .select('word_id')
-      .order('word_id', { ascending: true })
-      .range(from, to)
-
-    if (error) {
-      if (!isMissingWordProfileTableError(error)) {
-        console.error('Failed to load word example progress:', error)
-      }
-      return ids
-    }
-
-    const pageRows = (data ?? []) as WordIdOnlyRow[]
-    for (const row of pageRows) {
-      if (typeof row.word_id === 'string') {
-        ids.add(row.word_id)
-      }
-    }
-
-    if (pageRows.length < SUPABASE_PAGE_SIZE) {
-      break
-    }
-
-    from += SUPABASE_PAGE_SIZE
-  }
-
-  return ids
-}
-
 export async function getStudyLibraries(): Promise<StudyLibrary[]> {
-  const startedAt = Date.now()
   const { supabase, user } = await requireActionSession()
-  const today = getTodayDateString()
-  const [{ data, error }, startedWordIds, dueWordIds] = await Promise.all([
-    supabase
-      .from('libraries')
-      .select('id, slug, name, description, source_type')
-      .order('name', { ascending: true }),
-    getStartedWordIds(supabase, user.id),
-    getDueWordIds(supabase, user.id, today),
-  ])
-
-  if (error || !data) {
-    if (error && !isMissingLibrariesTableError(error)) {
-      console.error('Failed to load study libraries:', error)
-    }
-
-    logStudyPerformance('getStudyLibraries', startedAt, {
-      libraryCount: 0,
-      fallback: true,
-    })
-
-    return getLegacyStudyLibraryOptions()
-  }
-
-  const libraries = (data as LibraryRow[]).filter(
-    (row) => typeof row.id === 'string' && typeof row.slug === 'string' && typeof row.name === 'string'
-  )
-
-  const summaries = await Promise.all(
-    libraries.map((library) => buildLibrarySummary(supabase, user.id, library, startedWordIds, dueWordIds))
-  )
-
-  logStudyPerformance('getStudyLibraries', startedAt, {
-    libraryCount: summaries.length,
-    startedWordIds: startedWordIds.size,
-    dueWordIds: dueWordIds.size,
+  return loadStudyLibraries({
+    supabase,
+    userId: user.id,
+    today: getTodayDateString(),
+    legacyLibraryOptions: LEGACY_LIBRARY_OPTIONS,
+    deps: {
+      getStartedWordIds,
+      getDueWordIds,
+      getLibraryWordIds,
+      isMissingLibrariesTableError,
+      isMissingWordProfileTableError,
+      logStudyPerformance,
+    },
   })
-
-  return summaries
 }
 
 export async function getStudyLibraryOptions(): Promise<StudyLibrary[]> {
   const { supabase } = await requireActionSession()
-  const { data, error } = await supabase
-    .from('libraries')
-    .select('id, slug, name, description, source_type')
-    .order('name', { ascending: true })
-
-  if (error || !data) {
-    if (error && !isMissingLibrariesTableError(error)) {
-      console.error('Failed to load study library options:', error)
-    }
-
-    return getLegacyStudyLibraryOptions()
-  }
-
-  const libraries = (data as LibraryRow[]).filter(
-    (row) => typeof row.id === 'string' && typeof row.slug === 'string' && typeof row.name === 'string'
-  )
-
-  if (libraries.length === 0) {
-    return getLegacyStudyLibraryOptions()
-  }
-
-  return libraries.map((library) => createStudyLibraryPlaceholder(library))
+  return loadStudyLibraryOptions({
+    supabase,
+    legacyLibraryOptions: LEGACY_LIBRARY_OPTIONS,
+    deps: {
+      isMissingLibrariesTableError,
+    },
+  })
 }
 
 export async function getStudyEnrichmentProgress(
   libraries: StudyLibrary[] = []
 ): Promise<StudyEnrichmentProgress[]> {
-  const startedAt = Date.now()
-  const cacheKey = JSON.stringify(
-    libraries.map((library) => ({
-      id: library.id,
-      slug: library.slug,
-      name: library.name,
-      wordCount: library.wordCount,
-    }))
-  )
-  const cachedProgress = getActiveTimedCacheValue(studyEnrichmentProgressCache)
-  if (cachedProgress && studyEnrichmentProgressCacheKey === cacheKey) {
-    logStudyPerformance('getStudyEnrichmentProgress', startedAt, {
-      libraryCount: libraries.length,
-      cacheHit: true,
-    })
-    return cachedProgress
-  }
-
   const { supabase } = await requireActionSession()
-  const [{ count: totalWordsCount }, profileRows, exampleWordIds] = await Promise.all([
-    supabase.from('words').select('id', { count: 'exact', head: true }),
-    getAllWordProfileProgressRows(supabase),
-    getAllExampleWordIds(supabase),
-  ])
-
-  const coveredWordIds = new Set<string>()
-  const refinedWordIds = new Set<string>()
-
-  for (const row of profileRows) {
-    if (typeof row.word_id !== 'string') {
-      continue
-    }
-
-    coveredWordIds.add(row.word_id)
-    if (!isBaseGenerationMethod(row.generation_method)) {
-      refinedWordIds.add(row.word_id)
-    }
-  }
-
-  const progressItems: StudyEnrichmentProgress[] = [
-    {
-      slug: 'all',
-      name: '全部词库',
-      totalWords: totalWordsCount ?? 0,
-      coveredWords: coveredWordIds.size,
-      refinedWords: refinedWordIds.size,
-      exampleWords: exampleWordIds.size,
+  return loadStudyEnrichmentProgress({
+    supabase,
+    libraries,
+    deps: {
+      getLibraryWordIds,
+      isMissingWordProfileTableError,
+      logStudyPerformance,
     },
-  ]
-
-  progressItems[0]!.name = '全部词库'
-
-  for (const library of libraries) {
-    let libraryWordIds: string[] = []
-    const officialTag = OFFICIAL_LIBRARY_TAG_MAP[library.slug]
-
-    if (officialTag) {
-      libraryWordIds = await getWordIdsByOfficialTag(supabase, officialTag)
-    } else {
-      libraryWordIds = await getLibraryWordIds(supabase, library.id)
-    }
-
-    const libraryWordIdSet = new Set(libraryWordIds)
-    let coveredWords = 0
-    let refinedWords = 0
-    let exampleWords = 0
-
-    for (const wordId of libraryWordIdSet) {
-      if (coveredWordIds.has(wordId)) {
-        coveredWords += 1
-      }
-      if (refinedWordIds.has(wordId)) {
-        refinedWords += 1
-      }
-      if (exampleWordIds.has(wordId)) {
-        exampleWords += 1
-      }
-    }
-
-    progressItems.push({
-      slug: library.slug,
-      name: library.name,
-      totalWords: library.wordCount || libraryWordIdSet.size,
-      coveredWords,
-      refinedWords,
-      exampleWords,
-    })
-  }
-
-  studyEnrichmentProgressCache = {
-    value: progressItems,
-    expiresAt: Date.now() + STUDY_ENRICHMENT_PROGRESS_CACHE_TTL_MS,
-  }
-  studyEnrichmentProgressCacheKey = cacheKey
-
-  logStudyPerformance('getStudyEnrichmentProgress', startedAt, {
-    libraryCount: libraries.length,
-    cacheHit: false,
-    progressItems: progressItems.length,
   })
-
-  return progressItems
 }
 
 export async function getStudySidebarData(): Promise<{
   libraries: StudyLibrary[]
   enrichmentProgress: StudyEnrichmentProgress[]
 }> {
-  const startedAt = Date.now()
-  const libraries = await getStudyLibraries()
-  const enrichmentProgress = await getStudyEnrichmentProgress(libraries)
-
-  logStudyPerformance('getStudySidebarData', startedAt, {
-    libraryCount: libraries.length,
-    progressItems: enrichmentProgress.length,
+  const { supabase, user } = await requireActionSession()
+  return loadStudySidebarData({
+    supabase,
+    userId: user.id,
+    today: getTodayDateString(),
+    legacyLibraryOptions: LEGACY_LIBRARY_OPTIONS,
+    deps: {
+      getStartedWordIds,
+      getDueWordIds,
+      getLibraryWordIds,
+      isMissingLibrariesTableError,
+      isMissingWordProfileTableError,
+      logStudyPerformance,
+    },
   })
-
-  return {
-    libraries,
-    enrichmentProgress,
-  }
 }
 
 export async function generateSentenceHelp(
@@ -2665,109 +2235,30 @@ export async function evaluateSentence(
 }
 
 export async function getStudyBatch(params: GetStudyBatchParams = {}) {
-  const startedAt = Date.now()
-  const {
-    librarySlug,
-    studyView,
-    tag = 'All',
-    skippedWordIds = [],
-    favoritesOnly = false,
-    batchSize = DEFAULT_STUDY_BATCH_SIZE,
-  } = params
   const { supabase, user } = await requireActionSession()
-  const today = getTodayDateString()
-  const resolvedLibrarySlug = normalizeLibrarySlug(librarySlug ?? getLibrarySlugForLegacyTag(tag))
-  const resolvedStudyView = resolveStudyView({ studyView, favoritesOnly })
-  const preferredWordIds = resolvedStudyView === 'favorites'
-    ? await getUserFavoriteWordIds(supabase, user.id)
-    : []
-  let tagFilter = tag
-  let libraryWordIds: string[] = []
-
-  if (resolvedLibrarySlug !== 'all') {
-    const library = await getLibraryBySlug(supabase, resolvedLibrarySlug)
-    if (library) {
-      tagFilter = 'All'
-      libraryWordIds = await getLibraryWordIds(supabase, library.id)
-      await ensureUserLibraryPlan(supabase, user.id, library.id)
-    } else {
-      tagFilter = getLegacyTagForLibrarySlug(resolvedLibrarySlug)
-    }
-  } else {
-    tagFilter = 'All'
-  }
-
-  if (resolvedStudyView === 'favorites' && preferredWordIds.length === 0) {
-    logStudyPerformance('getStudyBatch', startedAt, {
-      librarySlug: resolvedLibrarySlug,
-      studyView: resolvedStudyView,
-      batchSize,
-      emptyFavorites: true,
-    })
-
-    return [] as StudyBatchItem[]
-  }
-
-  const [dueCount, dueItems] = await Promise.all([
-    getDueWordCount(
-      supabase,
-      user.id,
-      tagFilter,
-      today,
-      skippedWordIds,
-      preferredWordIds,
-      resolvedStudyView,
-      libraryWordIds
-    ),
-    getDueStudyItems(
-      supabase,
-      user.id,
-      tagFilter,
-      today,
-      skippedWordIds,
-      preferredWordIds,
-      batchSize,
-      resolvedStudyView,
-      libraryWordIds
-    ),
-  ])
-
-  const newItems = isReviewOnlyView(resolvedStudyView)
-    ? []
-    : await getNewStudyItems(
-        supabase,
-        user.id,
-        tagFilter,
-        [...skippedWordIds, ...dueItems.map((item) => item.word_id)],
-        preferredWordIds,
-        batchSize,
-        libraryWordIds
-      )
-
-  const batch = composeStudyBatch(
-    dueItems,
-    newItems,
-    dueCount,
-    isReviewOnlyView(resolvedStudyView),
-    batchSize
-  )
-
-  const hydratedBatch = await hydrateStudyBatchWordDetails(supabase, batch)
-
-  logStudyPerformance('getStudyBatch', startedAt, {
-    librarySlug: resolvedLibrarySlug,
-    studyView: resolvedStudyView,
-    batchSize,
-    dueCount,
-    dueItems: dueItems.length,
-    newItems: newItems.length,
-    hydratedItems: hydratedBatch.length,
-    libraryScoped: libraryWordIds.length > 0,
-    preferred: preferredWordIds.length,
-    skipped: skippedWordIds.length,
+  return loadStudyBatch({
+    supabase,
+    userId: user.id,
+    today: getTodayDateString(),
+    params,
+    defaultBatchSize: DEFAULT_STUDY_BATCH_SIZE,
+    deps: {
+      normalizeLibrarySlug,
+      getLibrarySlugForLegacyTag,
+      getLegacyTagForLibrarySlug,
+      resolveStudyView,
+      isReviewOnlyView,
+      getUserFavoriteWordIds,
+      getLibraryBySlug,
+      getLibraryWordIds,
+      ensureUserLibraryPlan,
+      getDueWordCount,
+      getDueStudyItems,
+      getNewStudyItems,
+      hydrateStudyBatchWordDetails,
+      logStudyPerformance,
+    },
   })
-
-  return hydratedBatch
 }
 
 export async function getNextWord(
