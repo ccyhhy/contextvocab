@@ -1,4 +1,4 @@
-import { getFavoriteWordIds, getStudyBatch, getStudyEnrichmentProgress, getStudyLibraries } from "./actions"
+import { getFavoriteWordIds, getStudyBatch, getStudyLibraryOptions } from "./actions"
 import { requirePageUser } from "@/lib/supabase/user"
 import StudyClient from "./study-client"
 
@@ -10,11 +10,10 @@ export default async function StudyPage({
   await requirePageUser()
   const resolvedSearchParams = searchParams ? await searchParams : undefined
   const initialLibrarySlug = resolvedSearchParams?.library?.trim().toLowerCase() || "all"
-  const libraries = await getStudyLibraries()
-  const [initialBatch, initialFavoriteWordIds, enrichmentProgress] = await Promise.all([
+  const [initialBatch, initialFavoriteWordIds, libraries] = await Promise.all([
     getStudyBatch({ librarySlug: initialLibrarySlug }),
     getFavoriteWordIds(),
-    getStudyEnrichmentProgress(libraries),
+    getStudyLibraryOptions(),
   ])
 
   return (
@@ -22,7 +21,7 @@ export default async function StudyPage({
       <StudyClient
         initialBatch={initialBatch}
         initialFavoriteWordIds={initialFavoriteWordIds}
-        enrichmentProgress={enrichmentProgress}
+        enrichmentProgress={[]}
         libraries={libraries}
         initialLibrarySlug={initialLibrarySlug}
       />

@@ -1966,6 +1966,36 @@ function isBaseGenerationMethod(method?: string | null) {
   return typeof method === 'string' && method.includes('base')
 }
 
+function createStudyLibraryPlaceholder(
+  library: Pick<LibraryRow, 'id' | 'slug' | 'name' | 'description' | 'source_type'>
+): StudyLibrary {
+  return {
+    id: library.id,
+    slug: library.slug,
+    name: library.name,
+    description: library.description ?? null,
+    sourceType: library.source_type === 'custom' ? 'custom' : 'official',
+    wordCount: 0,
+    activeCount: 0,
+    dueCount: 0,
+    remainingCount: 0,
+    planStatus: 'not_started',
+    dailyNewLimit: null,
+  }
+}
+
+function getLegacyStudyLibraryOptions(): StudyLibrary[] {
+  return LEGACY_LIBRARY_OPTIONS.filter((option) => option.slug !== 'all').map((option) =>
+    createStudyLibraryPlaceholder({
+      id: option.slug,
+      slug: option.slug,
+      name: option.name,
+      description: null,
+      source_type: 'official',
+    })
+  )
+}
+
 async function getWordIdsByOfficialTag(supabase: SupabaseClient, tag: string) {
   const ids: string[] = []
   let from = 0
@@ -2077,19 +2107,7 @@ export async function getStudyLibraries(): Promise<StudyLibrary[]> {
       console.error('Failed to load study libraries:', error)
     }
 
-    return LEGACY_LIBRARY_OPTIONS.filter((option) => option.slug !== 'all').map((option) => ({
-      id: option.slug,
-      slug: option.slug,
-      name: option.name,
-      description: null,
-      sourceType: 'official',
-      wordCount: 0,
-      activeCount: 0,
-      dueCount: 0,
-      remainingCount: 0,
-      planStatus: 'not_started',
-      dailyNewLimit: null,
-    }))
+    return getLegacyStudyLibraryOptions()
   }
 
   const libraries = (data as LibraryRow[]).filter(
@@ -2097,6 +2115,32 @@ export async function getStudyLibraries(): Promise<StudyLibrary[]> {
   )
 
   return Promise.all(libraries.map((library) => buildLibrarySummary(supabase, user.id, library)))
+}
+
+export async function getStudyLibraryOptions(): Promise<StudyLibrary[]> {
+  const { supabase } = await requireActionSession()
+  const { data, error } = await supabase
+    .from('libraries')
+    .select('id, slug, name, description, source_type')
+    .order('name', { ascending: true })
+
+  if (error || !data) {
+    if (error && !isMissingLibrariesTableError(error)) {
+      console.error('Failed to load study library options:', error)
+    }
+
+    return getLegacyStudyLibraryOptions()
+  }
+
+  const libraries = (data as LibraryRow[]).filter(
+    (row) => typeof row.id === 'string' && typeof row.slug === 'string' && typeof row.name === 'string'
+  )
+
+  if (libraries.length === 0) {
+    return getLegacyStudyLibraryOptions()
+  }
+
+  return libraries.map((library) => createStudyLibraryPlaceholder(library))
 }
 
 export async function getStudyEnrichmentProgress(
@@ -2172,6 +2216,19 @@ export async function getStudyEnrichmentProgress(
   }
 
   return progressItems
+}
+
+export async function getStudySidebarData(): Promise<{
+  libraries: StudyLibrary[]
+  enrichmentProgress: StudyEnrichmentProgress[]
+}> {
+  const libraries = await getStudyLibraries()
+  const enrichmentProgress = await getStudyEnrichmentProgress(libraries)
+
+  return {
+    libraries,
+    enrichmentProgress,
+  }
 }
 
 export async function generateSentenceHelp(

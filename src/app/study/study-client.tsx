@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useEffect, useRef, useState } from "react"
+import { startTransition, useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import {
   AlertTriangle,
@@ -28,6 +28,7 @@ import {
 import {
   generateSentenceHelp,
   getStudyBatch,
+  getStudySidebarData,
   rewriteSentence,
   submitSentence,
   toggleFavoriteWord,
@@ -45,6 +46,7 @@ type StreamPhase = "idle" | "connecting" | "feedback" | "structuring"
 type SubmissionResult = StudySubmissionResult
 type SentenceHelpState = "idle" | "loading" | "ready"
 type SubmissionMode = "scheduled" | "practice"
+type StudySidebarState = "loading" | "ready" | "error"
 
 interface SpeechConfig {
   ttsRate: number
@@ -453,6 +455,12 @@ export default function StudyClient({
   const [showSentenceHelp, setShowSentenceHelp] = useState(false)
   const [librarySlug, setLibrarySlug] = useState<string>(initialLibrarySlug)
   const [studyView, setStudyView] = useState<StudyView>("all")
+  const [availableLibraries, setAvailableLibraries] = useState<StudyLibrary[]>(libraries)
+  const [availableEnrichmentProgress, setAvailableEnrichmentProgress] =
+    useState<StudyEnrichmentProgress[]>(enrichmentProgress)
+  const [studySidebarState, setStudySidebarState] = useState<StudySidebarState>(
+    enrichmentProgress.length > 0 ? "ready" : "loading"
+  )
   const [favoriteWordIds, setFavoriteWordIds] = useState<string[]>(initialFavoriteWordIds)
   const [favoritePending, setFavoritePending] = useState(false)
   const [loadingNext, setLoadingNext] = useState(false)
@@ -473,11 +481,12 @@ export default function StudyClient({
   const sentenceInputRef = useRef<HTMLTextAreaElement | null>(null)
   const sentenceHelpCacheRef = useRef<Record<string, SentenceHelpResult>>({})
   const selectedLibrary =
-    libraries.find((item) => item.slug === librarySlug) ?? null
+    availableLibraries.find((item) => item.slug === librarySlug) ?? null
   const selectedEnrichmentProgress =
-    enrichmentProgress.find((item) => item.slug === librarySlug) ??
-    enrichmentProgress.find((item) => item.slug === "all") ??
+    availableEnrichmentProgress.find((item) => item.slug === librarySlug) ??
+    availableEnrichmentProgress.find((item) => item.slug === "all") ??
     null
+  const hasLoadedSidebarSummary = studySidebarState === "ready"
 
   const updateSpeechConfig = (updater: (current: SpeechConfig) => SpeechConfig) => {
     setSpeechConfig((current) => {
@@ -501,6 +510,39 @@ export default function StudyClient({
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (studySidebarState !== "loading") {
+      return
+    }
+
+    let cancelled = false
+
+    void getStudySidebarData()
+      .then((sidebarData) => {
+        if (cancelled) {
+          return
+        }
+
+        startTransition(() => {
+          setAvailableLibraries(sidebarData.libraries)
+          setAvailableEnrichmentProgress(sidebarData.enrichmentProgress)
+          setStudySidebarState("ready")
+        })
+      })
+      .catch((error) => {
+        console.error(error)
+        if (cancelled) {
+          return
+        }
+
+        setStudySidebarState("error")
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [studySidebarState])
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.speechSynthesis) {
@@ -1230,7 +1272,7 @@ export default function StudyClient({
               className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
             >
               <option value="all">全部词库</option>
-              {libraries.map((item) => (
+              {availableLibraries.map((item) => (
                 <option key={item.id} value={item.slug}>
                   {item.name}
                 </option>
@@ -1418,7 +1460,7 @@ export default function StudyClient({
             className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
           >
             <option value="all">全部词库</option>
-            {libraries.map((item) => (
+            {availableLibraries.map((item) => (
               <option key={item.id} value={item.slug}>
                 {item.name}
               </option>
@@ -1458,11 +1500,11 @@ export default function StudyClient({
           {selectedLibrary ? (
             <>
               <span className="text-zinc-500">计划</span>
-              <span>{getPlanStatusLabel(selectedLibrary.planStatus)}</span>
+              <span>{hasLoadedSidebarSummary ? getPlanStatusLabel(selectedLibrary.planStatus) : "加载中"}</span>
               <span className="text-zinc-500">待复习</span>
-              <span>{selectedLibrary.dueCount}</span>
+              <span>{hasLoadedSidebarSummary ? selectedLibrary.dueCount : "..."}</span>
               <span className="text-zinc-500">未学</span>
-              <span>{selectedLibrary.remainingCount}</span>
+              <span>{hasLoadedSidebarSummary ? selectedLibrary.remainingCount : "..."}</span>
             </>
           ) : (
             <>
@@ -1505,6 +1547,16 @@ export default function StudyClient({
           <div className="mt-3 text-xs leading-6 text-zinc-500">
             基础覆盖表示已有核心义、场景和搭配。深度精修表示已有更完整的语义说明、辨析或高质量例句。
           </div>
+        </div>
+      ) : studySidebarState === "loading" ? (
+        <div className="glass-panel rounded-2xl px-4 py-4">
+          <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">词库完善进度</div>
+          <div className="mt-2 text-sm text-zinc-300">正在后台加载词库摘要和完善进度，单词学习可以先开始。</div>
+        </div>
+      ) : studySidebarState === "error" ? (
+        <div className="glass-panel rounded-2xl px-4 py-4">
+          <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">词库完善进度</div>
+          <div className="mt-2 text-sm text-amber-200">词库统计暂时加载失败，但当前学习批次不受影响。</div>
         </div>
       ) : null}
 
