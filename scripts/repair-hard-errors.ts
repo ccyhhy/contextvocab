@@ -22,20 +22,20 @@ interface ContrastItem {
   note?: string
 }
 
+interface ProfileWordLink {
+  word: string
+}
+
 interface ProfileContrastRow {
   word_id: string
   contrast_words: ContrastItem[] | null
-  words: {
-    word: string
-  }
+  words: ProfileWordLink | ProfileWordLink[]
 }
 
 interface ProfileMethodRow {
   word_id: string
   generation_method: string | null
-  words: {
-    word: string
-  }
+  words: ProfileWordLink | ProfileWordLink[]
 }
 
 interface HeadwordRepair {
@@ -49,6 +49,14 @@ interface SelfContrastRepair {
   word: string
   removed: string[]
   nextContrastWords: ContrastItem[]
+}
+
+function getLinkedWord(words: ProfileWordLink | ProfileWordLink[]) {
+  if (Array.isArray(words)) {
+    return words[0]?.word ?? ''
+  }
+
+  return words.word
 }
 
 const PAGE_SIZE = 1000
@@ -143,7 +151,7 @@ async function main() {
     })),
     legacyGenerationMethods: legacyGenerationMethods.map((row) => ({
       wordId: row.word_id,
-      word: row.words.word,
+      word: getLinkedWord(row.words),
       generationMethod: row.generation_method,
     })),
   }
@@ -276,7 +284,8 @@ function buildSelfContrastRepairs(rows: ProfileContrastRow[]) {
   const repairs: SelfContrastRepair[] = []
 
   for (const row of rows) {
-    const target = row.words.word.toLowerCase()
+    const word = getLinkedWord(row.words)
+    const target = word.toLowerCase()
     const contrastWords = Array.isArray(row.contrast_words) ? row.contrast_words : []
     const nextContrastWords = contrastWords.filter((item) => normalizeWord(item.word ?? '').toLowerCase() !== target)
     if (nextContrastWords.length === contrastWords.length) {
@@ -285,7 +294,7 @@ function buildSelfContrastRepairs(rows: ProfileContrastRow[]) {
 
     repairs.push({
       wordId: row.word_id,
-      word: row.words.word,
+      word,
       removed: contrastWords
         .filter((item) => normalizeWord(item.word ?? '').toLowerCase() === target)
         .map((item) => normalizeWord(item.word ?? ''))

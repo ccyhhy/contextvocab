@@ -256,6 +256,8 @@ interface UserWordRecord {
   words?: WordRow | WordRow[] | null
 }
 
+type FailureCounterRecord = Pick<UserWordRecord, 'consecutive_failures' | 'lapse_count'>
+
 interface PastSentenceRow {
   original_text: string | null
 }
@@ -867,8 +869,9 @@ function normalizeStudyWordProfile(value: unknown): StudyWordProfile | null {
   }
 }
 
-function normalizeStudyWordExamples(rows: WordProfileExampleRow[]) {
+function normalizeStudyWordExamples(rows: unknown[]) {
   return rows
+    .filter((row): row is WordProfileExampleRow => typeof row === 'object' && row !== null)
     .filter((row) => typeof row.sentence === 'string' && row.sentence.trim().length > 0)
     .sort((left, right) => {
       if (Boolean(left.is_primary) !== Boolean(right.is_primary)) {
@@ -1117,7 +1120,7 @@ function buildWordFeedbackForStorage(
 }
 
 function getNextFailureCounters(
-  current: UserWordRecord,
+  current: FailureCounterRecord,
   reviewBucket: ReviewBucket
 ) {
   const currentFailures = current.consecutive_failures ?? 0

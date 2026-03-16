@@ -281,7 +281,7 @@ async function buildLibrarySummary(
 
   if (libraryWordIds.length === 0) {
     const planRow = (plan as UserLibraryPlanRow | null) ?? null
-    const summary = {
+    const summary: StudyLibrary = {
       id: library.id,
       slug: library.slug,
       name: library.name,
@@ -309,7 +309,7 @@ async function buildLibrarySummary(
   const activeCount = countMatchingWordIds(libraryWordIds, startedWordIds)
   const dueCount = countMatchingWordIds(libraryWordIds, dueWordIds)
 
-  const summary = {
+  const summary: StudyLibrary = {
     id: library.id,
     slug: library.slug,
     name: library.name,

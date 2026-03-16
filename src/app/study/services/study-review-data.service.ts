@@ -29,6 +29,12 @@ interface DueQueryChain {
   or: (filters: string) => DueQueryChain
   in: (column: string, values: string[]) => DueQueryChain
   not: (column: string, operator: string, value: string) => DueQueryChain
+  order: (
+    column: string,
+    options?: { ascending?: boolean; nullsFirst?: boolean }
+  ) => DueQueryChain
+  limit: (value: number) => Promise<{ data: unknown[] | null }>
+  count?: number | null
 }
 
 function applyDueFilters(
@@ -118,7 +124,7 @@ async function loadDueRowsByCategory({
       .from('user_words')
       .select('*, words!inner(*)')
       .eq('user_id', userId)
-      .lte('next_review_date', today),
+      .lte('next_review_date', today) as unknown as DueQueryChain,
     {
       tag,
       skippedWordIds,
@@ -210,7 +216,7 @@ export async function loadDueWordCount({
       .from('user_words')
       .select('id, words!inner(id)', { count: 'exact', head: true })
       .eq('user_id', userId)
-      .lte('next_review_date', today),
+      .lte('next_review_date', today) as unknown as DueQueryChain,
     {
       tag,
       skippedWordIds,
