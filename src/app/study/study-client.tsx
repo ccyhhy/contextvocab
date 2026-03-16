@@ -204,7 +204,10 @@ export default function StudyClient({
         studyView={studyView}
         onLibraryChange={handleLibraryChange}
         onStudyViewChange={handleStudyModeChange}
-        onRefresh={() => reloadStudyBatch()}
+        onRefresh={async () => {
+          resetSessionScope()
+          await reloadStudyBatch(librarySlug, studyView, [])
+        }}
       />
     )
   }
@@ -288,7 +291,7 @@ export default function StudyClient({
           isSubmitting={status === "submitting"}
           isPracticeMode={submissionMode === "practice"}
           onSentenceChange={setSentence}
-          onSubmit={() => void submitCurrentSentence()}
+          onSubmit={() => void submitCurrentSentence(submissionMode)}
           onToggleHelp={() => setShowSentenceHelp((current) => !current)}
           onSkip={() => void handleNext(librarySlug, true)}
         />

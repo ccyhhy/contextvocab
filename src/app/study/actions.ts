@@ -6,6 +6,12 @@ import {
   buildEvaluationUserPrompt,
   extractEvaluationJson,
 } from '@/lib/evaluation-format'
+import {
+  buildTextGenerationRequest,
+  extractTextFromOpenAiResponse,
+  getOpenAiApiUrl,
+  normalizeOpenAiApiType,
+} from '@/lib/openai-api'
 import { type ReviewBucket, type SRSData } from '@/lib/srs'
 import { type StudyPriorityReason } from '@/lib/study-scheduler'
 import { requireActionSession } from '@/lib/supabase/user'
@@ -288,6 +294,8 @@ const DEFAULT_STUDY_BATCH_SIZE = 5
 const SUPABASE_PAGE_SIZE = 1000
 const STUDY_LIBRARY_MEMBERSHIP_CACHE_TTL_MS = 60 * 60 * 1000
 const STUDY_PERFORMANCE_LOG_THRESHOLD_MS = 150
+const SENTENCE_HELP_MAX_OUTPUT_TOKENS = 360
+const EVALUATION_MAX_OUTPUT_TOKENS = 1200
 const LEGACY_LIBRARY_OPTIONS = [
   { slug: 'all', name: '全部词库', tag: 'All' },
   { slug: 'cet-4', name: 'CET-4', tag: 'CET-4' },
@@ -528,37 +536,13 @@ function parseSentenceHelpPayload(content: string): SentenceHelpPayload {
   throw lastError instanceof Error ? lastError : new Error('Unable to parse sentence help payload')
 }
 
-function extractChatMessageText(content: unknown) {
-  if (typeof content === 'string') {
-    return content.trim()
-  }
-
-  if (Array.isArray(content)) {
-    return content
-      .map((item) => {
-        if (typeof item === 'string') {
-          return item
-        }
-
-        if (typeof item === 'object' && item !== null) {
-          const part = item as Record<string, unknown>
-          if (typeof part.text === 'string') {
-            return part.text
-          }
-        }
-
-        return ''
-      })
-      .join('\n')
-      .trim()
-  }
-
-  return ''
-}
-
 function getModelProviderLabel(apiBase: string) {
   if (apiBase.includes('bigmodel.cn')) {
     return '智谱'
+  }
+
+  if (apiBase.includes('betterclau.de')) {
+    return 'BetterClaude'
   }
 
   if (apiBase.includes('openai.com')) {
@@ -572,9 +556,8 @@ function formatModelLabel(model: string, apiBase: string) {
   return `${getModelProviderLabel(apiBase)} / ${model}`
 }
 
-function getChatCompletionsUrl(apiBase: string) {
-  const trimmed = apiBase.trim().replace(/\/+$/, '')
-  return trimmed.endsWith('/chat/completions') ? trimmed : `${trimmed}/chat/completions`
+function getChatCompletionsUrl(apiBase: string, apiType = normalizeOpenAiApiType(undefined)) {
+  return getOpenAiApiUrl(apiBase, apiType)
 }
 
 function makeErrorResult(message: string): EvaluationResult {
@@ -1541,7 +1524,10 @@ export async function generateSentenceHelp(
     process.env.OPENAI_HINT_API_BASE ||
     process.env.OPENAI_API_BASE ||
     'https://api.openai.com/v1'
-  const model = process.env.OPENAI_HINT_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini'
+  const apiType = normalizeOpenAiApiType(
+    process.env.OPENAI_HINT_API_TYPE || process.env.OPENAI_API_TYPE
+  )
+  const model = process.env.OPENAI_HINT_MODEL || process.env.OPENAI_MODEL || 'gpt-5.2'
   const providerLabel = getModelProviderLabel(apiBase)
   const remoteModelLabel = formatModelLabel(model, apiBase)
   const dictionaryExampleItems = buildDictionaryExampleSentenceHelp(example)
@@ -1559,48 +1545,45 @@ export async function generateSentenceHelp(
   try {
     const { supabase, user } = await requireActionSession()
     const learningHistory = await getWordLearningHistory(supabase, user.id, wordId)
-    const response = await fetch(getChatCompletionsUrl(apiBase), {
+    const response = await fetch(getChatCompletionsUrl(apiBase, apiType), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model,
-        temperature: 0.4,
-        messages: [
-          {
-            role: 'system',
-            content: [
-              'You help a Chinese learner make a sentence with one target English word.',
-              'Return JSON only.',
-              'Generate 3 to 4 short, natural example sentences that use the exact target word unchanged.',
-              'The sentences must clearly show the meaning in context, not talk about the word itself.',
-              'Keep them beginner-friendly but useful enough to adapt.',
-              'Each item must include:',
-              '- sentence: an English sentence.',
-              '- cue: one concise coaching tip in Simplified Chinese explaining why this sentence works or how to adapt it.',
-              'Do not wrap the JSON in markdown code fences.',
-              'Do not add any explanation before or after the JSON.',
-              'Avoid fake dictionary-style lines and avoid repetitive sentence frames.',
-              'Schema: {"hints":[{"sentence":"...","cue":"..."}]}',
-            ].join('\n'),
-          },
-          {
-            role: 'user',
-            content: [
-              `Target word: ${word}`,
-              `Definition: ${definition || 'N/A'}`,
-              `Word list tag: ${tags || 'General'}`,
-              `Dictionary example: ${example || 'N/A'}`,
-              learningHistory.length > 0
-                ? `Past learner sentences:\n${learningHistory.map((item, index) => `${index + 1}. ${item}`).join('\n')}`
-                : 'Past learner sentences: none',
-              'Generate better sentence hints that are specific to the meaning.',
-            ].join('\n\n'),
-          },
-        ],
-      }),
+      body: JSON.stringify(
+        buildTextGenerationRequest({
+          apiType,
+          model,
+          temperature: 0.4,
+          jsonMode: true,
+          maxOutputTokens: SENTENCE_HELP_MAX_OUTPUT_TOKENS,
+          systemPrompt: [
+            'You help a Chinese learner make a sentence with one target English word.',
+            'Return JSON only.',
+            'Generate exactly 3 short, natural example sentences that use the exact target word unchanged.',
+            'The sentences must clearly show the meaning in context, not talk about the word itself.',
+            'Keep them beginner-friendly but useful enough to adapt.',
+            'Each item must include:',
+            '- sentence: an English sentence.',
+            '- cue: one concise coaching tip in Simplified Chinese explaining why this sentence works or how to adapt it.',
+            'Do not wrap the JSON in markdown code fences.',
+            'Do not add any explanation before or after the JSON.',
+            'Avoid fake dictionary-style lines and avoid repetitive sentence frames.',
+            'Schema: {"hints":[{"sentence":"...","cue":"..."}]}',
+          ].join('\n'),
+          userPrompt: [
+            `Target word: ${word}`,
+            `Definition: ${definition || 'N/A'}`,
+            `Word list tag: ${tags || 'General'}`,
+            `Dictionary example: ${example || 'N/A'}`,
+            learningHistory.length > 0
+              ? `Past learner sentences:\n${learningHistory.map((item, index) => `${index + 1}. ${item}`).join('\n')}`
+              : 'Past learner sentences: none',
+            'Generate better sentence hints that are specific to the meaning.',
+          ].join('\n\n'),
+        })
+      ),
     })
 
     if (!response.ok) {
@@ -1614,7 +1597,7 @@ export async function generateSentenceHelp(
     }
 
     const data = await response.json()
-    const content = extractChatMessageText(data.choices?.[0]?.message?.content)
+    const content = extractTextFromOpenAiResponse(data)
     if (!content) {
       return buildSentenceHelpFallbackResult({
         reason: 'empty_content',
@@ -1683,7 +1666,8 @@ export async function evaluateSentence(
 ): Promise<EvaluationResult> {
   const apiKey = process.env.OPENAI_API_KEY
   const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini'
+  const apiType = normalizeOpenAiApiType(process.env.OPENAI_API_TYPE)
+  const model = process.env.OPENAI_MODEL || 'gpt-5.2'
 
   if (!apiKey) {
     console.warn('OPENAI_API_KEY is missing. Using mock evaluation.')
@@ -1707,20 +1691,22 @@ export async function evaluateSentence(
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000)
 
-      const response = await fetch(getChatCompletionsUrl(apiBase), {
+      const response = await fetch(getChatCompletionsUrl(apiBase, apiType), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({
+        body: JSON.stringify(
+        buildTextGenerationRequest({
+          apiType,
           model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: buildEvaluationUserPrompt(sentence) },
-          ],
+          systemPrompt,
+          userPrompt: buildEvaluationUserPrompt(sentence),
           temperature: 0.3,
-        }),
+          maxOutputTokens: EVALUATION_MAX_OUTPUT_TOKENS,
+        })
+      ),
         signal: controller.signal,
       })
 
@@ -1736,7 +1722,7 @@ export async function evaluateSentence(
       }
 
       const data = await response.json()
-      const content = data.choices?.[0]?.message?.content
+      const content = extractTextFromOpenAiResponse(data)
       if (!content) {
         throw new Error('AI returned empty content')
       }

@@ -27,15 +27,8 @@ Choose one provider.
 ```env
 OPENAI_API_KEY=...
 OPENAI_API_BASE=https://api.openai.com/v1
-OPENAI_MODEL=gpt-4o-mini
-```
-
-### DeepSeek
-
-```env
-OPENAI_API_KEY=...
-OPENAI_API_BASE=https://api.deepseek.com/v1
-OPENAI_MODEL=deepseek-chat
+OPENAI_API_TYPE=chat_completions
+OPENAI_MODEL=gpt-5.2
 ```
 
 ## 3. Import the Repository into Vercel
@@ -58,6 +51,7 @@ Add all of these:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `OPENAI_API_KEY`
 - `OPENAI_API_BASE`
+- `OPENAI_API_TYPE`
 - `OPENAI_MODEL`
 
 ## 5. Deploy
@@ -127,6 +121,7 @@ Check:
 
 - `OPENAI_API_KEY`
 - `OPENAI_API_BASE`
+- `OPENAI_API_TYPE`
 - `OPENAI_MODEL`
 
 ### No words available

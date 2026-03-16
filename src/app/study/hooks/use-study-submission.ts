@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { startTransition, useEffect, useRef, useState } from "react"
 import {
   EMPTY_VISIBLE_FEEDBACK,
   extractVisibleFeedback,
@@ -108,8 +108,69 @@ export function useStudySubmission({
   const [streamPhase, setStreamPhase] = useState<StreamPhase>("idle")
   const [streamProgressChars, setStreamProgressChars] = useState(0)
   const [streamSections, setStreamSections] = useState<VisibleFeedbackSections>(EMPTY_VISIBLE_FEEDBACK)
+  const pendingStreamTextRef = useRef<string | null>(null)
+  const previewFrameRef = useRef<number | null>(null)
+  const previewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const cancelScheduledPreviewUpdate = () => {
+    if (previewFrameRef.current !== null && typeof window !== "undefined") {
+      window.cancelAnimationFrame(previewFrameRef.current)
+      previewFrameRef.current = null
+    }
+
+    if (previewTimeoutRef.current !== null) {
+      clearTimeout(previewTimeoutRef.current)
+      previewTimeoutRef.current = null
+    }
+  }
+
+  const flushScheduledPreviewUpdate = () => {
+    const fullText = pendingStreamTextRef.current
+    pendingStreamTextRef.current = null
+
+    if (!fullText) {
+      return
+    }
+
+    const visibleFeedback = extractVisibleFeedback(fullText)
+
+    startTransition(() => {
+      setStreamProgressChars(fullText.length)
+      setStreamSections(parseVisibleFeedbackSections(visibleFeedback.feedback))
+      setStreamPhase(visibleFeedback.hasJsonStart ? "structuring" : "feedback")
+    })
+  }
+
+  const schedulePreviewUpdate = (fullText: string) => {
+    pendingStreamTextRef.current = fullText
+
+    if (previewFrameRef.current !== null || previewTimeoutRef.current !== null) {
+      return
+    }
+
+    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+      previewFrameRef.current = window.requestAnimationFrame(() => {
+        previewFrameRef.current = null
+        flushScheduledPreviewUpdate()
+      })
+      return
+    }
+
+    previewTimeoutRef.current = setTimeout(() => {
+      previewTimeoutRef.current = null
+      flushScheduledPreviewUpdate()
+    }, 16)
+  }
+
+  useEffect(() => {
+    return () => {
+      cancelScheduledPreviewUpdate()
+    }
+  }, [])
 
   const resetSubmissionState = () => {
+    cancelScheduledPreviewUpdate()
+    pendingStreamTextRef.current = null
     setResult(null)
     setStatus("idle")
     setStreamPhase("idle")
@@ -117,7 +178,7 @@ export function useStudySubmission({
     setStreamSections(EMPTY_VISIBLE_FEEDBACK)
   }
 
-  const submitCurrentSentence = async (mode: SubmissionMode) => {
+  const submitCurrentSentence = async (mode: SubmissionMode = "scheduled") => {
     if (!sentence.trim() || !currentWord) {
       alert("请先写一个句子。")
       return
@@ -142,13 +203,14 @@ export function useStudySubmission({
             wordId: currentWord.word_id,
           },
           (fullText) => {
-            setStreamProgressChars(fullText.length)
-            const visibleFeedback = extractVisibleFeedback(fullText)
-            setStreamSections(parseVisibleFeedbackSections(visibleFeedback.feedback))
-            setStreamPhase(visibleFeedback.hasJsonStart ? "structuring" : "feedback")
+            schedulePreviewUpdate(fullText)
           }
         )
+
+        cancelScheduledPreviewUpdate()
+        flushScheduledPreviewUpdate()
       } catch (error) {
+        cancelScheduledPreviewUpdate()
         console.error(error)
       }
 
@@ -189,6 +251,8 @@ export function useStudySubmission({
       alert("AI 评估失败。")
       setStatus("idle")
     } finally {
+      cancelScheduledPreviewUpdate()
+      pendingStreamTextRef.current = null
       setStreamPhase("idle")
       setStreamProgressChars(0)
     }

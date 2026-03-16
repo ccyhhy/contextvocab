@@ -2,6 +2,14 @@ import { createHash } from 'crypto'
 import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import path from 'path'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import {
+  buildTextGenerationRequest,
+  extractTextFromOpenAiResponse,
+  extractTextFromResponseEvent,
+  getOpenAiApiUrl,
+  normalizeOpenAiApiType,
+  type OpenAiApiType,
+} from '../src/lib/openai-api'
 import { createServiceRoleClient, normalizeLexicalWord, normalizeWord } from './official-word-utils'
 
 const DEFAULT_TIMEOUT_MS = 12000
@@ -10,7 +18,6 @@ const AI_RETRY_COUNT = 2
 const ENRICHED_DATA_VERSION = 2
 const DEFAULT_OUTPUT_FILE = path.join(process.cwd(), 'data', 'enriched', 'word-profiles.generated.json')
 const AI_MAX_EXAMPLES = 2
-const CHAT_COMPLETIONS_SUFFIX = '/chat/completions'
 const EVIDENCE_CACHE_VERSION = 1
 const DEFAULT_EVIDENCE_CACHE_DIR = path.join(process.cwd(), 'data', 'enriched', 'cache')
 const SOURCE_WORD_PAGE_SIZE = 1000
@@ -36,9 +43,12 @@ interface AiConfig {
   apiBase: string
   model: string
   streamMode: AiStreamMode
+  apiType: OpenAiApiType
 }
 
 interface ChatCompletionsResponse {
+  output_text?: unknown
+  output?: unknown
   choices?: Array<{
     message?: {
       content?: unknown
@@ -729,11 +739,11 @@ export function writeEnrichedDataset(filePath: string, dataset: EnrichedWordData
   return resolvedPath
 }
 
-function buildChatCompletionsUrl(apiBase: string) {
-  const trimmed = apiBase.trim().replace(/\/+$/, '')
-  return trimmed.endsWith(CHAT_COMPLETIONS_SUFFIX)
-    ? trimmed
-    : `${trimmed}${CHAT_COMPLETIONS_SUFFIX}`
+function buildChatCompletionsUrl(
+  apiBase: string,
+  apiType: OpenAiApiType = normalizeOpenAiApiType(undefined)
+) {
+  return getOpenAiApiUrl(apiBase, apiType)
 }
 
 function formatSceneTagsForChinese(sceneTags: string[]) {
@@ -842,59 +852,53 @@ async function tryGenerateAiBaseProfile(
 
   for (let attempt = 0; attempt < AI_RETRY_COUNT; attempt += 1) {
     const response = await fetchAiChatCompletionWithTimeoutDetailed(
-      buildChatCompletionsUrl(aiConfig.apiBase),
+      buildChatCompletionsUrl(aiConfig.apiBase, aiConfig.apiType),
       aiConfig,
-      {
-          model: aiConfig.model,
-          temperature: 0.1,
-          messages: [
-            {
-              role: 'system',
-              content: [
-                'You build the fast base layer of a learner-friendly lexical profile for a Chinese CET-4/CET-6 English learner.',
-                'Use the supplied evidence as the factual boundary. Rephrase and rank it, but do not invent unsupported senses.',
-                'Return JSON only.',
-                'Write all explanatory text in Simplified Chinese.',
-                `sceneTags must come from this closed set: ${AI_SCENE_TAGS.join(', ')}.`,
-                'Keep only the most learnable sense.',
-                'Prefer the most specific sceneTags supported by the evidence. Use general only as a last resort when no concrete scene signal exists.',
-                'usageRegister: return formal or informal only when the evidence clearly supports it. Otherwise return null.',
-                'Only fill these fields: coreMeaning, usageRegister, sceneTags, collocations, confidenceScore.',
-                'collocations: keep 3 to 6 high-value items only. Remove fragments, stopwords, and awkward leftovers.',
-                'Schema:',
-                '{"coreMeaning":"...", "usageRegister":"formal|informal|null", "sceneTags":["..."], "collocations":["..."], "confidenceScore":0.0}',
-              ].join('\n'),
-            },
-            {
-              role: 'user',
-              content: JSON.stringify(
-                {
-                  word: wordRow.word,
-                  seedDefinition: wordRow.definition,
-                  seedExample: wordRow.example,
-                  tags: wordRow.tags,
-                  dictionaryEvidence: dictionaryEvidence
-                    ? {
-                        phonetic: dictionaryEvidence.phonetic,
-                        meanings: dictionaryEvidence.meanings,
-                        examples: dictionaryEvidence.examples.map((item) => item.sentence),
-                      }
-                    : null,
-                  datamuseEvidence,
-                  derivedCollocations: collocations,
-                  realExamples: examples.map((item) => ({
-                    sentence: item.sentence,
-                    scene: item.scene,
-                    qualityScore: item.qualityScore,
-                    sourceName: item.sourceName,
-                  })),
-                },
-                null,
-                2
-              ),
-            },
-          ],
-      },
+      buildTextGenerationRequest({
+        apiType: aiConfig.apiType,
+        model: aiConfig.model,
+        temperature: 0.1,
+        jsonMode: true,
+        systemPrompt: [
+          'You build the fast base layer of a learner-friendly lexical profile for a Chinese CET-4/CET-6 English learner.',
+          'Use the supplied evidence as the factual boundary. Rephrase and rank it, but do not invent unsupported senses.',
+          'Return JSON only.',
+          'Write all explanatory text in Simplified Chinese.',
+          `sceneTags must come from this closed set: ${AI_SCENE_TAGS.join(', ')}.`,
+          'Keep only the most learnable sense.',
+          'Prefer the most specific sceneTags supported by the evidence. Use general only as a last resort when no concrete scene signal exists.',
+          'usageRegister: return formal or informal only when the evidence clearly supports it. Otherwise return null.',
+          'Only fill these fields: coreMeaning, usageRegister, sceneTags, collocations, confidenceScore.',
+          'collocations: keep 3 to 6 high-value items only. Remove fragments, stopwords, and awkward leftovers.',
+          'Schema:',
+          '{"coreMeaning":"...", "usageRegister":"formal|informal|null", "sceneTags":["..."], "collocations":["..."], "confidenceScore":0.0}',
+        ].join('\n'),
+        userPrompt: JSON.stringify(
+          {
+            word: wordRow.word,
+            seedDefinition: wordRow.definition,
+            seedExample: wordRow.example,
+            tags: wordRow.tags,
+            dictionaryEvidence: dictionaryEvidence
+              ? {
+                  phonetic: dictionaryEvidence.phonetic,
+                  meanings: dictionaryEvidence.meanings,
+                  examples: dictionaryEvidence.examples.map((item) => item.sentence),
+                }
+              : null,
+            datamuseEvidence,
+            derivedCollocations: collocations,
+            realExamples: examples.map((item) => ({
+              sentence: item.sentence,
+              scene: item.scene,
+              qualityScore: item.qualityScore,
+              sourceName: item.sourceName,
+            })),
+          },
+          null,
+          2
+        ),
+      }),
       AI_TIMEOUT_MS
     )
 
@@ -902,7 +906,7 @@ async function tryGenerateAiBaseProfile(
       continue
     }
 
-    const content = extractChatContent(response.data.choices?.[0]?.message?.content)
+    const content = extractTextFromOpenAiResponse(response.data)
     if (!content) {
       continue
     }
@@ -998,54 +1002,48 @@ async function tryGenerateAiRefineProfile(
 
   for (let attempt = 0; attempt < AI_RETRY_COUNT; attempt += 1) {
     const response = await fetchAiChatCompletionWithTimeoutDetailed(
-      buildChatCompletionsUrl(aiConfig.apiBase),
+      buildChatCompletionsUrl(aiConfig.apiBase, aiConfig.apiType),
       aiConfig,
-      {
-          model: aiConfig.model,
-          temperature: 0.2,
-          messages: [
-            {
-              role: 'system',
-              content: systemInstructions.join('\n'),
+      buildTextGenerationRequest({
+        apiType: aiConfig.apiType,
+        model: aiConfig.model,
+        temperature: 0.2,
+        jsonMode: true,
+        systemPrompt: systemInstructions.join('\n'),
+        userPrompt: JSON.stringify(
+          {
+            refineMode,
+            word: wordRow.word,
+            seedDefinition: wordRow.definition,
+            seedExample: wordRow.example,
+            tags: wordRow.tags,
+            currentProfile: {
+              coreMeaning: fallbackProfile.coreMeaning,
+              usageRegister: fallbackProfile.usageRegister,
+              sceneTags: fallbackProfile.sceneTags,
+              collocations: fallbackProfile.collocations,
+              contrastWords: fallbackProfile.contrastWords,
             },
-            {
-              role: 'user',
-              content: JSON.stringify(
-                {
-                  refineMode,
-                  word: wordRow.word,
-                  seedDefinition: wordRow.definition,
-                  seedExample: wordRow.example,
-                  tags: wordRow.tags,
-                  currentProfile: {
-                    coreMeaning: fallbackProfile.coreMeaning,
-                    usageRegister: fallbackProfile.usageRegister,
-                    sceneTags: fallbackProfile.sceneTags,
-                    collocations: fallbackProfile.collocations,
-                    contrastWords: fallbackProfile.contrastWords,
-                  },
-                  dictionaryEvidence: dictionaryEvidence
-                    ? {
-                        phonetic: dictionaryEvidence.phonetic,
-                        meanings: dictionaryEvidence.meanings,
-                        examples: dictionaryEvidence.examples.map((item) => item.sentence),
-                      }
-                    : null,
-                  datamuseEvidence,
-                  derivedCollocations: collocations,
-                  realExamples: examples.map((item) => ({
-                    sentence: item.sentence,
-                    scene: item.scene,
-                    qualityScore: item.qualityScore,
-                    sourceName: item.sourceName,
-                  })),
-                },
-                null,
-                2
-              ),
-            },
-          ],
-      },
+            dictionaryEvidence: dictionaryEvidence
+              ? {
+                  phonetic: dictionaryEvidence.phonetic,
+                  meanings: dictionaryEvidence.meanings,
+                  examples: dictionaryEvidence.examples.map((item) => item.sentence),
+                }
+              : null,
+            datamuseEvidence,
+            derivedCollocations: collocations,
+            realExamples: examples.map((item) => ({
+              sentence: item.sentence,
+              scene: item.scene,
+              qualityScore: item.qualityScore,
+              sourceName: item.sourceName,
+            })),
+          },
+          null,
+          2
+        ),
+      }),
       AI_TIMEOUT_MS
     )
 
@@ -1057,7 +1055,7 @@ async function tryGenerateAiRefineProfile(
       continue
     }
 
-    const content = extractChatContent(response.data.choices?.[0]?.message?.content)
+    const content = extractTextFromOpenAiResponse(response.data)
     if (!content) {
       logAiAttemptFailure('refine', wordRow.word, aiConfig.model, attempt + 1, 'empty_response')
       continue
@@ -1119,6 +1117,7 @@ async function tryGenerateAiExamples(args: {
   apiBase: string
   model: string
   streamMode: AiStreamMode
+  apiType: OpenAiApiType
   word: string
   coreMeaning: string
   sceneTags: string[]
@@ -1126,47 +1125,42 @@ async function tryGenerateAiExamples(args: {
   existingExamples: WordExampleInput[]
 }) {
   const response = await fetchAiChatCompletionWithTimeoutDetailed(
-    buildChatCompletionsUrl(args.apiBase),
+    buildChatCompletionsUrl(args.apiBase, args.apiType),
     {
       apiKey: args.apiKey,
       apiBase: args.apiBase,
       model: args.model,
       streamMode: args.streamMode,
+      apiType: args.apiType,
     },
-    {
-        model: args.model,
-        temperature: 0.2,
-        messages: [
-          {
-            role: 'system',
-            content: [
-              'You generate learner-friendly English example sentences for one target word.',
-              'Return JSON only.',
-              'Write translations in Simplified Chinese.',
-              'Generate exactly 2 short, natural, everyday sentences.',
-              'Do not reuse, translate, or lightly rewrite any sentence from bannedExamples.',
-              'Avoid literary, archaic, war, gambling, golf, or technical edge-case contexts.',
-              'Prefer work, safety, health, school, or environment scenes when they fit.',
-              'Each sentence must use the exact target word, or its normal plural form for nouns. Do not swap it with a derived form.',
-              'Schema: {"examples":[{"sentence":"...","translation":"...","scene":"..."}]}',
-            ].join('\n'),
-          },
-          {
-            role: 'user',
-            content: JSON.stringify(
-              {
-                word: args.word,
-                coreMeaning: args.coreMeaning,
-                preferredScenes: args.sceneTags,
-                helpfulCollocations: args.collocations,
-                bannedExamples: args.existingExamples.map((item) => item.sentence),
-              },
-              null,
-              2
-            ),
-          },
-        ],
-    },
+    buildTextGenerationRequest({
+      apiType: args.apiType,
+      model: args.model,
+      temperature: 0.2,
+      jsonMode: true,
+      systemPrompt: [
+        'You generate learner-friendly English example sentences for one target word.',
+        'Return JSON only.',
+        'Write translations in Simplified Chinese.',
+        'Generate exactly 2 short, natural, everyday sentences.',
+        'Do not reuse, translate, or lightly rewrite any sentence from bannedExamples.',
+        'Avoid literary, archaic, war, gambling, golf, or technical edge-case contexts.',
+        'Prefer work, safety, health, school, or environment scenes when they fit.',
+        'Each sentence must use the exact target word, or its normal plural form for nouns. Do not swap it with a derived form.',
+        'Schema: {"examples":[{"sentence":"...","translation":"...","scene":"..."}]}',
+      ].join('\n'),
+      userPrompt: JSON.stringify(
+        {
+          word: args.word,
+          coreMeaning: args.coreMeaning,
+          preferredScenes: args.sceneTags,
+          helpfulCollocations: args.collocations,
+          bannedExamples: args.existingExamples.map((item) => item.sentence),
+        },
+        null,
+        2
+      ),
+    }),
     AI_TIMEOUT_MS
   )
 
@@ -1182,7 +1176,7 @@ async function tryGenerateAiExamples(args: {
     }
   }
 
-  const content = extractChatContent(response.data.choices?.[0]?.message?.content)
+  const content = extractTextFromOpenAiResponse(response.data)
   if (!content) {
     logAiAttemptFailure('example', args.word, args.model, 1, 'empty_response', {
       totalAttempts: 1,
@@ -1916,11 +1910,18 @@ function mapFetchFailureToAiReason(result: JsonFetchFailure): AiFailureReason {
 
 async function fetchAiChatCompletionWithTimeoutDetailed(
   url: string,
-  aiConfig: Pick<AiConfig, 'apiKey' | 'apiBase' | 'model' | 'streamMode'>,
+  aiConfig: Pick<AiConfig, 'apiKey' | 'apiBase' | 'model' | 'streamMode' | 'apiType'>,
   body: Record<string, unknown>,
   timeoutMs = AI_TIMEOUT_MS
 ): Promise<JsonFetchResult<ChatCompletionsResponse>> {
-  const initialResponse = await postAiChatCompletion(url, aiConfig.apiKey, body, timeoutMs, aiConfig.streamMode === 'force')
+  const initialResponse = await postAiChatCompletion(
+    url,
+    aiConfig.apiKey,
+    aiConfig.apiType,
+    body,
+    timeoutMs,
+    aiConfig.streamMode === 'force'
+  )
 
   if (
     initialResponse.ok ||
@@ -1930,12 +1931,13 @@ async function fetchAiChatCompletionWithTimeoutDetailed(
     return initialResponse
   }
 
-  return postAiChatCompletion(url, aiConfig.apiKey, body, timeoutMs, true)
+  return postAiChatCompletion(url, aiConfig.apiKey, aiConfig.apiType, body, timeoutMs, true)
 }
 
 async function postAiChatCompletion(
   url: string,
   apiKey: string,
+  apiType: OpenAiApiType,
   body: Record<string, unknown>,
   timeoutMs: number,
   stream: boolean
@@ -1971,13 +1973,13 @@ async function postAiChatCompletion(
     const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
 
     if (stream || contentType.includes('text/event-stream')) {
-      const parsedStreamResponse = parseChatCompletionSse(text)
+      const parsedStreamResponse = parseProviderSse(text, apiType)
       if (!parsedStreamResponse) {
         return {
           ok: false,
           status: response.status,
           failReason: 'parse_error',
-          errorMessage: 'Unable to parse streamed chat completion response.',
+          errorMessage: 'Unable to parse streamed AI response.',
         }
       }
 
@@ -2022,16 +2024,25 @@ function shouldRetryAiRequestWithStreaming(result: JsonFetchFailure) {
   return result.status === 400 && /stream must be set to true/i.test(result.errorMessage ?? '')
 }
 
-function parseChatCompletionSse(text: string): ChatCompletionsResponse | null {
+function parseProviderSse(text: string, apiType: OpenAiApiType): ChatCompletionsResponse | null {
   const events = text.split(/\r?\n\r?\n/)
   const contentParts: string[] = []
   let latestFullContent: string | null = null
   let sawPayload = false
 
   for (const event of events) {
+    let eventName: string | null = null
     const payload = event
       .split(/\r?\n/)
-      .filter((line) => line.startsWith('data:'))
+      .map((line) => {
+        if (line.startsWith('event:')) {
+          eventName = line.slice('event:'.length).trim()
+          return null
+        }
+
+        return line
+      })
+      .filter((line): line is string => typeof line === 'string' && line.startsWith('data:'))
       .map((line) => line.slice('data:'.length).trim())
       .join('\n')
 
@@ -2040,25 +2051,52 @@ function parseChatCompletionSse(text: string): ChatCompletionsResponse | null {
     }
 
     try {
-      const parsed = JSON.parse(payload) as {
-        choices?: Array<{
-          delta?: {
-            content?: unknown
+      const parsed = JSON.parse(payload) as Record<string, unknown>
+
+      if (apiType === 'responses') {
+        const responseEventName = eventName ?? ''
+        const responseText = extractTextFromResponseEvent(eventName, parsed)
+        if (responseText) {
+          if (responseEventName.includes('output_text.delta')) {
+            contentParts.push(responseText)
+          } else {
+            latestFullContent = responseText
           }
-          message?: {
-            content?: unknown
-          }
-        }>
+          sawPayload = true
+        }
+        continue
       }
 
-      for (const choice of parsed.choices ?? []) {
-        const fullContent = joinChatContentFragments(choice.message?.content)
+      for (const choice of (parsed.choices as Array<{
+        delta?: { content?: unknown }
+        message?: { content?: unknown }
+      }> | undefined) ?? []) {
+        const fullContent = extractTextFromOpenAiResponse({
+          choices: [
+            {
+              message: {
+                content: choice.message?.content,
+              },
+            },
+          ],
+        })
         if (fullContent) {
           latestFullContent = fullContent
           sawPayload = true
         }
 
-        const deltaContent = joinChatContentFragments(choice.delta?.content)
+        const deltaContent =
+          typeof choice.delta?.content === 'string'
+            ? choice.delta.content
+            : extractTextFromOpenAiResponse({
+                choices: [
+                  {
+                    message: {
+                      content: choice.delta?.content,
+                    },
+                  },
+                ],
+              })
         if (deltaContent) {
           contentParts.push(deltaContent)
           sawPayload = true
@@ -2083,36 +2121,6 @@ function parseChatCompletionSse(text: string): ChatCompletionsResponse | null {
       },
     ],
   }
-}
-
-function joinChatContentFragments(content: unknown) {
-  if (typeof content === 'string') {
-    return content
-  }
-
-  if (Array.isArray(content)) {
-    return content
-      .map((item) => {
-        if (typeof item === 'string') {
-          return item
-        }
-
-        if (typeof item === 'object' && item !== null) {
-          const text = (item as Record<string, unknown>).text
-          return typeof text === 'string' ? text : ''
-        }
-
-        return ''
-      })
-      .join('')
-  }
-
-  if (typeof content === 'object' && content !== null) {
-    const text = (content as Record<string, unknown>).text
-    return typeof text === 'string' ? text : ''
-  }
-
-  return ''
 }
 
 function compactResponseError(value: string) {
@@ -2150,30 +2158,6 @@ function logAiAttemptFailure(
   console.warn(parts.join(' '))
 }
 
-function extractChatContent(content: unknown) {
-  if (typeof content === 'string') {
-    return content.trim()
-  }
-
-  if (Array.isArray(content)) {
-    return content
-      .map((item) => {
-        if (typeof item === 'string') {
-          return item
-        }
-
-        if (typeof item === 'object' && item !== null) {
-          return toOptionalString((item as Record<string, unknown>).text) ?? ''
-        }
-
-        return ''
-      })
-      .join('\n')
-      .trim()
-  }
-
-  return ''
-}
 
 function parseJsonObject(text: string) {
   const trimmed = text.trim()
@@ -2193,26 +2177,26 @@ function resolveAiConfig(task: AiTask): AiConfig | null {
   const candidates =
     task === 'base'
       ? [
-          ['OPENAI_ENRICH_BASE_API_KEY', 'OPENAI_ENRICH_BASE_API_BASE', 'OPENAI_ENRICH_BASE_MODEL', 'OPENAI_ENRICH_BASE_STREAM'],
-          ['OPENAI_HINT_API_KEY', 'OPENAI_HINT_API_BASE', 'OPENAI_HINT_MODEL', 'OPENAI_HINT_STREAM'],
-          ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL', 'OPENAI_ENRICH_STREAM'],
-          ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL', 'OPENAI_STREAM'],
+          ['OPENAI_ENRICH_BASE_API_KEY', 'OPENAI_ENRICH_BASE_API_BASE', 'OPENAI_ENRICH_BASE_MODEL', 'OPENAI_ENRICH_BASE_STREAM', 'OPENAI_ENRICH_BASE_API_TYPE'],
+          ['OPENAI_HINT_API_KEY', 'OPENAI_HINT_API_BASE', 'OPENAI_HINT_MODEL', 'OPENAI_HINT_STREAM', 'OPENAI_HINT_API_TYPE'],
+          ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL', 'OPENAI_ENRICH_STREAM', 'OPENAI_ENRICH_API_TYPE'],
+          ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL', 'OPENAI_STREAM', 'OPENAI_API_TYPE'],
         ]
       : task === 'example'
         ? [
-            ['OPENAI_ENRICH_EXAMPLE_API_KEY', 'OPENAI_ENRICH_EXAMPLE_API_BASE', 'OPENAI_ENRICH_EXAMPLE_MODEL', 'OPENAI_ENRICH_EXAMPLE_STREAM'],
-            ['OPENAI_ENRICH_BASE_API_KEY', 'OPENAI_ENRICH_BASE_API_BASE', 'OPENAI_ENRICH_BASE_MODEL', 'OPENAI_ENRICH_BASE_STREAM'],
-            ['OPENAI_HINT_API_KEY', 'OPENAI_HINT_API_BASE', 'OPENAI_HINT_MODEL', 'OPENAI_HINT_STREAM'],
-            ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL', 'OPENAI_ENRICH_STREAM'],
-            ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL', 'OPENAI_STREAM'],
+            ['OPENAI_ENRICH_EXAMPLE_API_KEY', 'OPENAI_ENRICH_EXAMPLE_API_BASE', 'OPENAI_ENRICH_EXAMPLE_MODEL', 'OPENAI_ENRICH_EXAMPLE_STREAM', 'OPENAI_ENRICH_EXAMPLE_API_TYPE'],
+            ['OPENAI_ENRICH_BASE_API_KEY', 'OPENAI_ENRICH_BASE_API_BASE', 'OPENAI_ENRICH_BASE_MODEL', 'OPENAI_ENRICH_BASE_STREAM', 'OPENAI_ENRICH_BASE_API_TYPE'],
+            ['OPENAI_HINT_API_KEY', 'OPENAI_HINT_API_BASE', 'OPENAI_HINT_MODEL', 'OPENAI_HINT_STREAM', 'OPENAI_HINT_API_TYPE'],
+            ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL', 'OPENAI_ENRICH_STREAM', 'OPENAI_ENRICH_API_TYPE'],
+            ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL', 'OPENAI_STREAM', 'OPENAI_API_TYPE'],
           ]
         : [
-            ['OPENAI_ENRICH_REFINE_API_KEY', 'OPENAI_ENRICH_REFINE_API_BASE', 'OPENAI_ENRICH_REFINE_MODEL', 'OPENAI_ENRICH_REFINE_STREAM'],
-            ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL', 'OPENAI_ENRICH_STREAM'],
-            ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL', 'OPENAI_STREAM'],
+            ['OPENAI_ENRICH_REFINE_API_KEY', 'OPENAI_ENRICH_REFINE_API_BASE', 'OPENAI_ENRICH_REFINE_MODEL', 'OPENAI_ENRICH_REFINE_STREAM', 'OPENAI_ENRICH_REFINE_API_TYPE'],
+            ['OPENAI_ENRICH_API_KEY', 'OPENAI_ENRICH_API_BASE', 'OPENAI_ENRICH_MODEL', 'OPENAI_ENRICH_STREAM', 'OPENAI_ENRICH_API_TYPE'],
+            ['OPENAI_API_KEY', 'OPENAI_API_BASE', 'OPENAI_MODEL', 'OPENAI_STREAM', 'OPENAI_API_TYPE'],
           ]
 
-  for (const [apiKeyName, apiBaseName, modelName, streamName] of candidates) {
+  for (const [apiKeyName, apiBaseName, modelName, streamName, apiTypeName] of candidates) {
     const apiKey = process.env[apiKeyName]
     const model = process.env[modelName]
 
@@ -2225,6 +2209,7 @@ function resolveAiConfig(task: AiTask): AiConfig | null {
       apiBase: process.env[apiBaseName] || 'https://api.openai.com/v1',
       model,
       streamMode: normalizeAiStreamMode(process.env[streamName] ?? process.env.OPENAI_STREAM),
+      apiType: normalizeOpenAiApiType(process.env[apiTypeName] ?? process.env.OPENAI_API_TYPE),
     }
   }
 

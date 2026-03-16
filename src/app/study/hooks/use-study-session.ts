@@ -4,17 +4,23 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { getStudyBatch, type StudyBatchItem, type StudyView } from "../actions"
 
 function buildExcludedWordIds(
-  skippedWordIds: string[],
+  deferredWords: StudyBatchItem[],
   activeWord: StudyBatchItem | null,
   pendingQueue: StudyBatchItem[]
 ) {
   return Array.from(
     new Set([
-      ...skippedWordIds,
+      ...deferredWords.map((item) => item.word_id),
       ...(activeWord ? [activeWord.word_id] : []),
       ...pendingQueue.map((item) => item.word_id),
     ])
   )
+}
+
+function appendDeferredWord(deferredWords: StudyBatchItem[], currentWord: StudyBatchItem) {
+  const nextDeferredWords = deferredWords.filter((item) => item.word_id !== currentWord.word_id)
+  nextDeferredWords.push(currentWord)
+  return nextDeferredWords
 }
 
 export function useStudySession({
@@ -32,7 +38,7 @@ export function useStudySession({
 }) {
   const [currentWord, setCurrentWord] = useState<StudyBatchItem | null>(initialBatch[0] ?? null)
   const [queuedWords, setQueuedWords] = useState<StudyBatchItem[]>(initialBatch.slice(1))
-  const [skippedWordIds, setSkippedWordIds] = useState<string[]>([])
+  const [deferredWords, setDeferredWords] = useState<StudyBatchItem[]>([])
   const [loadingNext, setLoadingNext] = useState(false)
   const [refillingQueue, setRefillingQueue] = useState(false)
 
@@ -43,7 +49,7 @@ export function useStudySession({
     async (
       nextLibrarySlug: string,
       nextStudyView: StudyView,
-      nextSkippedWordIds: string[],
+      nextDeferredWords: StudyBatchItem[],
       activeWord: StudyBatchItem | null,
       pendingQueue: StudyBatchItem[],
       nextBatchSize = batchSize
@@ -51,7 +57,7 @@ export function useStudySession({
       return getStudyBatch({
         librarySlug: nextLibrarySlug,
         studyView: nextStudyView,
-        skippedWordIds: buildExcludedWordIds(nextSkippedWordIds, activeWord, pendingQueue),
+        skippedWordIds: buildExcludedWordIds(nextDeferredWords, activeWord, pendingQueue),
         batchSize: nextBatchSize,
       })
     },
@@ -66,16 +72,30 @@ export function useStudySession({
   const reloadStudyBatch = async (
     nextLibrarySlug = librarySlug,
     nextStudyView = studyView,
-    nextSkippedWordIds = skippedWordIds
+    nextDeferredWords = deferredWords,
+    options?: { restoreDeferredOnEmpty?: boolean }
   ) => {
     queueContextRef.current += 1
     const context = queueContextRef.current
     setLoadingNext(true)
 
     try {
-      const batch = await fetchBatch(nextLibrarySlug, nextStudyView, nextSkippedWordIds, null, [])
+      const batch = await fetchBatch(nextLibrarySlug, nextStudyView, nextDeferredWords, null, [])
       if (queueContextRef.current === context) {
-        applyBatch(batch)
+        const shouldRestoreDeferred = options?.restoreDeferredOnEmpty ?? true
+
+        if (batch.length > 0) {
+          applyBatch(batch)
+          return
+        }
+
+        if (shouldRestoreDeferred && nextDeferredWords.length > 0) {
+          applyBatch(nextDeferredWords)
+          setDeferredWords([])
+          return
+        }
+
+        applyBatch([])
       }
     } catch (error) {
       console.error(error)
@@ -102,7 +122,7 @@ export function useStudySession({
         const refillBatch = await fetchBatch(
           librarySlug,
           studyView,
-          skippedWordIds,
+          deferredWords,
           currentWord,
           queuedWords,
           batchSize
@@ -139,7 +159,7 @@ export function useStudySession({
     return () => {
       cancelled = true
     }
-  }, [batchSize, currentWord, fetchBatch, queuedWords, librarySlug, studyView, skippedWordIds])
+  }, [batchSize, currentWord, deferredWords, fetchBatch, queuedWords, librarySlug, studyView])
 
   const advanceToNextWord = async ({
     nextLibrarySlug = librarySlug,
@@ -150,11 +170,20 @@ export function useStudySession({
     nextStudyView?: StudyView
     isSkipping?: boolean
   } = {}) => {
-    let nextSkippedWordIds = skippedWordIds
+    if (isSkipping && currentWord && queuedWords.length > 0) {
+      const [nextWord, ...restQueue] = queuedWords
+      setCurrentWord(nextWord)
+      setQueuedWords([...restQueue, currentWord])
+      return
+    }
 
     if (isSkipping && currentWord) {
-      nextSkippedWordIds = Array.from(new Set([...skippedWordIds, currentWord.word_id]))
-      setSkippedWordIds(nextSkippedWordIds)
+      const nextDeferredWords = appendDeferredWord(deferredWords, currentWord)
+      setDeferredWords(nextDeferredWords)
+      await reloadStudyBatch(nextLibrarySlug, nextStudyView, nextDeferredWords, {
+        restoreDeferredOnEmpty: false,
+      })
+      return
     }
 
     if (queuedWords.length > 0) {
@@ -164,11 +193,11 @@ export function useStudySession({
       return
     }
 
-    await reloadStudyBatch(nextLibrarySlug, nextStudyView, nextSkippedWordIds)
+    await reloadStudyBatch(nextLibrarySlug, nextStudyView)
   }
 
   const resetSessionScope = () => {
-    setSkippedWordIds([])
+    setDeferredWords([])
     requeuedNewWordIdsRef.current.clear()
   }
 
@@ -212,7 +241,6 @@ export function useStudySession({
   return {
     currentWord,
     queuedWords,
-    skippedWordIds,
     loadingNext,
     refillingQueue,
     reloadStudyBatch,

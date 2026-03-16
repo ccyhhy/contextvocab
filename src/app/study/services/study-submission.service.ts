@@ -109,7 +109,7 @@ async function resolveEvaluation({
 function getEvaluationModelLabel(
   deps: Pick<StudySubmissionServiceDeps, 'formatModelLabel'>
 ) {
-  const evaluationModel = process.env.OPENAI_MODEL || 'gpt-4o-mini'
+  const evaluationModel = process.env.OPENAI_MODEL || 'gpt-5.2'
   const evaluationApiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
 
   return deps.formatModelLabel(evaluationModel, evaluationApiBase)

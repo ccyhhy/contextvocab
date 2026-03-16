@@ -48,6 +48,7 @@ Required values:
 - `NEXT_PUBLIC_SITE_URL`
 - `OPENAI_API_KEY`
 - `OPENAI_API_BASE`
+- `OPENAI_API_TYPE` (optional, defaults to `chat_completions`)
 - `OPENAI_MODEL`
 
 Example with OpenAI:
@@ -55,15 +56,8 @@ Example with OpenAI:
 ```env
 OPENAI_API_KEY=...
 OPENAI_API_BASE=https://api.openai.com/v1
-OPENAI_MODEL=gpt-4o-mini
-```
-
-Example with DeepSeek:
-
-```env
-OPENAI_API_KEY=...
-OPENAI_API_BASE=https://api.deepseek.com/v1
-OPENAI_MODEL=deepseek-chat
+OPENAI_API_TYPE=chat_completions
+OPENAI_MODEL=gpt-5.2
 ```
 
 ### 3. Create the database schema
@@ -181,9 +175,7 @@ Useful flags:
 - Refine imports replace profile examples and sources for the selected words, so you can safely refresh a bad card.
 - The free pipeline works without AI, but the fallback profile is intentionally conservative.
 - If AI env vars are set, the script will use stage-specific models when available.
-- For Zhipu GLM ordinary API, a practical split is:
-  - `OPENAI_ENRICH_BASE_MODEL=glm-4.5-air`
-  - `OPENAI_ENRICH_REFINE_MODEL=glm-4.7`
+- To keep the whole stack on one model, set every `OPENAI_*_MODEL` you use to `gpt-5.2`.
 - `OPENAI_*_API_BASE` can be either a base URL like `.../paas/v4` or the full `.../chat/completions` endpoint.
 - Even without any frontend changes, importing enriched data improves the current sentence-help flow because the primary example is copied back into `words.example`.
 
@@ -200,6 +192,7 @@ The frontend no longer accepts API keys from users. The server reads:
 
 - `OPENAI_API_KEY`
 - `OPENAI_API_BASE`
+- `OPENAI_API_TYPE`
 - `OPENAI_MODEL`
 - `OPENAI_HINT_API_KEY` / `OPENAI_HINT_API_BASE` / `OPENAI_HINT_MODEL`
 - `OPENAI_ENRICH_API_KEY` / `OPENAI_ENRICH_API_BASE` / `OPENAI_ENRICH_MODEL`
@@ -211,11 +204,11 @@ The frontend no longer accepts API keys from users. The server reads:
 
 For this project:
 
-- Fast base layer: `glm-4.5-air`
-- Focus-word refine layer: `glm-4.7`
-- Sentence help: `glm-4.5-air` or `OPENAI_HINT_*`
+- Main evaluation: `gpt-5.2`
+- Sentence help: `gpt-5.2`
+- Enrichment base/refine/example: `gpt-5.2`
 
-If OpenAI billing or availability is inconvenient, use any OpenAI-compatible provider through the same server-side variables.
+If you ever need to split providers again, keep the same env var structure and override only the specific `OPENAI_*` route you want to change.
 
 ## Project Structure
 
@@ -290,6 +283,7 @@ Check Vercel environment variables:
 
 - `OPENAI_API_KEY`
 - `OPENAI_API_BASE`
+- `OPENAI_API_TYPE`
 - `OPENAI_MODEL`
 
 ### App opens but no words appear

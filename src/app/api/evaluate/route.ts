@@ -3,6 +3,12 @@ import {
   buildEvaluationSystemPrompt,
   buildEvaluationUserPrompt,
 } from '@/lib/evaluation-format'
+import {
+  buildTextGenerationRequest,
+  extractTextFromResponseEvent,
+  getOpenAiApiUrl,
+  normalizeOpenAiApiType,
+} from '@/lib/openai-api'
 import { requireActionSession } from '@/lib/supabase/user'
 
 interface EvaluateRequestBody {
@@ -13,29 +19,23 @@ interface EvaluateRequestBody {
   wordId?: string
 }
 
-interface ProviderDeltaChunk {
-  choices?: Array<{
-    delta?: {
-      content?: string
-    }
-  }>
-}
-
 interface PastSentenceRow {
   original_text: string | null
 }
 
 const PROVIDER_TIMEOUT_MS = 30000
+const EVALUATION_MAX_OUTPUT_TOKENS = 1200
 
-function readProviderContent(payload: string): string | null {
-  const parsed = JSON.parse(payload) as ProviderDeltaChunk
+function readChatCompletionDelta(payload: string): string | null {
+  const parsed = JSON.parse(payload) as {
+    choices?: Array<{
+      delta?: {
+        content?: string
+      }
+    }>
+  }
   const content = parsed.choices?.[0]?.delta?.content
   return typeof content === 'string' ? content : null
-}
-
-function getChatCompletionsUrl(apiBase: string) {
-  const trimmed = apiBase.trim().replace(/\/+$/, '')
-  return trimmed.endsWith('/chat/completions') ? trimmed : `${trimmed}/chat/completions`
 }
 
 export async function POST(request: NextRequest) {
@@ -51,7 +51,8 @@ export async function POST(request: NextRequest) {
 
   const apiKey = process.env.OPENAI_API_KEY
   const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini'
+  const model = process.env.OPENAI_MODEL || 'gpt-5.2'
+  const apiType = normalizeOpenAiApiType(process.env.OPENAI_API_TYPE)
 
   if (!apiKey) {
     return Response.json({ error: 'no-key' }, { status: 400 })
@@ -116,22 +117,24 @@ export async function POST(request: NextRequest) {
     refreshProviderTimeout()
     request.signal.addEventListener('abort', abortProvider, { once: true })
 
-    const response = await fetch(getChatCompletionsUrl(apiBase), {
+    const response = await fetch(getOpenAiApiUrl(apiBase, apiType), {
       method: 'POST',
       cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model,
-        stream: true,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: buildEvaluationUserPrompt(sentence) },
-        ],
-        temperature: 0.3,
-      }),
+      body: JSON.stringify(
+        buildTextGenerationRequest({
+          apiType,
+          model,
+          systemPrompt,
+          userPrompt: buildEvaluationUserPrompt(sentence),
+          temperature: 0.3,
+          stream: true,
+          maxOutputTokens: EVALUATION_MAX_OUTPUT_TOKENS,
+        })
+      ),
       signal: providerController.signal,
     })
 
@@ -159,10 +162,13 @@ export async function POST(request: NextRequest) {
         const decoder = new TextDecoder()
         let streamBuffer = ''
         let eventDataLines: string[] = []
+        let eventName: string | null = null
         let sentDone = false
+        let sawDeltaContent = false
 
         const pushEventData = () => {
           if (eventDataLines.length === 0) {
+            eventName = null
             return
           }
 
@@ -176,22 +182,46 @@ export async function POST(request: NextRequest) {
           if (data === '[DONE]') {
             sentDone = true
             controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+            eventName = null
             return
           }
 
           try {
-            const content = readProviderContent(data)
+            const content =
+              apiType === 'responses'
+                ? extractTextFromResponseEvent(eventName, JSON.parse(data))
+                : readChatCompletionDelta(data)
             if (content) {
+              if (
+                apiType === 'responses' &&
+                sawDeltaContent &&
+                eventName?.includes('output_text.done')
+              ) {
+                eventName = null
+                return
+              }
+
+              if (apiType === 'responses' && eventName?.includes('output_text.delta')) {
+                sawDeltaContent = true
+              }
+
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`))
             }
           } catch {
             // Ignore malformed provider events and keep the stream alive.
+          } finally {
+            eventName = null
           }
         }
 
         const consumeLine = (line: string) => {
           if (line === '') {
             pushEventData()
+            return
+          }
+
+          if (line.startsWith('event:')) {
+            eventName = line.slice(6).trimStart() || null
             return
           }
 
