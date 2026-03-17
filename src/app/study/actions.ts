@@ -563,6 +563,20 @@ function getChatCompletionsUrl(apiBase: string, apiType = normalizeOpenAiApiType
   return getOpenAiApiUrl(apiBase, apiType)
 }
 
+function shouldUseStructuredJsonOutputForSentenceHelp(apiType: string, apiBase: string) {
+  if (apiType !== 'responses') {
+    return false
+  }
+
+  // BetterClaude's Responses proxy intermittently 502s when sentence-help requests
+  // ask for JSON object formatting, so we fall back to prompt-only JSON there.
+  if (apiBase.includes('betterclau.de')) {
+    return false
+  }
+
+  return true
+}
+
 function getResponseHeaderValue(headers: Headers, names: string[]) {
   for (const name of names) {
     const value = headers.get(name)
@@ -2000,6 +2014,7 @@ export async function generateSentenceHelp(
     exampleCandidates: [example, ...exampleCandidates],
   })
   const requestUrl = getChatCompletionsUrl(apiBase, apiType)
+  const structuredJsonMode = shouldUseStructuredJsonOutputForSentenceHelp(apiType, apiBase)
 
   if (!apiKey) {
     return buildSentenceHelpFallbackResultSafe({
@@ -2025,7 +2040,7 @@ export async function generateSentenceHelp(
           apiType,
           model,
           temperature: 0.4,
-          jsonMode: true,
+          jsonMode: structuredJsonMode,
           maxOutputTokens: SENTENCE_HELP_MAX_OUTPUT_TOKENS,
           systemPrompt: [
             'You help a Chinese learner make a sentence with one target English word.',
@@ -2066,6 +2081,7 @@ export async function generateSentenceHelp(
         providerLabel,
         apiType,
         requestUrl,
+        structuredJsonMode,
         status: response.status,
         statusText: response.statusText,
         requestId,
@@ -2093,6 +2109,7 @@ export async function generateSentenceHelp(
         providerLabel,
         apiType,
         requestUrl,
+        structuredJsonMode,
         status: response.status,
         requestId,
         responseShape,
@@ -2118,6 +2135,7 @@ export async function generateSentenceHelp(
         providerLabel,
         apiType,
         requestUrl,
+        structuredJsonMode,
         status: response.status,
         requestId,
         responseShape,
@@ -2143,6 +2161,7 @@ export async function generateSentenceHelp(
         providerLabel,
         apiType,
         requestUrl,
+        structuredJsonMode,
         status: response.status,
         requestId,
         responseShape,
@@ -2175,6 +2194,7 @@ export async function generateSentenceHelp(
       providerLabel,
       apiType,
       requestUrl,
+      structuredJsonMode,
       error,
     })
     return buildSentenceHelpFallbackResultSafe({
