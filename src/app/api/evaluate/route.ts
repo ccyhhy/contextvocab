@@ -24,7 +24,7 @@ interface PastSentenceRow {
 }
 
 const PROVIDER_TIMEOUT_MS = 30000
-const EVALUATION_MAX_OUTPUT_TOKENS = 1200
+const EVALUATION_MAX_OUTPUT_TOKENS = 2000
 
 function readChatCompletionDelta(payload: string): string | null {
   const parsed = JSON.parse(payload) as {
