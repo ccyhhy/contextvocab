@@ -54,6 +54,8 @@ export function shouldHighlightPriority(reason: StudyBatchItem["priorityReason"]
 
 export function getSentenceHelpItemSourceLabel(source: SentenceHelpItem["source"]) {
   switch (source) {
+    case "local_template":
+      return "本地模板"
     case "dictionary_example":
       return "词库例句"
     case "ai":

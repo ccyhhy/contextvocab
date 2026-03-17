@@ -10,7 +10,7 @@ import {
 
 export type SentenceHelpState = "idle" | "loading" | "ready"
 
-const SENTENCE_HELP_CACHE_VERSION = "provider-v2"
+const SENTENCE_HELP_CACHE_VERSION = "provider-v3"
 
 function getSentenceHelpCacheKey(wordId: string) {
   return `${SENTENCE_HELP_CACHE_VERSION}:${wordId}`
@@ -41,7 +41,8 @@ function loadSentenceHelpForWord({
     word.words.word,
     word.words.definition || "",
     word.words.tags || "",
-    word.words.example || null
+    word.words.example || null,
+    word.words.examples?.map((item) => item.sentence) ?? []
   )
     .then((result) => {
       cache.current[cacheKey] = result

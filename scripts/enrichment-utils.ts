@@ -10,6 +10,7 @@ import {
   normalizeOpenAiApiType,
   type OpenAiApiType,
 } from '../src/lib/openai-api'
+import { isLearnerFriendlyExampleSentence } from '../src/lib/example-safety'
 import { createServiceRoleClient, normalizeLexicalWord, normalizeWord } from './official-word-utils'
 
 const DEFAULT_TIMEOUT_MS = 12000
@@ -1638,6 +1639,10 @@ function scoreExampleSentence(word: string, sentence: string) {
   const trimmed = sentence.trim()
   if (!trimmed) {
     return 0
+  }
+
+  if (!isLearnerFriendlyExampleSentence(trimmed)) {
+    return 0.05
   }
 
   let score = 0.45

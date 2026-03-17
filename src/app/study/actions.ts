@@ -12,6 +12,7 @@ import {
   getOpenAiApiUrl,
   normalizeOpenAiApiType,
 } from '@/lib/openai-api'
+import { isLearnerFriendlyExampleSentence } from '@/lib/example-safety'
 import { type ReviewBucket, type SRSData } from '@/lib/srs'
 import { type StudyPriorityReason } from '@/lib/study-scheduler'
 import { requireActionSession } from '@/lib/supabase/user'
@@ -146,7 +147,7 @@ export interface StudyEnrichmentProgress {
 export interface SentenceHelpItem {
   sentence: string
   cue: string
-  source: 'ai' | 'dictionary_example'
+  source: 'ai' | 'dictionary_example' | 'local_template'
 }
 
 export interface SentenceHelpResult {
@@ -562,6 +563,120 @@ function getChatCompletionsUrl(apiBase: string, apiType = normalizeOpenAiApiType
   return getOpenAiApiUrl(apiBase, apiType)
 }
 
+function getResponseHeaderValue(headers: Headers, names: string[]) {
+  for (const name of names) {
+    const value = headers.get(name)
+    if (value) {
+      return value
+    }
+  }
+
+  return null
+}
+
+function getProviderRequestId(headers: Headers) {
+  return getResponseHeaderValue(headers, [
+    'x-request-id',
+    'request-id',
+    'x-openai-request-id',
+    'openai-request-id',
+    'x-trace-id',
+    'trace-id',
+    'x-b3-traceid',
+  ])
+}
+
+function describeResponseValue(value: unknown): string {
+  if (typeof value === 'string') {
+    return `string(${value.length})`
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return typeof value
+  }
+
+  if (Array.isArray(value)) {
+    return `array(${value.length})`
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    return `object(${Object.keys(value as Record<string, unknown>).slice(0, 6).join(',')})`
+  }
+
+  return String(value)
+}
+
+function summarizeOpenAiPayloadShape(payload: unknown) {
+  if (typeof payload !== 'object' || payload === null) {
+    return {
+      payloadType: typeof payload,
+    }
+  }
+
+  const record = payload as Record<string, unknown>
+  const firstChoice =
+    Array.isArray(record.choices) && record.choices[0] && typeof record.choices[0] === 'object'
+      ? (record.choices[0] as Record<string, unknown>)
+      : null
+  const firstChoiceMessage =
+    firstChoice && typeof firstChoice.message === 'object' && firstChoice.message !== null
+      ? (firstChoice.message as Record<string, unknown>)
+      : null
+  const firstOutput =
+    Array.isArray(record.output) && record.output[0] && typeof record.output[0] === 'object'
+      ? (record.output[0] as Record<string, unknown>)
+      : null
+
+  return {
+    topLevelKeys: Object.keys(record).slice(0, 12),
+    outputText: describeResponseValue(record.output_text),
+    output: describeResponseValue(record.output),
+    content: describeResponseValue(record.content),
+    choices: describeResponseValue(record.choices),
+    error: describeResponseValue(record.error),
+    firstChoiceKeys: firstChoice ? Object.keys(firstChoice).slice(0, 8) : [],
+    firstChoiceFinishReason:
+      typeof firstChoice?.finish_reason === 'string' ? firstChoice.finish_reason : null,
+    firstChoiceMessageKeys: firstChoiceMessage ? Object.keys(firstChoiceMessage).slice(0, 8) : [],
+    firstChoiceMessageContent: describeResponseValue(firstChoiceMessage?.content),
+    firstChoiceReasoningContent: describeResponseValue(firstChoiceMessage?.reasoning_content),
+    firstOutputKeys: firstOutput ? Object.keys(firstOutput).slice(0, 8) : [],
+    firstOutputContent: describeResponseValue(firstOutput?.content),
+  }
+}
+
+function summarizeSentenceHelpPayloadForLogs(payload: SentenceHelpPayload) {
+  const hints = Array.isArray(payload.hints) ? payload.hints : []
+
+  return {
+    hintCount: hints.length,
+    hintShapes: hints.slice(0, 4).map((item) => {
+      if (typeof item === 'string') {
+        return {
+          type: 'string',
+          length: item.trim().length,
+        }
+      }
+
+      if (typeof item !== 'object' || item === null) {
+        return {
+          type: typeof item,
+        }
+      }
+
+      const record = item as Record<string, unknown>
+      return {
+        type: 'object',
+        keys: Object.keys(record).slice(0, 8),
+        sentence: describeResponseValue(record.sentence),
+        text: describeResponseValue(record.text),
+        cue: describeResponseValue(record.cue),
+        tip: describeResponseValue(record.tip),
+      }
+    }),
+  }
+}
+
 function makeErrorResult(message: string): EvaluationResult {
   return {
     score: 0,
@@ -640,6 +755,7 @@ function parseEvaluationJson(content: string, fallbackSentence: string): Evaluat
   return normalizeEvaluation(parsed, fallbackSentence)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function buildDictionaryExampleSentenceHelp(example?: string | null): SentenceHelpItem[] {
   const trimmed = example?.trim()
   if (!trimmed) {
@@ -655,6 +771,7 @@ function buildDictionaryExampleSentenceHelp(example?: string | null): SentenceHe
   ]
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function normalizeSentenceHelp(
   payload: SentenceHelpPayload,
   word: string
@@ -718,6 +835,7 @@ function getSentenceHelpFallbackReasonText(
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function buildSentenceHelpFallbackResult(args: {
   reason: NonNullable<SentenceHelpResult['fallbackReason']>
   remoteModelLabel: string
@@ -745,6 +863,348 @@ function buildSentenceHelpFallbackResult(args: {
     modelName: args.modelName,
     fallbackReason: args.reason,
     sourceLabel: `来源：${reasonText}，且当前词条没有可用例句`,
+  }
+}
+
+const MAX_SENTENCE_HELP_ITEMS = 4
+
+type SentenceHelpPartOfSpeech =
+  | 'transitive_verb'
+  | 'intransitive_verb'
+  | 'verb'
+  | 'noun'
+  | 'adjective'
+  | 'adverb'
+  | 'unknown'
+
+function normalizeSentenceHelpKeySafe(sentence: string) {
+  return sentence.trim().replace(/\s+/g, ' ').toLowerCase()
+}
+
+function dedupeSentenceHelpItemsSafe(items: SentenceHelpItem[]) {
+  const seen = new Set<string>()
+  return items.filter((item) => {
+    const key = normalizeSentenceHelpKeySafe(item.sentence)
+    if (!key || seen.has(key)) {
+      return false
+    }
+    seen.add(key)
+    return true
+  })
+}
+
+function capitalizeWordForSentenceHelp(word: string) {
+  if (!word) {
+    return word
+  }
+  return word.charAt(0).toUpperCase() + word.slice(1)
+}
+
+function inferSentenceHelpPartOfSpeechSafe(definition?: string | null): SentenceHelpPartOfSpeech {
+  const normalized = (definition ?? '').toLowerCase()
+
+  if (normalized.includes('vt.') && normalized.includes('vi.')) {
+    return 'verb'
+  }
+  if (normalized.includes('vt.')) {
+    return 'transitive_verb'
+  }
+  if (normalized.includes('vi.') || normalized.includes('v.i.')) {
+    return 'intransitive_verb'
+  }
+  if (normalized.includes('v.') || normalized.includes('verb')) {
+    return 'verb'
+  }
+  if (normalized.includes('n.') || normalized.includes('noun')) {
+    return 'noun'
+  }
+  if (normalized.includes('adj.') || normalized.includes('adjective')) {
+    return 'adjective'
+  }
+  if (normalized.includes('adv.') || normalized.includes('adverb')) {
+    return 'adverb'
+  }
+  return 'unknown'
+}
+
+function buildDictionaryExampleSentenceHelpSafe(
+  exampleCandidates: Array<string | null | undefined>
+): SentenceHelpItem[] {
+  return dedupeSentenceHelpItemsSafe(
+    exampleCandidates
+      .map((item) => item?.trim() ?? '')
+      .filter((item) => item.length > 0)
+      .filter((item) => isLearnerFriendlyExampleSentence(item))
+      .map((sentence) => ({
+        sentence,
+        cue:
+          '\u8fd9\u662f\u8bcd\u5e93\u91cc\u5df2\u6709\u7684\u4f8b\u53e5\uff0c\u4f60\u53ef\u4ee5\u5148\u7167\u7740\u6539\u5199\uff0c\u518d\u6362\u6210\u81ea\u5df1\u7684\u573a\u666f\u3002',
+        source: 'dictionary_example' as const,
+      }))
+  ).slice(0, MAX_SENTENCE_HELP_ITEMS)
+}
+
+function buildLocalTemplateSentenceHelpSafe(
+  word: string,
+  definition?: string | null
+): SentenceHelpItem[] {
+  const trimmedWord = word.trim()
+  if (!trimmedWord) {
+    return []
+  }
+
+  const capitalizedWord = capitalizeWordForSentenceHelp(trimmedWord)
+  const cueReplaceObject =
+    '\u5148\u7528\u8fd9\u4e2a\u53e5\u578b\u8d77\u6b65\uff0c\u518d\u628a it \u6216 something \u6362\u6210\u66f4\u5177\u4f53\u7684\u5bf9\u8c61\u3002'
+  const cueAddContext =
+    '\u53ef\u4ee5\u518d\u8865\u4e00\u4e2a\u4eba\u7269\u3001\u65f6\u95f4\u6216\u5730\u70b9\uff0c\u53e5\u5b50\u4f1a\u66f4\u81ea\u7136\u3002'
+
+  const templatesByPos: Record<SentenceHelpPartOfSpeech, SentenceHelpItem[]> = {
+    transitive_verb: [
+      {
+        sentence: `I need to ${trimmedWord} it before noon.`,
+        cue: cueReplaceObject,
+        source: 'local_template',
+      },
+      {
+        sentence: `She wants to ${trimmedWord} something for the project.`,
+        cue: cueReplaceObject,
+        source: 'local_template',
+      },
+      {
+        sentence: `We should ${trimmedWord} this part first.`,
+        cue: cueAddContext,
+        source: 'local_template',
+      },
+    ],
+    intransitive_verb: [
+      {
+        sentence: `I can ${trimmedWord} here.`,
+        cue: '\u5982\u679c\u8fd9\u662f\u4e0d\u53ca\u7269\u52a8\u8bcd\uff0c\u5148\u7528\u201c\u8c01 + \u52a8\u4f5c\u201d\u5f00\u53e5\u6700\u7a33\u3002',
+        source: 'local_template',
+      },
+      {
+        sentence: `She will ${trimmedWord} again tomorrow.`,
+        cue: cueAddContext,
+        source: 'local_template',
+      },
+      {
+        sentence: `We had to ${trimmedWord} early.`,
+        cue: cueAddContext,
+        source: 'local_template',
+      },
+    ],
+    verb: [
+      {
+        sentence: `I need to ${trimmedWord} today.`,
+        cue: '\u5982\u679c\u611f\u89c9\u7f3a\u5185\u5bb9\uff0c\u53ef\u4ee5\u7ed9\u5b83\u8865\u4e00\u4e2a\u5bf9\u8c61\u6216\u573a\u666f\u3002',
+        source: 'local_template',
+      },
+      {
+        sentence: `She tried to ${trimmedWord} it more carefully.`,
+        cue: cueReplaceObject,
+        source: 'local_template',
+      },
+      {
+        sentence: `We can ${trimmedWord} again later.`,
+        cue: cueAddContext,
+        source: 'local_template',
+      },
+    ],
+    noun: [
+      {
+        sentence: `The ${trimmedWord} became important during the meeting.`,
+        cue: '\u540d\u8bcd\u53ef\u4ee5\u5148\u7528 the + \u5355\u8bcd + became/is + \u8865\u5145\u4fe1\u606f \u8fd9\u79cd\u6846\u67b6\u3002',
+        source: 'local_template',
+      },
+      {
+        sentence: `I noticed the ${trimmedWord} right away.`,
+        cue: cueAddContext,
+        source: 'local_template',
+      },
+      {
+        sentence: `${capitalizedWord} can help in daily life.`,
+        cue: '\u53ef\u4ee5\u518d\u8865\u4e0a\u201c\u600e\u4e48\u5e2e\u4e0a\u5fd9\u201d\uff0c\u628a\u53e5\u5b50\u5199\u5f97\u66f4\u5177\u4f53\u3002',
+        source: 'local_template',
+      },
+    ],
+    adjective: [
+      {
+        sentence: `It was a ${trimmedWord} decision.`,
+        cue: '\u5f62\u5bb9\u8bcd\u53ef\u4ee5\u5148\u4fee\u9970 decision, plan, situation \u8fd9\u7c7b\u9ad8\u9891\u540d\u8bcd\u3002',
+        source: 'local_template',
+      },
+      {
+        sentence: `The plan looks ${trimmedWord} now.`,
+        cue: cueAddContext,
+        source: 'local_template',
+      },
+      {
+        sentence: `We faced a ${trimmedWord} situation yesterday.`,
+        cue: cueAddContext,
+        source: 'local_template',
+      },
+    ],
+    adverb: [
+      {
+        sentence: `She spoke ${trimmedWord} during the meeting.`,
+        cue: '\u526f\u8bcd\u901a\u5e38\u653e\u5728\u52a8\u4f5c\u540e\u9762\uff0c\u5148\u60f3\u201c\u8c01\u505a\u4e86\u4ec0\u4e48\uff0c\u505a\u5f97\u600e\u4e48\u6837\u201d\u3002',
+        source: 'local_template',
+      },
+      {
+        sentence: `He worked ${trimmedWord} to finish on time.`,
+        cue: cueAddContext,
+        source: 'local_template',
+      },
+      {
+        sentence: `They reacted ${trimmedWord} when the news arrived.`,
+        cue: cueAddContext,
+        source: 'local_template',
+      },
+    ],
+    unknown: [
+      {
+        sentence: `I can use ${trimmedWord} in a short sentence first.`,
+        cue: '\u4e0d\u786e\u5b9a\u8bcd\u6027\u65f6\uff0c\u5148\u642d\u4e00\u4e2a\u6700\u77ed\u53ef\u7528\u53e5\uff0c\u518d\u6162\u6162\u8865\u7ec6\u8282\u3002',
+        source: 'local_template',
+      },
+      {
+        sentence: `${capitalizedWord} fits this situation well.`,
+        cue: cueAddContext,
+        source: 'local_template',
+      },
+      {
+        sentence: `This example makes ${trimmedWord} easier to remember.`,
+        cue: '\u540e\u9762\u53ef\u4ee5\u6539\u6210\u66f4\u50cf\u4f60\u81ea\u5df1\u4f1a\u8bf4\u7684\u573a\u666f\u3002',
+        source: 'local_template',
+      },
+    ],
+  }
+
+  return templatesByPos[inferSentenceHelpPartOfSpeechSafe(definition)] ?? templatesByPos.unknown
+}
+
+function buildFallbackSentenceHelpItemsSafe(args: {
+  word: string
+  definition?: string | null
+  exampleCandidates: Array<string | null | undefined>
+}) {
+  return dedupeSentenceHelpItemsSafe([
+    ...buildDictionaryExampleSentenceHelpSafe(args.exampleCandidates),
+    ...buildLocalTemplateSentenceHelpSafe(args.word, args.definition),
+  ]).slice(0, MAX_SENTENCE_HELP_ITEMS)
+}
+
+function normalizeSentenceHelpSafe(
+  payload: SentenceHelpPayload,
+  word: string
+): SentenceHelpItem[] {
+  const items = Array.isArray(payload.hints) ? payload.hints : []
+  const normalizedWord = word.trim().toLowerCase()
+
+  return dedupeSentenceHelpItemsSafe(
+    items
+      .map((item) => {
+        if (typeof item === 'string') {
+          return {
+            sentence: item.trim(),
+            cue: '',
+          }
+        }
+
+        const payloadItem = (item ?? {}) as SentenceHelpItemPayload
+        return {
+          sentence: sanitizeText(payloadItem.sentence ?? payloadItem.text).trim(),
+          cue: sanitizeText(
+            payloadItem.cue ?? payloadItem.tip ?? payloadItem.explanation ?? payloadItem.reason
+          ).trim(),
+        }
+      })
+      .filter((item) => item.sentence.length > 0)
+      .filter((item) => isLearnerFriendlyExampleSentence(item.sentence))
+      .filter((item) => {
+        if (!normalizedWord) {
+          return true
+        }
+
+        const normalizedSentence = item.sentence.toLowerCase()
+        return normalizedSentence.includes(normalizedWord)
+      })
+      .map((item) => ({
+        sentence: item.sentence,
+        cue:
+          item.cue ||
+          '\u5148\u7167\u7740\u5199\uff0c\u518d\u628a\u4eba\u7269\u3001\u65f6\u95f4\u6216\u573a\u666f\u66ff\u6362\u6210\u4f60\u81ea\u5df1\u7684\u3002',
+        source: 'ai' as const,
+      }))
+  ).slice(0, MAX_SENTENCE_HELP_ITEMS)
+}
+
+function getSentenceHelpFallbackReasonTextSafe(
+  reason: NonNullable<SentenceHelpResult['fallbackReason']>,
+  remoteModelLabel: string
+) {
+  switch (reason) {
+    case 'no_hint_config':
+      return '\u672a\u914d\u7f6e\u63d0\u793a\u6a21\u578b'
+    case 'request_failed':
+      return `${remoteModelLabel} \u8bf7\u6c42\u5931\u8d25`
+    case 'empty_content':
+      return `${remoteModelLabel} \u672a\u8fd4\u56de\u53ef\u7528\u5185\u5bb9`
+    case 'parse_error':
+      return `${remoteModelLabel} \u8fd4\u56de\u683c\u5f0f\u5f02\u5e38`
+    case 'validation_failed':
+      return `${remoteModelLabel} \u8fd4\u56de\u7684\u53e5\u5b50\u672a\u901a\u8fc7\u6821\u9a8c`
+    case 'request_exception':
+      return `${remoteModelLabel} \u8bf7\u6c42\u5f02\u5e38`
+    default:
+      return '\u63d0\u793a\u6765\u6e90\u672a\u77e5'
+  }
+}
+
+function getSentenceHelpFallbackSourceSummarySafe(items: SentenceHelpItem[]) {
+  const hasDictionaryExample = items.some((item) => item.source === 'dictionary_example')
+  const hasLocalTemplate = items.some((item) => item.source === 'local_template')
+
+  if (hasDictionaryExample && hasLocalTemplate) {
+    return '\u8bcd\u5e93\u4f8b\u53e5 + \u672c\u5730\u6a21\u677f'
+  }
+  if (hasDictionaryExample) {
+    return '\u8bcd\u5e93\u4f8b\u53e5'
+  }
+  if (hasLocalTemplate) {
+    return '\u672c\u5730\u6a21\u677f'
+  }
+  return '\u56de\u9000\u5185\u5bb9'
+}
+
+function buildSentenceHelpFallbackResultSafe(args: {
+  reason: NonNullable<SentenceHelpResult['fallbackReason']>
+  remoteModelLabel: string
+  providerLabel: string
+  modelName: string | null
+  fallbackItems: SentenceHelpItem[]
+}): SentenceHelpResult {
+  const reasonText = getSentenceHelpFallbackReasonTextSafe(args.reason, args.remoteModelLabel)
+
+  if (args.fallbackItems.length > 0) {
+    return {
+      items: args.fallbackItems,
+      sourceType: 'fallback',
+      providerLabel: args.providerLabel,
+      modelName: args.modelName,
+      fallbackReason: args.reason,
+      sourceLabel: `\u6765\u6e90\uff1a${getSentenceHelpFallbackSourceSummarySafe(args.fallbackItems)}\uff08${reasonText}\uff09`,
+    }
+  }
+
+  return {
+    items: [],
+    sourceType: 'unavailable',
+    providerLabel: args.providerLabel,
+    modelName: args.modelName,
+    fallbackReason: args.reason,
+    sourceLabel: `\u6765\u6e90\uff1a${reasonText}\uff0c\u4e14\u5f53\u524d\u8bcd\u6761\u6ca1\u6709\u53ef\u7528\u7684\u4f8b\u53e5\u6216\u6a21\u677f`,
   }
 }
 
@@ -1520,7 +1980,8 @@ export async function generateSentenceHelp(
   word: string,
   definition: string,
   tags?: string,
-  example?: string | null
+  example?: string | null,
+  exampleCandidates: string[] = []
 ): Promise<SentenceHelpResult> {
   const apiKey = process.env.OPENAI_HINT_API_KEY || process.env.OPENAI_API_KEY
   const apiBase =
@@ -1533,22 +1994,27 @@ export async function generateSentenceHelp(
   const model = process.env.OPENAI_HINT_MODEL || process.env.OPENAI_MODEL || 'gpt-5.2'
   const providerLabel = getModelProviderLabel(apiBase)
   const remoteModelLabel = formatModelLabel(model, apiBase)
-  const dictionaryExampleItems = buildDictionaryExampleSentenceHelp(example)
+  const fallbackItems = buildFallbackSentenceHelpItemsSafe({
+    word,
+    definition,
+    exampleCandidates: [example, ...exampleCandidates],
+  })
+  const requestUrl = getChatCompletionsUrl(apiBase, apiType)
 
   if (!apiKey) {
-    return buildSentenceHelpFallbackResult({
+    return buildSentenceHelpFallbackResultSafe({
       reason: 'no_hint_config',
       remoteModelLabel,
       providerLabel: 'Local',
       modelName: null,
-      dictionaryExampleItems,
+      fallbackItems,
     })
   }
 
   try {
     const { supabase, user } = await requireActionSession()
     const learningHistory = await getWordLearningHistory(supabase, user.id, wordId)
-    const response = await fetch(getChatCompletionsUrl(apiBase, apiType), {
+    const response = await fetch(requestUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1579,7 +2045,7 @@ export async function generateSentenceHelp(
             `Target word: ${word}`,
             `Definition: ${definition || 'N/A'}`,
             `Word list tag: ${tags || 'General'}`,
-            `Dictionary example: ${example || 'N/A'}`,
+            `Dictionary examples:\n${[example, ...exampleCandidates].filter(Boolean).join('\n') || 'N/A'}`,
             learningHistory.length > 0
               ? `Past learner sentences:\n${learningHistory.map((item, index) => `${index + 1}. ${item}`).join('\n')}`
               : 'Past learner sentences: none',
@@ -1590,24 +2056,54 @@ export async function generateSentenceHelp(
     })
 
     if (!response.ok) {
-      return buildSentenceHelpFallbackResult({
+      const requestId = getProviderRequestId(response.headers)
+      const errorBodyPreview = (await response.text().catch(() => '')).slice(0, 1200)
+
+      console.error('Sentence help request failed:', {
+        wordId,
+        word,
+        remoteModelLabel,
+        providerLabel,
+        apiType,
+        requestUrl,
+        status: response.status,
+        statusText: response.statusText,
+        requestId,
+        errorBodyPreview,
+      })
+
+      return buildSentenceHelpFallbackResultSafe({
         reason: 'request_failed',
         remoteModelLabel,
         providerLabel,
         modelName: model,
-        dictionaryExampleItems,
+        fallbackItems,
       })
     }
 
     const data = await response.json()
+    const requestId = getProviderRequestId(response.headers)
+    const responseShape = summarizeOpenAiPayloadShape(data)
     const content = extractTextFromOpenAiResponse(data)
     if (!content) {
-      return buildSentenceHelpFallbackResult({
+      console.error('Sentence help response had no extractable content:', {
+        wordId,
+        word,
+        remoteModelLabel,
+        providerLabel,
+        apiType,
+        requestUrl,
+        status: response.status,
+        requestId,
+        responseShape,
+      })
+
+      return buildSentenceHelpFallbackResultSafe({
         reason: 'empty_content',
         remoteModelLabel,
         providerLabel,
         modelName: model,
-        dictionaryExampleItems,
+        fallbackItems,
       })
     }
 
@@ -1616,27 +2112,50 @@ export async function generateSentenceHelp(
       parsed = parseSentenceHelpPayload(content)
     } catch (error) {
       console.error('Failed to parse sentence help JSON:', {
+        wordId,
+        word,
+        remoteModelLabel,
+        providerLabel,
+        apiType,
+        requestUrl,
+        status: response.status,
+        requestId,
+        responseShape,
         error,
         rawContentPreview: content.slice(0, 1200),
       })
-      return buildSentenceHelpFallbackResult({
+      return buildSentenceHelpFallbackResultSafe({
         reason: 'parse_error',
         remoteModelLabel,
         providerLabel,
         modelName: model,
-        dictionaryExampleItems,
+        fallbackItems,
       })
     }
 
-    const normalized = normalizeSentenceHelp(parsed, word)
+    const normalized = normalizeSentenceHelpSafe(parsed, word)
 
     if (normalized.length === 0) {
-      return buildSentenceHelpFallbackResult({
+      console.error('Sentence help response failed validation:', {
+        wordId,
+        word,
+        remoteModelLabel,
+        providerLabel,
+        apiType,
+        requestUrl,
+        status: response.status,
+        requestId,
+        responseShape,
+        parsedShape: summarizeSentenceHelpPayloadForLogs(parsed),
+        rawContentPreview: content.slice(0, 1200),
+      })
+
+      return buildSentenceHelpFallbackResultSafe({
         reason: 'validation_failed',
         remoteModelLabel,
         providerLabel,
         modelName: model,
-        dictionaryExampleItems,
+        fallbackItems,
       })
     }
 
@@ -1649,13 +2168,21 @@ export async function generateSentenceHelp(
       sourceLabel: `来源：${remoteModelLabel}`,
     }
   } catch (error) {
-    console.error('Failed to generate sentence help:', error)
-    return buildSentenceHelpFallbackResult({
+    console.error('Failed to generate sentence help:', {
+      wordId,
+      word,
+      remoteModelLabel,
+      providerLabel,
+      apiType,
+      requestUrl,
+      error,
+    })
+    return buildSentenceHelpFallbackResultSafe({
       reason: 'request_exception',
       remoteModelLabel,
       providerLabel,
       modelName: model,
-      dictionaryExampleItems,
+      fallbackItems,
     })
   }
 }
