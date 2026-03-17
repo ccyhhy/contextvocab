@@ -44,3 +44,6 @@ next-env.d.ts
 # generated enrichment output and runtime logs
 /data/enriched/**
 /data/logs/**
+
+.vercel
+.env*.local
