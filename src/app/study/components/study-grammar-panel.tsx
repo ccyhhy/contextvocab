@@ -18,6 +18,17 @@ export function StudyGrammarPanel({
 }) {
   const grammar = currentGrammar.grammar
   const usageRegisterLabel = getUsageRegisterLabel(grammar.usageRegister)
+  const familyLabelMap: Record<string, string> = {
+    reason_result: "原因与结果",
+    concession_contrast: "让步与转折",
+    condition: "条件",
+    time_sequence: "时间与顺序",
+    noun_clause: "名词性从句",
+    relative_clause: "定语从句",
+    purpose_comparison: "目的与比较",
+    functional_patterns: "功能句型",
+  }
+  const familyLabel = familyLabelMap[grammar.family] ?? grammar.family.replace(/_/g, " / ")
 
   return (
     <div
@@ -33,10 +44,10 @@ export function StudyGrammarPanel({
             </span>
           ) : null}
           <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
-            Grammar
+            句法
           </span>
           <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-400">
-            {grammar.family}
+            {familyLabel}
           </span>
         </div>
       </div>
@@ -45,7 +56,7 @@ export function StudyGrammarPanel({
         <div className="flex items-start gap-3">
           <BookOpen className="mt-1 h-5 w-5 shrink-0 text-blue-400/70" />
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">Pattern</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">句式</p>
             <h1 className="text-3xl font-extrabold text-white sm:text-4xl">{grammar.title}</h1>
             <p className="text-base text-blue-200/90">{grammar.pattern}</p>
             <p className="text-sm leading-7 text-zinc-200">{grammar.coreExplanation}</p>
@@ -58,7 +69,7 @@ export function StudyGrammarPanel({
           <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-5">
             <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
               <Lightbulb className="h-3.5 w-3.5 text-amber-300/70" />
-              Usage
+              用法
             </div>
             {grammar.usageNote ? (
               <p className="mt-3 text-sm leading-7 text-zinc-200">{grammar.usageNote}</p>
@@ -85,7 +96,7 @@ export function StudyGrammarPanel({
 
         {grammar.slotSchema.length > 0 && (
           <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-5">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Slots</p>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">结构槽位</p>
             <div className="mt-3 space-y-3">
               {grammar.slotSchema.map((slot) => (
                 <div
@@ -98,10 +109,10 @@ export function StudyGrammarPanel({
                       {slot.type}
                     </span>
                     {!slot.required ? (
-                      <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-zinc-400">
-                        optional
-                      </span>
-                    ) : null}
+                    <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-zinc-400">
+                      可省略
+                    </span>
+                  ) : null}
                   </div>
                   {slot.hint ? (
                     <p className="mt-2 text-sm leading-6 text-zinc-400">{slot.hint}</p>
@@ -114,7 +125,7 @@ export function StudyGrammarPanel({
 
         {grammar.templates.length > 0 && (
           <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-5 md:col-span-2">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Templates</p>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">可套用模板</p>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               {grammar.templates.map((template) => (
                 <div
@@ -157,7 +168,7 @@ export function StudyGrammarPanel({
 
         {grammar.examples.length > 0 && (
           <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-5 md:col-span-2">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Examples</p>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">例句</p>
             <div className="mt-3 space-y-3">
               {grammar.examples.map((example) => (
                 <div
@@ -167,7 +178,7 @@ export function StudyGrammarPanel({
                   <div className="flex flex-wrap items-center gap-2">
                     {example.isPrimary ? (
                       <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-200">
-                        Primary
+                        核心例句
                       </span>
                     ) : null}
                     {example.scene ? (
@@ -193,7 +204,7 @@ export function StudyGrammarPanel({
           <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-5">
             <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
               <AlertTriangle className="h-3.5 w-3.5 text-amber-300/70" />
-              Common Pitfalls
+              常见误区
             </div>
             <div className="mt-3 space-y-2">
               {grammar.commonErrors.map((error) => (
@@ -210,7 +221,7 @@ export function StudyGrammarPanel({
 
         {grammar.contrasts.length > 0 && (
           <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-5">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Contrasts</p>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">易混对比</p>
             <div className="mt-3 space-y-3">
               {grammar.contrasts.map((contrast) => (
                 <div

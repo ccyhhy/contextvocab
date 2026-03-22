@@ -27,7 +27,7 @@ export function StudyGrammarHelpPanel({
     return (
       <div className="glass-panel rounded-2xl border border-white/[0.08] p-5">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-400">暂无可用的造句提示</span>
+          <span className="text-sm text-zinc-400">暂时没有可用的造句提示</span>
           <button
             type="button"
             onClick={onClose}
@@ -58,7 +58,7 @@ export function StudyGrammarHelpPanel({
 
       {hasTemplates ? (
         <div className="space-y-2">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">造句模板</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">模板</p>
           <div className="space-y-2">
             {templates.map((template) => (
               <button
@@ -71,9 +71,7 @@ export function StudyGrammarHelpPanel({
                 <div className="min-w-0 space-y-1">
                   <p className="text-sm leading-6 text-zinc-100">{template.template}</p>
                   {template.exampleSentence ? (
-                    <p className="text-xs leading-5 text-zinc-500">
-                      例：{template.exampleSentence}
-                    </p>
+                    <p className="text-xs leading-5 text-zinc-500">例：{template.exampleSentence}</p>
                   ) : null}
                   {template.exampleTranslation ? (
                     <p className="text-xs leading-5 text-zinc-600">{template.exampleTranslation}</p>
@@ -110,7 +108,7 @@ export function StudyGrammarHelpPanel({
       ) : null}
 
       <p className="text-xs leading-5 text-zinc-600">
-        点击任意提示可填入输入框，建议在此基础上改写为自己的句子。
+        点击任意提示可直接填入输入框，建议在此基础上改写成你自己的句子。
       </p>
     </div>
   )

@@ -13,7 +13,7 @@ export function StudySentenceComposer({
   isPracticeMode,
   placeholderText,
   submitLabel,
-  skipLabel = "Skip",
+  skipLabel = "跳过",
   onSentenceChange,
   onSubmit,
   onToggleHelp,
@@ -54,7 +54,7 @@ export function StudySentenceComposer({
             }
           }
         }}
-        placeholder={placeholderText ?? `Write a sentence using "${targetLabel}"...`}
+        placeholder={placeholderText ?? `请用 "${targetLabel}" 造句...`}
         className="h-36 rounded-3xl border border-white/10 bg-[#09090b]/80 p-5 text-lg text-zinc-100 outline-none focus:border-blue-500/50"
       />
 
@@ -66,7 +66,7 @@ export function StudySentenceComposer({
             className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm text-amber-200"
           >
             <Lightbulb className="h-4 w-4" />
-            {showSentenceHelp ? "Hide help" : "Show sentence help"}
+            {showSentenceHelp ? "收起提示" : "显示提示"}
           </button>
         ) : null}
 
@@ -85,11 +85,11 @@ export function StudySentenceComposer({
           className="ml-auto inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white disabled:bg-white/10 disabled:text-zinc-500"
         >
           {isSubmitting ? (
-            "AI is evaluating..."
+            "AI 评估中..."
           ) : (
             <>
               <Sparkles className="h-4 w-4" />
-              {submitLabel ?? (isPracticeMode ? "Submit rewrite" : "Submit")}
+              {submitLabel ?? (isPracticeMode ? "提交重写" : "提交")}
             </>
           )}
         </button>

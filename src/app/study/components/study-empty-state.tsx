@@ -32,7 +32,7 @@ export function StudyEmptyState({
             onChange={onLibraryChange}
             className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
           >
-            <option value="all">All libraries</option>
+            <option value="all">全部词库</option>
             {availableLibraries.map((item) => (
               <option key={item.id} value={item.slug}>
                 {item.name}
@@ -46,14 +46,14 @@ export function StudyEmptyState({
               onChange={onStudyViewChange}
               className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
             >
-              <option value="all">All words</option>
-              <option value="favorites">Favorites</option>
-              <option value="weak">Weak items</option>
-              <option value="recent_failures">Recent failures</option>
+              <option value="all">全部单词</option>
+              <option value="favorites">收藏</option>
+              <option value="weak">薄弱项</option>
+              <option value="recent_failures">最近失误</option>
             </select>
           ) : (
             <div className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-300">
-              Grammar mode
+              句法模式
             </div>
           )}
         </div>
@@ -63,14 +63,14 @@ export function StudyEmptyState({
           onClick={() => void onRefresh()}
           className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white"
         >
-          Refresh
+          刷新
         </button>
       </div>
 
       <div className="glass-panel rounded-3xl p-10 text-center text-zinc-300">
         {isGrammarLibrary
-          ? "No grammar cards are available for this selection yet."
-          : "No study words are available for this selection right now."}
+          ? "当前筛选下还没有可学习的句法卡片。"
+          : "当前筛选下还没有可学习的单词。"}
       </div>
     </div>
   )

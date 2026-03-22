@@ -18,17 +18,17 @@ function getMetricConfig(result: StudySubmissionResult) {
   if (result.targetKind === "grammar") {
     return {
       first: {
-        label: "Structure",
+        label: "结构",
         score: result.evaluation.structureAccuracy,
         color: "bg-gradient-to-r from-blue-500 to-blue-400",
       },
       second: {
-        label: "Scene fit",
+        label: "场景契合",
         score: result.evaluation.sceneFit,
         color: "bg-gradient-to-r from-emerald-500 to-emerald-400",
       },
       third: {
-        label: "Naturalness",
+        label: "自然度",
         score: result.evaluation.naturalness,
         color: "bg-gradient-to-r from-purple-500 to-purple-400",
       },
@@ -37,17 +37,17 @@ function getMetricConfig(result: StudySubmissionResult) {
 
   return {
     first: {
-      label: "Grammar",
+      label: "语法",
       score: result.evaluation.grammarScore,
       color: "bg-gradient-to-r from-blue-500 to-blue-400",
     },
     second: {
-      label: "Word use",
+      label: "用词",
       score: result.evaluation.wordUsageScore,
       color: "bg-gradient-to-r from-emerald-500 to-emerald-400",
     },
     third: {
-      label: "Naturalness",
+      label: "自然度",
       score: result.evaluation.naturalness,
       color: "bg-gradient-to-r from-purple-500 to-purple-400",
     },
@@ -96,7 +96,7 @@ function EvaluationDetails({
                 : "border-amber-500/30 bg-amber-500/10 text-amber-200"
             }`}
           >
-            {evaluation.patternMatched ? "Pattern matched" : "Pattern not clearly matched"}
+            {evaluation.patternMatched ? "已命中目标结构" : "未清晰命中目标结构"}
           </span>
         </div>
       ) : null}
@@ -111,13 +111,13 @@ function EvaluationDetails({
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-medium text-emerald-400">
               <PenLine className="h-3 w-3" />
-              Corrected sentence
+              修正后的句子
             </div>
             <button
               type="button"
               onClick={() => onPlayAudio(evaluation.correctedSentence)}
               className="p-1 text-emerald-400/60 transition-colors hover:text-emerald-400"
-              title="Play sentence"
+              title="朗读句子"
             >
               <Volume2 className="h-4 w-4" />
             </button>
@@ -127,7 +127,7 @@ function EvaluationDetails({
           </p>
           {evaluation.correctedSentenceMeaning ? (
             <p className="mt-2 text-xs leading-6 text-emerald-100/80">
-              Chinese meaning: {evaluation.correctedSentenceMeaning}
+              中文释义：{evaluation.correctedSentenceMeaning}
             </p>
           ) : null}
         </motion.div>
@@ -195,12 +195,8 @@ function EvaluationDetails({
         >
           <div className="flex items-center gap-2 border-b border-indigo-500/[0.08] bg-indigo-500/[0.04] px-4 py-3">
             <GraduationCap className="h-4 w-4 text-indigo-400" />
-            <span className="text-xs font-semibold tracking-wide text-indigo-300">
-              Polished upgrade
-            </span>
-            <span className="ml-auto text-[10px] text-indigo-400/60">
-              More natural English options
-            </span>
+            <span className="text-xs font-semibold tracking-wide text-indigo-300">表达升级</span>
+            <span className="ml-auto text-[10px] text-indigo-400/60">更自然、更地道的说法</span>
           </div>
 
           <div className="space-y-3 p-4">
@@ -223,9 +219,9 @@ function EvaluationDetails({
                 </div>
                 {expr.originalMeaning || expr.advancedMeaning ? (
                   <p className="text-xs leading-6 text-zinc-500">
-                    {expr.originalMeaning ? `Original: ${expr.originalMeaning}` : ""}
+                    {expr.originalMeaning ? `原表达：${expr.originalMeaning}` : ""}
                     {expr.originalMeaning && expr.advancedMeaning ? " | " : ""}
-                    {expr.advancedMeaning ? `Upgrade: ${expr.advancedMeaning}` : ""}
+                    {expr.advancedMeaning ? `升级表达：${expr.advancedMeaning}` : ""}
                   </p>
                 ) : null}
                 <p className="text-xs leading-relaxed text-zinc-400">{expr.explanation}</p>
@@ -235,7 +231,7 @@ function EvaluationDetails({
                       <p className="text-xs italic text-zinc-500">{expr.example}</p>
                       {expr.exampleMeaning ? (
                         <p className="text-xs leading-6 text-zinc-600">
-                          Chinese meaning: {expr.exampleMeaning}
+                          中文释义：{expr.exampleMeaning}
                         </p>
                       ) : null}
                     </div>
@@ -243,7 +239,7 @@ function EvaluationDetails({
                       type="button"
                       onClick={() => onPlayAudio(expr.example)}
                       className="shrink-0 p-0.5 text-indigo-400/50 hover:text-indigo-400"
-                      title="Play example"
+                      title="朗读例句"
                     >
                       <Volume2 className="h-3.5 w-3.5" />
                     </button>
@@ -262,15 +258,13 @@ function EvaluationDetails({
                 <div className="mb-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Wand2 className="h-3.5 w-3.5 text-purple-400" />
-                    <span className="text-xs font-medium text-purple-300">
-                      Native-sounding version
-                    </span>
+                    <span className="text-xs font-medium text-purple-300">更地道的版本</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => onPlayAudio(evaluation.polishedSentence)}
                     className="p-1 text-purple-400/60 transition-colors hover:text-purple-400"
-                    title="Play sentence"
+                    title="朗读句子"
                   >
                     <Volume2 className="h-4 w-4" />
                   </button>
@@ -280,7 +274,7 @@ function EvaluationDetails({
                 </p>
                 {evaluation.polishedSentenceMeaning ? (
                   <p className="mt-2 text-xs leading-6 text-indigo-100/75">
-                    Chinese meaning: {evaluation.polishedSentenceMeaning}
+                    中文释义：{evaluation.polishedSentenceMeaning}
                   </p>
                 ) : null}
               </motion.div>
@@ -338,7 +332,7 @@ export function StudyEvaluationResult({
   }
 
   const scoreClasses = getScoreClasses(result.evaluation.score)
-  const nextLabel = result.targetKind === "grammar" ? "Next card" : "Next word"
+  const nextLabel = result.targetKind === "grammar" ? "下一张卡片" : "下一个单词"
 
   return (
     <motion.div
@@ -358,14 +352,14 @@ export function StudyEvaluationResult({
       <div className="mb-6 mt-2 flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h3 className="mb-2 bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-xl font-bold text-transparent">
-            AI feedback
+            AI 评估结果
           </h3>
           <p className="mb-2 text-[11px] uppercase tracking-[0.18em] text-blue-300/70">
-            Eval Model {result.evaluationModelLabel}
+            评测模型 {result.evaluationModelLabel}
           </p>
           {result.reviewImpact === "practice_only" ? (
             <p className="mb-2 text-xs text-amber-200/80">
-              This was a practice rewrite, so it did not change the scheduled review interval.
+              本次是重写练习，不会改变复习间隔。
             </p>
           ) : null}
           <p className="line-clamp-2 rounded-lg border border-white/5 bg-black/20 p-3 text-sm italic text-zinc-400">
@@ -402,13 +396,13 @@ export function StudyEvaluationResult({
           {result.nextSrs ? (
             <>
               <span>
-                Next review:{" "}
+                下次复习：{" "}
                 {mounted ? new Date(result.nextSrs.nextReviewDate).toLocaleDateString("zh-CN") : "..."}
               </span>
-              <span>Ease factor: {result.nextSrs.easeFactor}</span>
+              <span>当前难度系数：{result.nextSrs.easeFactor}</span>
             </>
           ) : (
-            <span>The current review schedule stayed unchanged.</span>
+            <span>当前复习计划未发生变化。</span>
           )}
         </div>
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
@@ -417,7 +411,7 @@ export function StudyEvaluationResult({
             onClick={onRewrite}
             className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-5 py-3 text-sm font-medium text-amber-100 transition-all hover:bg-amber-500/15"
           >
-            Rewrite with feedback
+            根据反馈重写一次
           </button>
           <button
             type="button"

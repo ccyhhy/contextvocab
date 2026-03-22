@@ -363,9 +363,9 @@ export default function StudyClient({
               showSentenceHelp={showGrammarHints}
               isSubmitting={status === "submitting"}
               isPracticeMode={submissionMode === "practice"}
-              placeholderText={`Write a sentence that clearly uses "${currentGrammar.grammar.pattern}".`}
-              submitLabel={submissionMode === "practice" ? "Submit rewrite" : "Submit grammar attempt"}
-              skipLabel="Next card"
+              placeholderText={`请写一个明确使用 "${currentGrammar.grammar.pattern}" 的句子。`}
+              submitLabel={submissionMode === "practice" ? "提交重写" : "提交句法练习"}
+              skipLabel="下一张卡片"
               onSentenceChange={setSentence}
               onSubmit={() => void submitCurrentSentence(submissionMode)}
               onToggleHelp={() => setShowGrammarHints((current) => !current)}

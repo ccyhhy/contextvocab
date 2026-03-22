@@ -41,7 +41,7 @@ export function StudyToolbar({
           disabled={disabled}
           className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
         >
-          <option value="all">All libraries</option>
+          <option value="all">全部词库</option>
           {availableLibraries.map((item) => (
             <option key={item.id} value={item.slug}>
               {item.name}
@@ -51,7 +51,7 @@ export function StudyToolbar({
 
         {isGrammarLibrary ? (
           <div className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-300">
-            Grammar mode
+            句法模式
           </div>
         ) : (
           <select
@@ -60,10 +60,10 @@ export function StudyToolbar({
             disabled={disabled}
             className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
           >
-            <option value="all">All words</option>
-            <option value="favorites">Favorites</option>
-            <option value="weak">Weak items</option>
-            <option value="recent_failures">Recent failures</option>
+            <option value="all">全部单词</option>
+            <option value="favorites">收藏</option>
+            <option value="weak">薄弱项</option>
+            <option value="recent_failures">最近失误</option>
           </select>
         )}
 
@@ -77,7 +77,8 @@ export function StudyToolbar({
       </div>
 
       <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">
-        Queue {queuedCount} {loadingNext || refillingQueue ? (loadingNext ? "loading" : "refilling") : ""}
+        队列 {queuedCount}{" "}
+        {loadingNext || refillingQueue ? (loadingNext ? "加载中" : "补充中") : ""}
       </div>
     </div>
   )
