@@ -78,6 +78,11 @@ export function useStudySession({
     setQueuedItems(batch.slice(1))
   }
 
+  const clearVisibleBatch = () => {
+    setCurrentItem(null)
+    setQueuedItems([])
+  }
+
   const reloadStudyBatch = async (
     nextLibrarySlug = librarySlug,
     nextStudyView = studyView,
@@ -261,6 +266,7 @@ export function useStudySession({
     queuedItems,
     loadingNext,
     refillingQueue,
+    clearVisibleBatch,
     reloadStudyBatch,
     advanceToNextItem,
     resetSessionScope,

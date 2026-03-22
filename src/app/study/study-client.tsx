@@ -71,6 +71,7 @@ export default function StudyClient({
     queuedItems,
     loadingNext,
     refillingQueue,
+    clearVisibleBatch,
     reloadStudyBatch,
     advanceToNextItem,
     resetSessionScope,
@@ -180,6 +181,7 @@ export default function StudyClient({
     setLibrarySlug(nextLibrarySlug)
     setStudyView(nextStudyView)
     resetSessionScope()
+    clearVisibleBatch()
     setSubmissionMode("scheduled")
     resetComposerState()
     await reloadStudyBatch(nextLibrarySlug, nextStudyView, [])
@@ -189,6 +191,7 @@ export default function StudyClient({
     const nextStudyView = event.target.value as StudyView
     setStudyView(nextStudyView)
     resetSessionScope()
+    clearVisibleBatch()
     setSubmissionMode("scheduled")
     resetComposerState()
     await reloadStudyBatch(librarySlug, nextStudyView, [])
@@ -225,6 +228,7 @@ export default function StudyClient({
         onStudyViewChange={handleStudyModeChange}
         onRefresh={async () => {
           resetSessionScope()
+          clearVisibleBatch()
           await reloadStudyBatch(librarySlug, studyView, [])
         }}
       />
