@@ -44,6 +44,10 @@ interface WordIdOnlyRow {
   word_id?: string | null
 }
 
+interface GrammarIdOnlyRow {
+  grammar_item_id?: string | null
+}
+
 interface StudySidebarServiceDeps {
   getStartedWordIds: (
     supabase: SupabaseClient,
@@ -67,6 +71,7 @@ const OFFICIAL_LIBRARY_TAG_MAP: Record<string, string> = {
 }
 
 const officialTagWordIdsCache = new Map<string, TimedCacheEntry<string[]>>()
+const libraryGrammarItemIdsCache = new Map<string, TimedCacheEntry<string[]>>()
 let studyEnrichmentProgressCache: TimedCacheEntry<StudyEnrichmentProgress[]> | null = null
 let studyEnrichmentProgressCacheKey = ""
 
@@ -190,6 +195,117 @@ async function getWordIdsByOfficialTag(supabase: SupabaseClient, tag: string) {
   )
 }
 
+async function getLibraryGrammarItemIds(supabase: SupabaseClient, libraryId: string) {
+  const cached = getActiveTimedCacheValue(libraryGrammarItemIdsCache.get(libraryId))
+  if (cached) {
+    return cached
+  }
+
+  const ids: string[] = []
+  let from = 0
+
+  while (true) {
+    const to = from + SUPABASE_PAGE_SIZE - 1
+    const { data, error } = await supabase
+      .from("library_grammar_items")
+      .select("grammar_item_id")
+      .eq("library_id", libraryId)
+      .order("position", { ascending: true, nullsFirst: false })
+      .range(from, to)
+
+    if (error) {
+      console.error("Failed to load library grammar item ids:", error)
+      return [] as string[]
+    }
+
+    const rows = (data ?? []) as GrammarIdOnlyRow[]
+    ids.push(
+      ...rows
+        .map((row) => row.grammar_item_id)
+        .filter((id): id is string => typeof id === "string")
+    )
+
+    if (rows.length < SUPABASE_PAGE_SIZE) {
+      break
+    }
+
+    from += SUPABASE_PAGE_SIZE
+  }
+
+  return setTimedCacheValue(
+    libraryGrammarItemIdsCache,
+    libraryId,
+    ids,
+    STUDY_LIBRARY_MEMBERSHIP_CACHE_TTL_MS
+  )
+}
+
+async function getStartedGrammarIds(supabase: SupabaseClient, userId: string) {
+  const startedIds = new Set<string>()
+  const tables = ["user_grammar_items", "grammar_attempts", "user_library_grammar_items"] as const
+
+  for (const table of tables) {
+    for (let from = 0; ; from += SUPABASE_PAGE_SIZE) {
+      const to = from + SUPABASE_PAGE_SIZE - 1
+      const { data, error } = await supabase
+        .from(table)
+        .select("grammar_item_id")
+        .eq("user_id", userId)
+        .range(from, to)
+
+      if (error) {
+        console.error(`Failed to load started grammar ids from ${table}:`, error)
+        break
+      }
+
+      const rows = (data ?? []) as GrammarIdOnlyRow[]
+      for (const row of rows) {
+        if (typeof row.grammar_item_id === "string") {
+          startedIds.add(row.grammar_item_id)
+        }
+      }
+
+      if (rows.length < SUPABASE_PAGE_SIZE) {
+        break
+      }
+    }
+  }
+
+  return startedIds
+}
+
+async function getDueGrammarIds(supabase: SupabaseClient, userId: string, today: string) {
+  const dueIds = new Set<string>()
+
+  for (let from = 0; ; from += SUPABASE_PAGE_SIZE) {
+    const to = from + SUPABASE_PAGE_SIZE - 1
+    const { data, error } = await supabase
+      .from("user_grammar_items")
+      .select("grammar_item_id")
+      .eq("user_id", userId)
+      .lte("next_review_date", today)
+      .range(from, to)
+
+    if (error) {
+      console.error("Failed to load due grammar ids:", error)
+      break
+    }
+
+    const rows = (data ?? []) as GrammarIdOnlyRow[]
+    for (const row of rows) {
+      if (typeof row.grammar_item_id === "string") {
+        dueIds.add(row.grammar_item_id)
+      }
+    }
+
+    if (rows.length < SUPABASE_PAGE_SIZE) {
+      break
+    }
+  }
+
+  return dueIds
+}
+
 async function getAllWordProfileProgressRows(
   supabase: SupabaseClient,
   isMissingWordProfileTableError: StudySidebarServiceDeps["isMissingWordProfileTableError"]
@@ -270,6 +386,8 @@ async function buildLibrarySummary(
   library: LibrarySummaryRow,
   startedWordIds: Set<string>,
   dueWordIds: Set<string>,
+  startedGrammarIds: Set<string>,
+  dueGrammarIds: Set<string>,
   deps: Pick<StudySidebarServiceDeps, "getLibraryWordIds" | "logStudyPerformance">
 ): Promise<StudyLibrary> {
   const startedAt = Date.now()
@@ -280,6 +398,32 @@ async function buildLibrarySummary(
     .eq("library_id", library.id)
     .maybeSingle()
   const contentType = normalizeStudyContentType(library.content_type)
+
+  if (contentType === "grammar") {
+    const [libraryGrammarItemIds, { data: plan }] = await Promise.all([
+      getLibraryGrammarItemIds(supabase, library.id),
+      planPromise,
+    ])
+    const itemCount = libraryGrammarItemIds.length
+    const planRow = (plan as UserLibraryPlanRow | null) ?? null
+    const activeCount = countMatchingWordIds(libraryGrammarItemIds, startedGrammarIds)
+    const dueCount = countMatchingWordIds(libraryGrammarItemIds, dueGrammarIds)
+
+    return {
+      id: library.id,
+      slug: library.slug,
+      name: library.name,
+      description: library.description ?? null,
+      sourceType: library.source_type === "custom" ? "custom" : "official",
+      contentType,
+      wordCount: itemCount,
+      activeCount,
+      dueCount,
+      remainingCount: Math.max(itemCount - activeCount, 0),
+      planStatus: planRow?.status ?? "not_started",
+      dailyNewLimit: planRow?.daily_new_limit ?? null,
+    }
+  }
 
   if (contentType !== "word") {
     const { data: plan } = await planPromise
@@ -377,13 +521,16 @@ export async function loadStudyLibraries({
   deps: StudySidebarServiceDeps
 }): Promise<StudyLibrary[]> {
   const startedAt = Date.now()
-  const [{ data, error }, startedWordIds, dueWordIds] = await Promise.all([
+  const [{ data, error }, startedWordIds, dueWordIds, startedGrammarIds, dueGrammarIds] =
+    await Promise.all([
     supabase
       .from("libraries")
       .select("id, slug, name, description, source_type, content_type")
       .order("name", { ascending: true }),
     deps.getStartedWordIds(supabase, userId),
     deps.getDueWordIds(supabase, userId, today),
+    getStartedGrammarIds(supabase, userId),
+    getDueGrammarIds(supabase, userId, today),
   ])
 
   if (error || !data) {
@@ -405,7 +552,16 @@ export async function loadStudyLibraries({
 
   const summaries = await Promise.all(
     libraries.map((library) =>
-      buildLibrarySummary(supabase, userId, library, startedWordIds, dueWordIds, deps)
+      buildLibrarySummary(
+        supabase,
+        userId,
+        library,
+        startedWordIds,
+        dueWordIds,
+        startedGrammarIds,
+        dueGrammarIds,
+        deps
+      )
     )
   )
 
@@ -413,6 +569,8 @@ export async function loadStudyLibraries({
     libraryCount: summaries.length,
     startedWordIds: startedWordIds.size,
     dueWordIds: dueWordIds.size,
+    startedGrammarIds: startedGrammarIds.size,
+    dueGrammarIds: dueGrammarIds.size,
   })
 
   return summaries

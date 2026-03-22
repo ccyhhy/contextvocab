@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { requirePageUser } from '@/lib/supabase/user'
-import { getLibraryDetail, getLibraryWordsPage } from './actions'
+import { getLibraryDetail, getLibraryGrammarPage, getLibraryWordsPage } from './actions'
 import LibraryDetailClient from './library-detail-client'
 
 export default async function LibraryDetailPage({
@@ -16,13 +16,17 @@ export default async function LibraryDetailPage({
     notFound()
   }
 
-  const initialWordPage = await getLibraryWordsPage({ librarySlug: slug })
+  const initialWordPage =
+    library.contentType === 'grammar' ? null : await getLibraryWordsPage({ librarySlug: slug })
+  const initialGrammarPage =
+    library.contentType === 'grammar' ? await getLibraryGrammarPage({ librarySlug: slug }) : null
 
   return (
     <LibraryDetailClient
       key={`${library.id}:${library.wordCount}:${library.activeCount}:${library.dueCount}:${library.remainingCount}`}
       initialLibrary={library}
       initialWordPage={initialWordPage}
+      initialGrammarPage={initialGrammarPage}
     />
   )
 }

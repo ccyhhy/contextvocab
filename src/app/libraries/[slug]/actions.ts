@@ -48,6 +48,31 @@ export interface LibraryWordPage {
   query: string
 }
 
+export interface LibraryDetailGrammarItem {
+  grammarItemId: string
+  slug: string
+  title: string
+  pattern: string
+  family: string
+  subtype: string | null
+  anchor: string | null
+  coreExplanation: string
+  usageNote: string | null
+  usageRegister: string | null
+  sceneTags: string[]
+  primaryExample: string | null
+  primaryExampleTranslation: string | null
+  primaryTemplate: string | null
+  position: number | null
+}
+
+export interface LibraryGrammarPage {
+  items: LibraryDetailGrammarItem[]
+  totalCount: number
+  nextOffset: number | null
+  query: string
+}
+
 export interface SearchableWord {
   id: string
   word: string
@@ -102,6 +127,44 @@ interface WordIdRow {
   word_id?: string | null
 }
 
+interface GrammarIdRow {
+  grammar_item_id?: string | null
+}
+
+interface GrammarItemRow {
+  id: string
+  slug: string
+  title: string
+  pattern: string
+  family: string
+  subtype?: string | null
+  anchor?: string | null
+  core_explanation: string
+  usage_note?: string | null
+  usage_register?: string | null
+  scene_tags?: string[] | null
+}
+
+interface LibraryGrammarRow {
+  position?: number | null
+  grammar_item_id?: string | null
+  grammar_items?: GrammarItemRow | GrammarItemRow[] | null
+}
+
+interface GrammarExampleRow {
+  grammar_item_id: string
+  sentence?: string | null
+  translation?: string | null
+  is_primary?: boolean | null
+  quality_score?: number | null
+}
+
+interface GrammarTemplateRow {
+  grammar_item_id: string
+  template?: string | null
+  position?: number | null
+}
+
 function normalizeLibrarySlug(value: string) {
   return value.trim().toLowerCase()
 }
@@ -147,6 +210,30 @@ function normalizeLibraryWordRow(value: unknown): LibraryDetailWord | null {
     example: word.example ?? null,
     position: typeof row.position === 'number' ? row.position : null,
   }
+}
+
+function normalizeGrammarItemRow(value: unknown): GrammarItemRow | null {
+  if (Array.isArray(value)) {
+    return normalizeGrammarItemRow(value[0])
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return null
+  }
+
+  const row = value as GrammarItemRow
+  if (
+    typeof row.id !== 'string' ||
+    typeof row.slug !== 'string' ||
+    typeof row.title !== 'string' ||
+    typeof row.pattern !== 'string' ||
+    typeof row.family !== 'string' ||
+    typeof row.core_explanation !== 'string'
+  ) {
+    return null
+  }
+
+  return row
 }
 
 function getSearchPattern(query: string) {
@@ -246,6 +333,41 @@ async function getAllLibraryWordIds(supabase: SupabaseClient, libraryId: string)
   return wordIds
 }
 
+async function getAllLibraryGrammarItemIds(supabase: SupabaseClient, libraryId: string) {
+  const grammarItemIds: string[] = []
+  let from = 0
+
+  while (true) {
+    const to = from + LIBRARY_WORD_PAGE_SIZE - 1
+    const { data, error } = await supabase
+      .from('library_grammar_items')
+      .select('grammar_item_id')
+      .eq('library_id', libraryId)
+      .order('position', { ascending: true, nullsFirst: false })
+      .range(from, to)
+
+    if (error) {
+      console.error('Failed to load library grammar item ids:', error)
+      return []
+    }
+
+    const rows = (data ?? []) as GrammarIdRow[]
+    const batch = rows
+      .map((row) => row.grammar_item_id)
+      .filter((grammarItemId): grammarItemId is string => typeof grammarItemId === 'string')
+
+    grammarItemIds.push(...batch)
+
+    if (rows.length < LIBRARY_WORD_PAGE_SIZE) {
+      break
+    }
+
+    from += LIBRARY_WORD_PAGE_SIZE
+  }
+
+  return grammarItemIds
+}
+
 async function getStartedLibraryWordIds(
   supabase: SupabaseClient,
   userId: string,
@@ -315,13 +437,83 @@ async function getStartedLibraryWordIds(
   return startedWordIds
 }
 
+async function getStartedLibraryGrammarItemIds(
+  supabase: SupabaseClient,
+  userId: string,
+  libraryGrammarItemIds: string[]
+) {
+  const startedGrammarItemIds = new Set<string>()
+
+  for (let from = 0; from < libraryGrammarItemIds.length; from += LIBRARY_STATS_CHUNK_SIZE) {
+    const chunk = libraryGrammarItemIds.slice(from, from + LIBRARY_STATS_CHUNK_SIZE)
+    if (chunk.length === 0) {
+      continue
+    }
+
+    const [
+      { data: userGrammarRows, error: userGrammarError },
+      { data: attemptRows, error: attemptError },
+      { data: libraryGrammarRows, error: libraryGrammarError },
+    ] = await Promise.all([
+      supabase
+        .from('user_grammar_items')
+        .select('grammar_item_id')
+        .eq('user_id', userId)
+        .in('grammar_item_id', chunk),
+      supabase
+        .from('grammar_attempts')
+        .select('grammar_item_id')
+        .eq('user_id', userId)
+        .in('grammar_item_id', chunk),
+      supabase
+        .from('user_library_grammar_items')
+        .select('grammar_item_id')
+        .eq('user_id', userId)
+        .in('grammar_item_id', chunk),
+    ])
+
+    if (userGrammarError) {
+      console.error('Failed to load started library user_grammar_items:', userGrammarError)
+    }
+
+    if (attemptError) {
+      console.error('Failed to load started library grammar_attempts:', attemptError)
+    }
+
+    if (libraryGrammarError) {
+      console.error(
+        'Failed to load started user_library_grammar_items for library detail:',
+        libraryGrammarError
+      )
+    }
+
+    for (const row of (userGrammarRows ?? []) as GrammarIdRow[]) {
+      if (typeof row.grammar_item_id === 'string') {
+        startedGrammarItemIds.add(row.grammar_item_id)
+      }
+    }
+
+    for (const row of (attemptRows ?? []) as GrammarIdRow[]) {
+      if (typeof row.grammar_item_id === 'string') {
+        startedGrammarItemIds.add(row.grammar_item_id)
+      }
+    }
+
+    for (const row of (libraryGrammarRows ?? []) as GrammarIdRow[]) {
+      if (typeof row.grammar_item_id === 'string') {
+        startedGrammarItemIds.add(row.grammar_item_id)
+      }
+    }
+  }
+
+  return startedGrammarItemIds
+}
+
 async function buildLibraryDetail(
   supabase: SupabaseClient,
   userId: string,
   library: LibraryRow
 ): Promise<LibraryDetail> {
-  const libraryWordIds = await getAllLibraryWordIds(supabase, library.id)
-  const wordCount = libraryWordIds.length
   const today = getTodayDateString()
   const planPromise = supabase
     .from('user_library_plans')
@@ -329,6 +521,66 @@ async function buildLibraryDetail(
     .eq('user_id', userId)
     .eq('library_id', library.id)
     .maybeSingle()
+  const contentType = normalizeStudyContentType(library.content_type)
+
+  if (contentType === 'grammar') {
+    const libraryGrammarItemIds = await getAllLibraryGrammarItemIds(supabase, library.id)
+    const itemCount = libraryGrammarItemIds.length
+
+    if (itemCount === 0) {
+      const { data: plan } = await planPromise
+      const planRow = (plan as UserLibraryPlanRow | null) ?? null
+
+      return {
+        id: library.id,
+        slug: library.slug,
+        name: library.name,
+        description: getLibraryDescription(library),
+        sourceType: library.source_type === 'custom' ? 'custom' : 'official',
+        contentType,
+        isEditable: library.source_type === 'custom' && library.created_by === userId,
+        wordCount: 0,
+        activeCount: 0,
+        dueCount: 0,
+        remainingCount: 0,
+        planStatus: planRow?.status ?? 'not_started',
+        dailyNewLimit: planRow?.daily_new_limit ?? null,
+      }
+    }
+
+    const [startedGrammarItemIds, { count: due }, { data: plan }] = await Promise.all([
+      getStartedLibraryGrammarItemIds(supabase, userId, libraryGrammarItemIds),
+      supabase
+        .from('user_grammar_items')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .in('grammar_item_id', libraryGrammarItemIds)
+        .lte('next_review_date', today),
+      planPromise,
+    ])
+
+    const planRow = (plan as UserLibraryPlanRow | null) ?? null
+    const activeCount = startedGrammarItemIds.size
+
+    return {
+      id: library.id,
+      slug: library.slug,
+      name: library.name,
+      description: getLibraryDescription(library),
+      sourceType: library.source_type === 'custom' ? 'custom' : 'official',
+      contentType,
+      isEditable: library.source_type === 'custom' && library.created_by === userId,
+      wordCount: itemCount,
+      activeCount,
+      dueCount: due ?? 0,
+      remainingCount: Math.max(itemCount - activeCount, 0),
+      planStatus: planRow?.status ?? 'not_started',
+      dailyNewLimit: planRow?.daily_new_limit ?? null,
+    }
+  }
+
+  const libraryWordIds = await getAllLibraryWordIds(supabase, library.id)
+  const wordCount = libraryWordIds.length
 
   if (wordCount === 0) {
     const { data: plan } = await planPromise
@@ -340,7 +592,7 @@ async function buildLibraryDetail(
       name: library.name,
       description: getLibraryDescription(library),
       sourceType: library.source_type === 'custom' ? 'custom' : 'official',
-      contentType: normalizeStudyContentType(library.content_type),
+      contentType,
       isEditable: library.source_type === 'custom' && library.created_by === userId,
       wordCount: 0,
       activeCount: 0,
@@ -371,7 +623,7 @@ async function buildLibraryDetail(
     name: library.name,
     description: getLibraryDescription(library),
     sourceType: library.source_type === 'custom' ? 'custom' : 'official',
-    contentType: normalizeStudyContentType(library.content_type),
+    contentType,
     isEditable: library.source_type === 'custom' && library.created_by === userId,
     wordCount,
     activeCount,
@@ -406,6 +658,112 @@ async function getLibraryWordsByWordIds(
   return ((data ?? []) as LibraryWordRow[])
     .map((row) => normalizeLibraryWordRow(row))
     .filter((row): row is LibraryDetailWord => row !== null)
+}
+
+async function getLibraryGrammarItemsByIds(
+  supabase: SupabaseClient,
+  libraryId: string,
+  grammarItemIds: string[]
+) {
+  if (grammarItemIds.length === 0) {
+    return []
+  }
+
+  const { data, error } = await supabase
+    .from('library_grammar_items')
+    .select(
+      'position, grammar_item_id, grammar_items!inner(id, slug, title, pattern, family, subtype, anchor, core_explanation, usage_note, usage_register, scene_tags)'
+    )
+    .eq('library_id', libraryId)
+    .in('grammar_item_id', grammarItemIds)
+    .order('position', { ascending: true, nullsFirst: false })
+
+  if (error) {
+    console.error('Failed to load matched library grammar items:', error)
+    return []
+  }
+
+  const baseRows = ((data ?? []) as LibraryGrammarRow[])
+    .map((row) => {
+      const grammar = normalizeGrammarItemRow(row.grammar_items)
+      const grammarItemId =
+        typeof row.grammar_item_id === 'string' ? row.grammar_item_id : grammar?.id ?? null
+      if (!grammar || !grammarItemId) {
+        return null
+      }
+
+      return {
+        grammar,
+        grammarItemId,
+        position: typeof row.position === 'number' ? row.position : null,
+      }
+    })
+    .filter(
+      (
+        row
+      ): row is { grammar: GrammarItemRow; grammarItemId: string; position: number | null } =>
+        row !== null
+    )
+
+  const baseIds = baseRows.map((row) => row.grammarItemId)
+  const [examplesResponse, templatesResponse] = await Promise.all([
+    supabase
+      .from('grammar_item_examples')
+      .select('grammar_item_id, sentence, translation, is_primary, quality_score')
+      .in('grammar_item_id', baseIds),
+    supabase
+      .from('grammar_item_templates')
+      .select('grammar_item_id, template, position')
+      .in('grammar_item_id', baseIds),
+  ])
+
+  if (examplesResponse.error) {
+    console.error('Failed to load grammar examples for library detail:', examplesResponse.error)
+  }
+
+  if (templatesResponse.error) {
+    console.error('Failed to load grammar templates for library detail:', templatesResponse.error)
+  }
+
+  const exampleRows = (examplesResponse.data ?? []) as GrammarExampleRow[]
+  const templateRows = (templatesResponse.data ?? []) as GrammarTemplateRow[]
+
+  return baseRows.map((row) => {
+    const primaryExample =
+      exampleRows
+        .filter((example) => example.grammar_item_id === row.grammarItemId)
+        .sort((left, right) => {
+          if (Boolean(left.is_primary) !== Boolean(right.is_primary)) {
+            return left.is_primary ? -1 : 1
+          }
+          return (right.quality_score ?? 0) - (left.quality_score ?? 0)
+        })[0] ?? null
+
+    const primaryTemplate =
+      templateRows
+        .filter((template) => template.grammar_item_id === row.grammarItemId)
+        .sort((left, right) => (left.position ?? 0) - (right.position ?? 0))[0] ?? null
+
+    return {
+      grammarItemId: row.grammarItemId,
+      slug: row.grammar.slug,
+      title: row.grammar.title,
+      pattern: row.grammar.pattern,
+      family: row.grammar.family,
+      subtype: row.grammar.subtype ?? null,
+      anchor: row.grammar.anchor ?? null,
+      coreExplanation: row.grammar.core_explanation,
+      usageNote: row.grammar.usage_note ?? null,
+      usageRegister: row.grammar.usage_register ?? null,
+      sceneTags: Array.isArray(row.grammar.scene_tags)
+        ? row.grammar.scene_tags.filter((tag): tag is string => typeof tag === 'string')
+        : [],
+      primaryExample: primaryExample?.sentence ?? null,
+      primaryExampleTranslation: primaryExample?.translation ?? null,
+      primaryTemplate: primaryTemplate?.template ?? null,
+      position: row.position,
+    } satisfies LibraryDetailGrammarItem
+  })
 }
 
 export async function getLibraryDetail(librarySlug: string) {
@@ -484,6 +842,103 @@ export async function getLibraryWordsPage(input: {
     .filter((row): row is LibraryDetailWord => row !== null)
 
   const totalCount = count ?? items.length
+  return {
+    items,
+    totalCount,
+    nextOffset: offset + items.length < totalCount ? offset + items.length : null,
+    query: '',
+  }
+}
+
+export async function getLibraryGrammarPage(input: {
+  librarySlug: string
+  offset?: number
+  query?: string
+}): Promise<LibraryGrammarPage> {
+  const { supabase } = await requireActionSession()
+  const library = await getReadableLibraryBySlug(supabase, input.librarySlug)
+
+  if (!library) {
+    return {
+      items: [],
+      totalCount: 0,
+      nextOffset: null,
+      query: input.query?.trim() ?? '',
+    }
+  }
+
+  const query = input.query?.trim() ?? ''
+  if (query) {
+    const pattern = getSearchPattern(query)
+    const { data: matchedItems, error: searchError } = await supabase
+      .from('grammar_items')
+      .select('id')
+      .or(`title.ilike.${pattern},pattern.ilike.${pattern},anchor.ilike.${pattern}`)
+      .order('title', { ascending: true })
+      .limit(LIBRARY_SEARCH_MATCH_LIMIT)
+
+    if (searchError) {
+      console.error('Failed to search grammar items within library:', searchError)
+      return { items: [], totalCount: 0, nextOffset: null, query }
+    }
+
+    const matchedGrammarItemIds = (matchedItems ?? [])
+      .map((row) => (row as { id?: string }).id)
+      .filter((grammarItemId): grammarItemId is string => typeof grammarItemId === 'string')
+
+    const items = await getLibraryGrammarItemsByIds(supabase, library.id, matchedGrammarItemIds)
+    return {
+      items,
+      totalCount: items.length,
+      nextOffset: null,
+      query,
+    }
+  }
+
+  const offset = Math.max(input.offset ?? 0, 0)
+  const to = offset + LIBRARY_WORD_PAGE_SIZE - 1
+  const { data, error, count } = await supabase
+    .from('library_grammar_items')
+    .select(
+      'position, grammar_item_id, grammar_items!inner(id, slug, title, pattern, family, subtype, anchor, core_explanation, usage_note, usage_register, scene_tags)',
+      {
+        count: 'exact',
+      }
+    )
+    .eq('library_id', library.id)
+    .order('position', { ascending: true, nullsFirst: false })
+    .range(offset, to)
+
+  if (error) {
+    console.error('Failed to load library grammar page:', error)
+    return { items: [], totalCount: 0, nextOffset: null, query: '' }
+  }
+
+  const baseRows = ((data ?? []) as LibraryGrammarRow[])
+    .map((row) => {
+      const grammar = normalizeGrammarItemRow(row.grammar_items)
+      const grammarItemId =
+        typeof row.grammar_item_id === 'string' ? row.grammar_item_id : grammar?.id ?? null
+      if (!grammar || !grammarItemId) {
+        return null
+      }
+
+      return {
+        grammarItemId,
+        grammar,
+      }
+    })
+    .filter(
+      (row): row is { grammarItemId: string; grammar: GrammarItemRow } => row !== null
+    )
+
+  const items = await getLibraryGrammarItemsByIds(
+    supabase,
+    library.id,
+    baseRows.map((row) => row.grammarItemId)
+  )
+  const totalCount = count ?? items.length
+
   return {
     items,
     totalCount,

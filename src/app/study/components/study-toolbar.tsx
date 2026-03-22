@@ -2,12 +2,14 @@
 
 import type { ChangeEvent } from "react"
 import { Settings } from "lucide-react"
+import type { StudyContentType } from "@/lib/study-content"
 import type { StudyLibrary, StudyView } from "../actions"
 
 export function StudyToolbar({
   availableLibraries,
   librarySlug,
   studyView,
+  selectedLibraryContentType,
   disabled,
   queuedCount,
   loadingNext,
@@ -19,6 +21,7 @@ export function StudyToolbar({
   availableLibraries: StudyLibrary[]
   librarySlug: string
   studyView: StudyView
+  selectedLibraryContentType?: StudyContentType | null
   disabled: boolean
   queuedCount: number
   loadingNext: boolean
@@ -27,6 +30,8 @@ export function StudyToolbar({
   onStudyViewChange: (event: ChangeEvent<HTMLSelectElement>) => void | Promise<void>
   onOpenSettings: () => void
 }) {
+  const isGrammarLibrary = selectedLibraryContentType === "grammar"
+
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -36,24 +41,32 @@ export function StudyToolbar({
           disabled={disabled}
           className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
         >
-          <option value="all">全部词库</option>
+          <option value="all">All libraries</option>
           {availableLibraries.map((item) => (
             <option key={item.id} value={item.slug}>
               {item.name}
             </option>
           ))}
         </select>
-        <select
-          value={studyView}
-          onChange={onStudyViewChange}
-          disabled={disabled}
-          className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
-        >
-          <option value="all">全部单词</option>
-          <option value="favorites">收藏</option>
-          <option value="weak">弱项</option>
-          <option value="recent_failures">最近失误</option>
-        </select>
+
+        {isGrammarLibrary ? (
+          <div className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-300">
+            Grammar mode
+          </div>
+        ) : (
+          <select
+            value={studyView}
+            onChange={onStudyViewChange}
+            disabled={disabled}
+            className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
+          >
+            <option value="all">All words</option>
+            <option value="favorites">Favorites</option>
+            <option value="weak">Weak items</option>
+            <option value="recent_failures">Recent failures</option>
+          </select>
+        )}
+
         <button
           type="button"
           onClick={onOpenSettings}
@@ -64,7 +77,7 @@ export function StudyToolbar({
       </div>
 
       <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">
-        队列 {queuedCount} {loadingNext || refillingQueue ? (loadingNext ? "加载中" : "预取中") : ""}
+        Queue {queuedCount} {loadingNext || refillingQueue ? (loadingNext ? "loading" : "refilling") : ""}
       </div>
     </div>
   )

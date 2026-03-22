@@ -1,26 +1,36 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { getStudyBatch, type StudyBatchItem, type StudyView } from "../actions"
+import {
+  getStudyBatch,
+  getStudyBatchItemKey,
+  isStudyBatchWordItem,
+  type StudyBatchItem,
+  type StudyBatchWordItem,
+  type StudyView,
+} from "../actions"
 
-function buildExcludedWordIds(
-  deferredWords: StudyBatchItem[],
-  activeWord: StudyBatchItem | null,
+function buildExcludedItemIds(
+  deferredItems: StudyBatchItem[],
+  activeItem: StudyBatchItem | null,
   pendingQueue: StudyBatchItem[]
 ) {
   return Array.from(
     new Set([
-      ...deferredWords.map((item) => item.word_id),
-      ...(activeWord ? [activeWord.word_id] : []),
-      ...pendingQueue.map((item) => item.word_id),
+      ...deferredItems.map((item) => getStudyBatchItemKey(item)),
+      ...(activeItem ? [getStudyBatchItemKey(activeItem)] : []),
+      ...pendingQueue.map((item) => getStudyBatchItemKey(item)),
     ])
   )
 }
 
-function appendDeferredWord(deferredWords: StudyBatchItem[], currentWord: StudyBatchItem) {
-  const nextDeferredWords = deferredWords.filter((item) => item.word_id !== currentWord.word_id)
-  nextDeferredWords.push(currentWord)
-  return nextDeferredWords
+function appendDeferredItem(deferredItems: StudyBatchItem[], currentItem: StudyBatchItem) {
+  const currentItemKey = getStudyBatchItemKey(currentItem)
+  const nextDeferredItems = deferredItems.filter(
+    (item) => getStudyBatchItemKey(item) !== currentItemKey
+  )
+  nextDeferredItems.push(currentItem)
+  return nextDeferredItems
 }
 
 export function useStudySession({
@@ -36,9 +46,9 @@ export function useStudySession({
   batchSize?: number
   onBatchError?: (error: unknown) => void
 }) {
-  const [currentWord, setCurrentWord] = useState<StudyBatchItem | null>(initialBatch[0] ?? null)
-  const [queuedWords, setQueuedWords] = useState<StudyBatchItem[]>(initialBatch.slice(1))
-  const [deferredWords, setDeferredWords] = useState<StudyBatchItem[]>([])
+  const [currentItem, setCurrentItem] = useState<StudyBatchItem | null>(initialBatch[0] ?? null)
+  const [queuedItems, setQueuedItems] = useState<StudyBatchItem[]>(initialBatch.slice(1))
+  const [deferredItems, setDeferredItems] = useState<StudyBatchItem[]>([])
   const [loadingNext, setLoadingNext] = useState(false)
   const [refillingQueue, setRefillingQueue] = useState(false)
 
@@ -49,15 +59,15 @@ export function useStudySession({
     async (
       nextLibrarySlug: string,
       nextStudyView: StudyView,
-      nextDeferredWords: StudyBatchItem[],
-      activeWord: StudyBatchItem | null,
+      nextDeferredItems: StudyBatchItem[],
+      activeItem: StudyBatchItem | null,
       pendingQueue: StudyBatchItem[],
       nextBatchSize = batchSize
     ) => {
       return getStudyBatch({
         librarySlug: nextLibrarySlug,
         studyView: nextStudyView,
-        skippedWordIds: buildExcludedWordIds(nextDeferredWords, activeWord, pendingQueue),
+        skippedWordIds: buildExcludedItemIds(nextDeferredItems, activeItem, pendingQueue),
         batchSize: nextBatchSize,
       })
     },
@@ -65,14 +75,14 @@ export function useStudySession({
   )
 
   const applyBatch = (batch: StudyBatchItem[]) => {
-    setCurrentWord(batch[0] ?? null)
-    setQueuedWords(batch.slice(1))
+    setCurrentItem(batch[0] ?? null)
+    setQueuedItems(batch.slice(1))
   }
 
   const reloadStudyBatch = async (
     nextLibrarySlug = librarySlug,
     nextStudyView = studyView,
-    nextDeferredWords = deferredWords,
+    nextDeferredItems = deferredItems,
     options?: { restoreDeferredOnEmpty?: boolean }
   ) => {
     queueContextRef.current += 1
@@ -80,7 +90,7 @@ export function useStudySession({
     setLoadingNext(true)
 
     try {
-      const batch = await fetchBatch(nextLibrarySlug, nextStudyView, nextDeferredWords, null, [])
+      const batch = await fetchBatch(nextLibrarySlug, nextStudyView, nextDeferredItems, null, [])
       if (queueContextRef.current === context) {
         const shouldRestoreDeferred = options?.restoreDeferredOnEmpty ?? true
 
@@ -89,9 +99,9 @@ export function useStudySession({
           return
         }
 
-        if (shouldRestoreDeferred && nextDeferredWords.length > 0) {
-          applyBatch(nextDeferredWords)
-          setDeferredWords([])
+        if (shouldRestoreDeferred && nextDeferredItems.length > 0) {
+          applyBatch(nextDeferredItems)
+          setDeferredItems([])
           return
         }
 
@@ -108,11 +118,11 @@ export function useStudySession({
   }
 
   useEffect(() => {
-    if (!currentWord || queuedWords.length > 2) {
+    if (!currentItem || queuedItems.length > 2) {
       return
     }
 
-    const activeWord = currentWord
+    const activeItem = currentItem
     let cancelled = false
     const context = queueContextRef.current
 
@@ -122,9 +132,9 @@ export function useStudySession({
         const refillBatch = await fetchBatch(
           librarySlug,
           studyView,
-          deferredWords,
-          currentWord,
-          queuedWords,
+          deferredItems,
+          currentItem,
+          queuedItems,
           batchSize
         )
 
@@ -132,13 +142,14 @@ export function useStudySession({
           return
         }
 
-        setQueuedWords((existingQueue) => {
-          const existingIds = new Set(existingQueue.map((item) => item.word_id))
+        setQueuedItems((existingQueue) => {
+          const existingIds = new Set(existingQueue.map((item) => getStudyBatchItemKey(item)))
           const mergedQueue = [...existingQueue]
 
           for (const item of refillBatch) {
-            if (!existingIds.has(item.word_id) && item.word_id !== activeWord.word_id) {
-              existingIds.add(item.word_id)
+            const itemKey = getStudyBatchItemKey(item)
+            if (!existingIds.has(itemKey) && itemKey !== getStudyBatchItemKey(activeItem)) {
+              existingIds.add(itemKey)
               mergedQueue.push(item)
             }
           }
@@ -159,9 +170,9 @@ export function useStudySession({
     return () => {
       cancelled = true
     }
-  }, [batchSize, currentWord, deferredWords, fetchBatch, queuedWords, librarySlug, studyView])
+  }, [batchSize, currentItem, deferredItems, fetchBatch, queuedItems, librarySlug, studyView])
 
-  const advanceToNextWord = async ({
+  const advanceToNextItem = async ({
     nextLibrarySlug = librarySlug,
     nextStudyView = studyView,
     isSkipping = false,
@@ -170,26 +181,26 @@ export function useStudySession({
     nextStudyView?: StudyView
     isSkipping?: boolean
   } = {}) => {
-    if (isSkipping && currentWord && queuedWords.length > 0) {
-      const [nextWord, ...restQueue] = queuedWords
-      setCurrentWord(nextWord)
-      setQueuedWords([...restQueue, currentWord])
+    if (isSkipping && currentItem && queuedItems.length > 0) {
+      const [nextItem, ...restQueue] = queuedItems
+      setCurrentItem(nextItem)
+      setQueuedItems([...restQueue, currentItem])
       return
     }
 
-    if (isSkipping && currentWord) {
-      const nextDeferredWords = appendDeferredWord(deferredWords, currentWord)
-      setDeferredWords(nextDeferredWords)
-      await reloadStudyBatch(nextLibrarySlug, nextStudyView, nextDeferredWords, {
+    if (isSkipping && currentItem) {
+      const nextDeferredItems = appendDeferredItem(deferredItems, currentItem)
+      setDeferredItems(nextDeferredItems)
+      await reloadStudyBatch(nextLibrarySlug, nextStudyView, nextDeferredItems, {
         restoreDeferredOnEmpty: false,
       })
       return
     }
 
-    if (queuedWords.length > 0) {
-      const [nextWord, ...restQueue] = queuedWords
-      setCurrentWord(nextWord)
-      setQueuedWords(restQueue)
+    if (queuedItems.length > 0) {
+      const [nextItem, ...restQueue] = queuedItems
+      setCurrentItem(nextItem)
+      setQueuedItems(restQueue)
       return
     }
 
@@ -197,7 +208,7 @@ export function useStudySession({
   }
 
   const resetSessionScope = () => {
-    setDeferredWords([])
+    setDeferredItems([])
     requeuedNewWordIdsRef.current.clear()
   }
 
@@ -206,22 +217,30 @@ export function useStudySession({
     userWordId,
     score,
   }: {
-    reviewedWord: StudyBatchItem
+    reviewedWord: StudyBatchWordItem
     userWordId?: string | null
     score: number
   }) => {
-    if (!reviewedWord.isNew || requeuedNewWordIdsRef.current.has(reviewedWord.word_id)) {
+    if (
+      !reviewedWord.isNew ||
+      !isStudyBatchWordItem(reviewedWord) ||
+      requeuedNewWordIdsRef.current.has(reviewedWord.word_id)
+    ) {
       return
     }
 
     const insertOffset = score < 75 ? 1 : 3
     requeuedNewWordIdsRef.current.add(reviewedWord.word_id)
-    setQueuedWords((existingQueue) => {
-      if (existingQueue.some((item) => item.word_id === reviewedWord.word_id)) {
+    setQueuedItems((existingQueue) => {
+      if (
+        existingQueue.some(
+          (item) => isStudyBatchWordItem(item) && item.word_id === reviewedWord.word_id
+        )
+      ) {
         return existingQueue
       }
 
-      const requeuedWord: StudyBatchItem = {
+      const requeuedWord: StudyBatchWordItem = {
         ...reviewedWord,
         id: userWordId ?? reviewedWord.id,
         userWordId: userWordId ?? null,
@@ -239,12 +258,12 @@ export function useStudySession({
   }
 
   return {
-    currentWord,
-    queuedWords,
+    currentItem,
+    queuedItems,
     loadingNext,
     refillingQueue,
     reloadStudyBatch,
-    advanceToNextWord,
+    advanceToNextItem,
     resetSessionScope,
     requeueReviewedNewWord,
   }

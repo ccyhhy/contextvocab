@@ -1,28 +1,37 @@
 "use client"
 
+import type { RefObject } from "react"
 import { Lightbulb, SkipForward, Sparkles } from "lucide-react"
 
 export function StudySentenceComposer({
-  word,
+  targetLabel,
   sentence,
   inputRef,
-  showSentenceHelp,
+  showSentenceHelp = false,
+  showHelpButton = true,
   isSubmitting,
   isPracticeMode,
+  placeholderText,
+  submitLabel,
+  skipLabel = "Skip",
   onSentenceChange,
   onSubmit,
   onToggleHelp,
   onSkip,
 }: {
-  word: string
+  targetLabel: string
   sentence: string
-  inputRef: React.RefObject<HTMLTextAreaElement | null>
-  showSentenceHelp: boolean
+  inputRef: RefObject<HTMLTextAreaElement | null>
+  showSentenceHelp?: boolean
+  showHelpButton?: boolean
   isSubmitting: boolean
   isPracticeMode: boolean
+  placeholderText?: string
+  submitLabel?: string
+  skipLabel?: string
   onSentenceChange: (value: string) => void
   onSubmit: () => void
-  onToggleHelp: () => void
+  onToggleHelp?: () => void
   onSkip: () => void
 }) {
   return (
@@ -45,19 +54,21 @@ export function StudySentenceComposer({
             }
           }
         }}
-        placeholder={`请用 "${word}" 造句...`}
+        placeholder={placeholderText ?? `Write a sentence using "${targetLabel}"...`}
         className="h-36 rounded-3xl border border-white/10 bg-[#09090b]/80 p-5 text-lg text-zinc-100 outline-none focus:border-blue-500/50"
       />
 
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={onToggleHelp}
-          className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm text-amber-200"
-        >
-          <Lightbulb className="h-4 w-4" />
-          {showSentenceHelp ? "收起造句辅助" : "我不会造句，给我提示"}
-        </button>
+        {showHelpButton ? (
+          <button
+            type="button"
+            onClick={onToggleHelp}
+            className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm text-amber-200"
+          >
+            <Lightbulb className="h-4 w-4" />
+            {showSentenceHelp ? "Hide help" : "Show sentence help"}
+          </button>
+        ) : null}
 
         <button
           type="button"
@@ -65,7 +76,7 @@ export function StudySentenceComposer({
           className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300"
         >
           <SkipForward className="h-4 w-4" />
-          跳过
+          {skipLabel}
         </button>
 
         <button
@@ -74,11 +85,11 @@ export function StudySentenceComposer({
           className="ml-auto inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white disabled:bg-white/10 disabled:text-zinc-500"
         >
           {isSubmitting ? (
-            "AI 评估中..."
+            "AI is evaluating..."
           ) : (
             <>
               <Sparkles className="h-4 w-4" />
-              {isPracticeMode ? "提交重写" : "提交"}
+              {submitLabel ?? (isPracticeMode ? "Submit rewrite" : "Submit")}
             </>
           )}
         </button>

@@ -5,6 +5,17 @@ export interface EvaluationPromptInput {
   learningHistory?: string[]
 }
 
+export interface GrammarEvaluationPromptInput {
+  title: string
+  pattern: string
+  coreExplanation: string
+  usageNote?: string | null
+  sceneTags?: string[]
+  examples?: string[]
+  templates?: string[]
+  learningHistory?: string[]
+}
+
 export interface VisibleFeedbackSections {
   overall: string
   issue: string
@@ -73,6 +84,59 @@ function buildJsonSchemaDescription(): string {
 }`
 }
 
+function buildGrammarJsonSchemaDescription(): string {
+  return `{
+  "score": <integer 0-100>,
+  "correctedSentence": "<corrected English sentence using the target grammar pattern when possible>",
+  "correctedSentenceMeaning": "<brief Simplified Chinese meaning of correctedSentence>",
+  "errors": [
+    {
+      "type": "<grammar|word_usage|naturalness|spelling>",
+      "original": "<problematic fragment>",
+      "correction": "<better wording>",
+      "explanation": "<brief explanation in Simplified Chinese>"
+    }
+  ],
+  "praise": "<specific praise in Simplified Chinese>",
+  "suggestion": "<specific action item in Simplified Chinese>",
+  "naturalness": <integer 1-5>,
+  "grammarScore": <integer 1-5>,
+  "wordUsageScore": <integer 1-5>,
+  "structureAccuracy": <integer 1-5>,
+  "sceneFit": <integer 1-5>,
+  "patternMatched": <true|false>,
+  "attemptStatus": "<valid|needs_help>",
+  "usageQuality": "<strong|weak|meta|invalid>",
+  "usesWordInContext": <true|false>,
+  "isMetaSentence": <true|false>,
+  "advancedExpressions": [
+    {
+      "original": "<plain word or phrase from the student's sentence>",
+      "originalMeaning": "<brief Simplified Chinese meaning of original>",
+      "advanced": "<more advanced replacement>",
+      "advancedMeaning": "<brief Simplified Chinese meaning of advanced>",
+      "explanation": "<brief explanation in Simplified Chinese>",
+      "example": "<short English example sentence>",
+      "exampleMeaning": "<brief Simplified Chinese meaning of example>"
+    }
+  ],
+  "polishedSentence": "<polished English sentence using the target grammar pattern when possible>",
+  "polishedSentenceMeaning": "<brief Simplified Chinese meaning of polishedSentence>"
+}`
+}
+
+function buildGrammarHistoryBlock(learningHistory?: string[]): string {
+  if (!learningHistory || learningHistory.length === 0) {
+    return "No prior learner attempts are available for this target grammar pattern."
+  }
+
+  return [
+    "Prior learner attempts for this target grammar pattern, ordered from oldest to newest:",
+    ...learningHistory.map((sentence, index) => `${index + 1}. "${sentence}"`),
+    "Refer to this history in the visible feedback when it is relevant.",
+  ].join("\n")
+}
+
 export function buildEvaluationSystemPrompt({
   word,
   definition,
@@ -139,6 +203,80 @@ Do not add any text before ${FEEDBACK_START_TAG}, between ${FEEDBACK_END_TAG} an
 
 export function buildEvaluationUserPrompt(sentence: string): string {
   return `Evaluate this English sentence:\n\n"${sentence}"`
+}
+
+export function buildGrammarEvaluationSystemPrompt({
+  title,
+  pattern,
+  coreExplanation,
+  usageNote,
+  sceneTags,
+  examples,
+  templates,
+  learningHistory,
+}: GrammarEvaluationPromptInput): string {
+  const exampleBlock =
+    examples && examples.length > 0
+      ? examples.map((example, index) => `${index + 1}. ${example}`).join("\n")
+      : "N/A"
+  const templateBlock =
+    templates && templates.length > 0
+      ? templates.map((template, index) => `${index + 1}. ${template}`).join("\n")
+      : "N/A"
+
+  return `You are a rigorous English teacher evaluating a sentence written by a Chinese learner who is practicing a target grammar pattern.
+
+Target pattern title: "${title}"
+Pattern: ${pattern}
+Core explanation: ${coreExplanation}
+Usage note: ${usageNote || "N/A"}
+Scene tags: ${(sceneTags ?? []).join(", ") || "General"}
+
+Reference templates:
+${templateBlock}
+
+Reference examples:
+${exampleBlock}
+
+${buildGrammarHistoryBlock(learningHistory)}
+
+Evaluation priorities:
+1. Judge whether the learner really used the target pattern, not just a vaguely related sentence.
+2. patternMatched must be true only when the target grammar pattern is clearly present in the learner sentence or its corrected version.
+3. structureAccuracy judges whether the structure itself is formed correctly.
+4. sceneFit judges whether the sentence fits a natural scene for this pattern.
+5. Set grammarScore equal to structureAccuracy, and set wordUsageScore equal to sceneFit.
+6. Praise and suggestions must be concrete, encouraging, and written in Simplified Chinese.
+7. Explanations inside errors and advancedExpressions must be written in Simplified Chinese.
+8. correctedSentence and polishedSentence must be English only.
+9. correctedSentenceMeaning and polishedSentenceMeaning must be brief Simplified Chinese explanations.
+10. If the learner input is random text, filler, fragments that do not form a real sentence, or an obviously fake attempt, set attemptStatus to "needs_help".
+11. When attemptStatus is "needs_help", keep the score below 60 and clearly tell the learner to start from a short template or example.
+12. If the learner writes a grammatical sentence but misses the target pattern, keep patternMatched false and score it as a weak attempt.
+13. If there is no error, return an empty errors array.
+14. Provide 1-3 advancedExpressions only when they truly help the learner improve style without changing the core pattern goal.
+15. Suggestions should coach the learner on how to use this pattern in a real sentence.
+
+Scoring guide:
+- 90-100: clear pattern use, accurate, natural, contextually strong.
+- 75-89: solid pattern use with only small issues.
+- 60-74: understandable but pattern use or naturalness is still uneven.
+- 40-59: weak pattern control, missing pattern, or major errors.
+- 0-39: unacceptable, irrelevant, or not a meaningful attempt.
+
+Output format:
+1. First output a visible feedback block wrapped exactly with ${FEEDBACK_START_TAG} and ${FEEDBACK_END_TAG}.
+2. Inside that feedback block, output exactly four labeled lines in this exact order:
+   overall: <one short line in Simplified Chinese>
+   issue: <one short line in Simplified Chinese>
+   tip: <one short line in Simplified Chinese>
+   progress: <one short line in Simplified Chinese>
+3. Always include all four lines. If there is no useful history comparison, set progress to a short neutral Chinese line.
+4. Then output a JSON block wrapped exactly with ${JSON_START_TAG} and ${JSON_END_TAG}.
+5. The JSON must be valid and match this schema exactly:
+${buildGrammarJsonSchemaDescription()}
+
+Do not add any text before ${FEEDBACK_START_TAG}, between ${FEEDBACK_END_TAG} and ${JSON_START_TAG}, or after ${JSON_END_TAG}.`
 }
 
 export function extractEvaluationJson(content: string): string {

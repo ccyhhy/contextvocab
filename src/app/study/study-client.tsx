@@ -1,7 +1,9 @@
-﻿"use client"
+"use client"
 
-import { useEffect, useRef, useState } from "react"
+import { type ChangeEvent, useEffect, useRef, useState } from "react"
 import {
+  isStudyBatchGrammarItem,
+  isStudyBatchWordItem,
   toggleFavoriteWord,
   type StudyBatchItem,
   type StudyEnrichmentProgress,
@@ -13,6 +15,7 @@ import {
   StudyEmptyState,
   StudyEnrichmentSummary,
   StudyEvaluationResult,
+  StudyGrammarPanel,
   StudySentenceComposer,
   StudySentenceHelpPanel,
   StudySpeechSettingsDialog,
@@ -56,17 +59,19 @@ export default function StudyClient({
   const sentenceInputRef = useRef<HTMLTextAreaElement | null>(null)
   const { speechConfig, availableVoices, updateSpeechConfig, playAudio, saveSpeechConfig } =
     useSpeechSynthesis()
-  const { availableLibraries, availableEnrichmentProgress, studySidebarState } = useStudySidebarData({
-    initialLibraries: libraries,
-    initialEnrichmentProgress: enrichmentProgress,
-  })
+  const { availableLibraries, availableEnrichmentProgress, studySidebarState } = useStudySidebarData(
+    {
+      initialLibraries: libraries,
+      initialEnrichmentProgress: enrichmentProgress,
+    }
+  )
   const {
-    currentWord,
-    queuedWords,
+    currentItem,
+    queuedItems,
     loadingNext,
     refillingQueue,
     reloadStudyBatch,
-    advanceToNextWord,
+    advanceToNextItem,
     resetSessionScope,
     requeueReviewedNewWord,
   } = useStudySession({
@@ -77,9 +82,15 @@ export default function StudyClient({
       alert("获取学习批次失败。")
     },
   })
+
+  const selectedLibrary = availableLibraries.find((item) => item.slug === librarySlug) ?? null
+  const selectedLibraryContentType = selectedLibrary?.contentType ?? null
+  const currentWord = isStudyBatchWordItem(currentItem) ? currentItem : null
+  const currentGrammar = isStudyBatchGrammarItem(currentItem) ? currentItem : null
+
   const { sentenceHelpItems, sentenceHelpState, sentenceHelpSourceLabel } = useSentenceHelp({
     currentWord,
-    enabled: showSentenceHelp,
+    enabled: showSentenceHelp && currentWord !== null,
   })
   const {
     status,
@@ -91,17 +102,18 @@ export default function StudyClient({
     resetSubmissionState,
     beginRewrite,
   } = useStudySubmission({
-    currentWord,
+    currentItem,
     sentence,
     librarySlug,
     onRequeueReviewedNewWord: requeueReviewedNewWord,
   })
-  const selectedLibrary =
-    availableLibraries.find((item) => item.slug === librarySlug) ?? null
+
   const selectedEnrichmentProgress =
-    availableEnrichmentProgress.find((item) => item.slug === librarySlug) ??
-    availableEnrichmentProgress.find((item) => item.slug === "all") ??
-    null
+    selectedLibraryContentType === "grammar"
+      ? null
+      : availableEnrichmentProgress.find((item) => item.slug === librarySlug) ??
+        availableEnrichmentProgress.find((item) => item.slug === "all") ??
+        null
   const hasLoadedSidebarSummary = studySidebarState === "ready"
 
   useEffect(() => {
@@ -151,23 +163,27 @@ export default function StudyClient({
   ) => {
     resetComposerState()
     setSubmissionMode("scheduled")
-    await advanceToNextWord({
+    await advanceToNextItem({
       nextLibrarySlug,
       nextStudyView,
       isSkipping,
     })
   }
 
-  const handleLibraryChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleLibraryChange = async (event: ChangeEvent<HTMLSelectElement>) => {
     const nextLibrarySlug = event.target.value
+    const nextLibrary = availableLibraries.find((item) => item.slug === nextLibrarySlug) ?? null
+    const nextStudyView = nextLibrary?.contentType === "grammar" ? "all" : studyView
+
     setLibrarySlug(nextLibrarySlug)
+    setStudyView(nextStudyView)
     resetSessionScope()
     setSubmissionMode("scheduled")
     resetComposerState()
-    await reloadStudyBatch(nextLibrarySlug, studyView, [])
+    await reloadStudyBatch(nextLibrarySlug, nextStudyView, [])
   }
 
-  const handleStudyModeChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleStudyModeChange = async (event: ChangeEvent<HTMLSelectElement>) => {
     const nextStudyView = event.target.value as StudyView
     setStudyView(nextStudyView)
     resetSessionScope()
@@ -196,12 +212,13 @@ export default function StudyClient({
     }
   }
 
-  if (!currentWord) {
+  if (!currentItem) {
     return (
       <StudyEmptyState
         availableLibraries={availableLibraries}
         librarySlug={librarySlug}
         studyView={studyView}
+        selectedLibraryContentType={selectedLibraryContentType}
         onLibraryChange={handleLibraryChange}
         onStudyViewChange={handleStudyModeChange}
         onRefresh={async () => {
@@ -212,7 +229,7 @@ export default function StudyClient({
     )
   }
 
-  const isFavorite = favoriteWordIds.includes(currentWord.word_id)
+  const isFavorite = currentWord ? favoriteWordIds.includes(currentWord.word_id) : false
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
@@ -250,8 +267,9 @@ export default function StudyClient({
         availableLibraries={availableLibraries}
         librarySlug={librarySlug}
         studyView={studyView}
+        selectedLibraryContentType={selectedLibraryContentType}
         disabled={loadingNext || status === "submitting"}
-        queuedCount={queuedWords.length}
+        queuedCount={queuedItems.length}
         loadingNext={loadingNext}
         refillingQueue={refillingQueue}
         onLibraryChange={handleLibraryChange}
@@ -263,65 +281,109 @@ export default function StudyClient({
         selectedLibrary={selectedLibrary}
         studyView={studyView}
         hasLoadedSidebarSummary={hasLoadedSidebarSummary}
-        currentQueueCount={queuedWords.length + (currentWord ? 1 : 0)}
+        currentQueueCount={queuedItems.length + (currentItem ? 1 : 0)}
       />
 
-      <StudyEnrichmentSummary
-        selectedEnrichmentProgress={selectedEnrichmentProgress}
-        studySidebarState={studySidebarState}
-      />
-
-      <StudyWordPanel
-        currentWord={currentWord}
-        isFavorite={isFavorite}
-        favoritePending={favoritePending}
-        isSubmitting={status === "submitting"}
-        onToggleFavorite={() => void toggleFavorite()}
-        onPlayAudio={playAudio}
-        onApplySentenceHelp={applySentenceHelp}
-        loadingNext={loadingNext}
-      />
-
-      {status !== "result" && (
-        <StudySentenceComposer
-          word={currentWord.words.word}
-          sentence={sentence}
-          inputRef={sentenceInputRef}
-          showSentenceHelp={showSentenceHelp}
-          isSubmitting={status === "submitting"}
-          isPracticeMode={submissionMode === "practice"}
-          onSentenceChange={setSentence}
-          onSubmit={() => void submitCurrentSentence(submissionMode)}
-          onToggleHelp={() => setShowSentenceHelp((current) => !current)}
-          onSkip={() => void handleNext(librarySlug, true)}
+      {selectedEnrichmentProgress ? (
+        <StudyEnrichmentSummary
+          selectedEnrichmentProgress={selectedEnrichmentProgress}
+          studySidebarState={studySidebarState}
         />
-      )}
+      ) : null}
 
-      <StudySentenceHelpPanel
-        visible={showSentenceHelp}
-        sourceLabel={sentenceHelpSourceLabel}
-        state={sentenceHelpState}
-        items={sentenceHelpItems}
-        onClose={() => setShowSentenceHelp(false)}
-        onApply={applySentenceHelp}
-      />
+      {currentWord ? (
+        <>
+          <StudyWordPanel
+            currentWord={currentWord}
+            isFavorite={isFavorite}
+            favoritePending={favoritePending}
+            isSubmitting={status === "submitting"}
+            onToggleFavorite={() => void toggleFavorite()}
+            onPlayAudio={playAudio}
+            onApplySentenceHelp={applySentenceHelp}
+            loadingNext={loadingNext}
+          />
 
-      <StudyStreamingPreview
-        visible={status === "submitting"}
-        streamPhase={streamPhase}
-        streamProgressChars={streamProgressChars}
-        streamSections={streamSections}
-      />
+          {status !== "result" && (
+          <StudySentenceComposer
+              targetLabel={currentWord.words.word}
+              sentence={sentence}
+              inputRef={sentenceInputRef}
+              showSentenceHelp={showSentenceHelp}
+              isSubmitting={status === "submitting"}
+              isPracticeMode={submissionMode === "practice"}
+              onSentenceChange={setSentence}
+              onSubmit={() => void submitCurrentSentence(submissionMode)}
+              onToggleHelp={() => setShowSentenceHelp((current) => !current)}
+              onSkip={() => void handleNext(librarySlug, true)}
+            />
+          )}
 
-      <StudyEvaluationResult
-        visible={status === "result"}
-        result={result}
-        sentence={sentence}
-        mounted={mounted}
-        onRewrite={handleRewrite}
-        onNext={() => void handleNext(librarySlug)}
-        onPlayAudio={playAudio}
-      />
+          <StudySentenceHelpPanel
+            visible={showSentenceHelp}
+            sourceLabel={sentenceHelpSourceLabel}
+            state={sentenceHelpState}
+            items={sentenceHelpItems}
+            onClose={() => setShowSentenceHelp(false)}
+            onApply={applySentenceHelp}
+          />
+
+          <StudyStreamingPreview
+            visible={status === "submitting"}
+            streamPhase={streamPhase}
+            streamProgressChars={streamProgressChars}
+            streamSections={streamSections}
+          />
+
+          <StudyEvaluationResult
+            visible={status === "result"}
+            result={result}
+            sentence={sentence}
+            mounted={mounted}
+            onRewrite={handleRewrite}
+            onNext={() => void handleNext(librarySlug)}
+            onPlayAudio={playAudio}
+          />
+        </>
+      ) : currentGrammar ? (
+        <>
+          <StudyGrammarPanel currentGrammar={currentGrammar} loadingNext={loadingNext} />
+
+          {status !== "result" && (
+            <StudySentenceComposer
+              targetLabel={currentGrammar.grammar.title}
+              sentence={sentence}
+              inputRef={sentenceInputRef}
+              showHelpButton={false}
+              isSubmitting={status === "submitting"}
+              isPracticeMode={submissionMode === "practice"}
+              placeholderText={`Write a sentence that clearly uses "${currentGrammar.grammar.pattern}".`}
+              submitLabel={submissionMode === "practice" ? "Submit rewrite" : "Submit grammar attempt"}
+              skipLabel="Next card"
+              onSentenceChange={setSentence}
+              onSubmit={() => void submitCurrentSentence(submissionMode)}
+              onSkip={() => void handleNext(librarySlug, true)}
+            />
+          )}
+
+          <StudyStreamingPreview
+            visible={status === "submitting"}
+            streamPhase={streamPhase}
+            streamProgressChars={streamProgressChars}
+            streamSections={streamSections}
+          />
+
+          <StudyEvaluationResult
+            visible={status === "result"}
+            result={result}
+            sentence={sentence}
+            mounted={mounted}
+            onRewrite={handleRewrite}
+            onNext={() => void handleNext(librarySlug)}
+            onPlayAudio={playAudio}
+          />
+        </>
+      ) : null}
     </div>
   )
 }

@@ -7,7 +7,17 @@ import {
   parseVisibleFeedbackSections,
   type VisibleFeedbackSections,
 } from "@/lib/evaluation-format"
-import { rewriteSentence, submitSentence, type StudyBatchItem, type StudySubmissionResult } from "../actions"
+import {
+  isStudyBatchGrammarItem,
+  isStudyBatchWordItem,
+  rewriteGrammarSentence,
+  rewriteSentence,
+  submitGrammarSentence,
+  submitSentence,
+  type StudyBatchItem,
+  type StudyBatchWordItem,
+  type StudySubmissionResult,
+} from "../actions"
 
 export type StreamPhase = "idle" | "connecting" | "feedback" | "structuring"
 export type SubmissionStatus = "idle" | "submitting" | "result"
@@ -18,16 +28,31 @@ interface StreamEvent {
   error?: string
 }
 
-async function streamEvaluateSentence(
-  payload: {
-    word: string
-    sentence: string
-    definition: string
-    tags: string
-    wordId: string
-  },
-  onChunk?: (fullText: string) => void
-) {
+type StreamWordPayload = {
+  targetKind?: "word"
+  word: string
+  sentence: string
+  definition: string
+  tags: string
+  wordId: string
+}
+
+type StreamGrammarPayload = {
+  targetKind: "grammar"
+  sentence: string
+  grammarItemId: string
+  title: string
+  pattern: string
+  coreExplanation: string
+  usageNote?: string | null
+  sceneTags?: string[]
+  templates?: string[]
+  examples?: string[]
+}
+
+type StreamPayload = StreamWordPayload | StreamGrammarPayload
+
+async function streamEvaluateSentence(payload: StreamPayload, onChunk?: (fullText: string) => void) {
   const response = await fetch("/api/evaluate", {
     method: "POST",
     cache: "no-store",
@@ -89,16 +114,16 @@ async function streamEvaluateSentence(
 }
 
 export function useStudySubmission({
-  currentWord,
+  currentItem,
   sentence,
   librarySlug,
   onRequeueReviewedNewWord,
 }: {
-  currentWord: StudyBatchItem | null
+  currentItem: StudyBatchItem | null
   sentence: string
   librarySlug: string
   onRequeueReviewedNewWord: (args: {
-    reviewedWord: StudyBatchItem
+    reviewedWord: StudyBatchWordItem
     userWordId?: string | null
     score: number
   }) => void
@@ -179,8 +204,8 @@ export function useStudySubmission({
   }
 
   const submitCurrentSentence = async (mode: SubmissionMode = "scheduled") => {
-    if (!sentence.trim() || !currentWord) {
-      alert("请先写一个句子。")
+    if (!sentence.trim() || !currentItem) {
+      alert("Write a sentence first.")
       return
     }
 
@@ -189,23 +214,37 @@ export function useStudySubmission({
     setStreamProgressChars(0)
     setStreamSections(EMPTY_VISIBLE_FEEDBACK)
 
+    const currentWord = isStudyBatchWordItem(currentItem) ? currentItem : null
+    const currentGrammar = isStudyBatchGrammarItem(currentItem) ? currentItem : null
+
     try {
-      const wordData = currentWord.words
       let streamedContent: string | null = null
 
       try {
-        streamedContent = await streamEvaluateSentence(
-          {
-            word: wordData.word,
-            sentence,
-            definition: wordData.definition || "",
-            tags: wordData.tags || "",
-            wordId: currentWord.word_id,
-          },
-          (fullText) => {
-            schedulePreviewUpdate(fullText)
-          }
-        )
+        const payload: StreamPayload = currentWord
+          ? {
+              word: currentWord.words.word,
+              sentence,
+              definition: currentWord.words.definition || "",
+              tags: currentWord.words.tags || "",
+              wordId: currentWord.word_id,
+            }
+          : {
+              targetKind: "grammar",
+              sentence,
+              grammarItemId: currentGrammar!.grammar_item_id,
+              title: currentGrammar!.grammar.title,
+              pattern: currentGrammar!.grammar.pattern,
+              coreExplanation: currentGrammar!.grammar.coreExplanation,
+              usageNote: currentGrammar!.grammar.usageNote || null,
+              sceneTags: currentGrammar!.grammar.sceneTags,
+              templates: currentGrammar!.grammar.templates.map((item) => item.template),
+              examples: currentGrammar!.grammar.examples.map((item) => item.sentence),
+            }
+
+        streamedContent = await streamEvaluateSentence(payload, (fullText) => {
+          schedulePreviewUpdate(fullText)
+        })
 
         cancelScheduledPreviewUpdate()
         flushScheduledPreviewUpdate()
@@ -216,30 +255,59 @@ export function useStudySubmission({
 
       const submission =
         mode === "practice"
-          ? await rewriteSentence(
-              currentWord.word_id,
-              wordData.word,
-              wordData.definition || "",
-              wordData.tags || "",
-              sentence,
-              librarySlug,
-              streamedContent
-            )
-          : await submitSentence(
-              currentWord.userWordId,
-              currentWord.word_id,
-              wordData.word,
-              wordData.definition || "",
-              wordData.tags || "",
-              sentence,
-              librarySlug,
-              streamedContent
-            )
+          ? currentWord
+            ? await rewriteSentence(
+                currentWord.word_id,
+                currentWord.words.word,
+                currentWord.words.definition || "",
+                currentWord.words.tags || "",
+                sentence,
+                librarySlug,
+                streamedContent
+              )
+            : await rewriteGrammarSentence(
+                currentGrammar!.grammar_item_id,
+                currentGrammar!.grammar.title,
+                currentGrammar!.grammar.pattern,
+                currentGrammar!.grammar.coreExplanation,
+                currentGrammar!.grammar.usageNote || null,
+                currentGrammar!.grammar.sceneTags,
+                currentGrammar!.grammar.templates.map((item) => item.template),
+                currentGrammar!.grammar.examples.map((item) => item.sentence),
+                sentence,
+                librarySlug,
+                streamedContent
+              )
+          : currentWord
+            ? await submitSentence(
+                currentWord.userWordId,
+                currentWord.word_id,
+                currentWord.words.word,
+                currentWord.words.definition || "",
+                currentWord.words.tags || "",
+                sentence,
+                librarySlug,
+                streamedContent
+              )
+            : await submitGrammarSentence(
+                currentGrammar!.userGrammarItemId,
+                currentGrammar!.grammar_item_id,
+                currentGrammar!.grammar.title,
+                currentGrammar!.grammar.pattern,
+                currentGrammar!.grammar.coreExplanation,
+                currentGrammar!.grammar.usageNote || null,
+                currentGrammar!.grammar.sceneTags,
+                currentGrammar!.grammar.templates.map((item) => item.template),
+                currentGrammar!.grammar.examples.map((item) => item.sentence),
+                sentence,
+                librarySlug,
+                streamedContent
+              )
 
       setResult(submission)
       setStatus("result")
 
-      if (mode === "scheduled") {
+      if (mode === "scheduled" && currentWord) {
         onRequeueReviewedNewWord({
           reviewedWord: currentWord,
           userWordId: submission.userWordId,
@@ -248,7 +316,7 @@ export function useStudySubmission({
       }
     } catch (error) {
       console.error(error)
-      alert("AI 评估失败。")
+      alert("AI evaluation failed.")
       setStatus("idle")
     } finally {
       cancelScheduledPreviewUpdate()

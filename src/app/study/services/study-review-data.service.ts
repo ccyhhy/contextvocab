@@ -1,6 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getStudyPriorityReason, sortDueCandidates } from '@/lib/study-scheduler'
-import type { StudyBatchItem, StudyView, StudyWordExample, StudyWordProfile } from '../actions'
+import type {
+  StudyBatchWordItem,
+  StudyView,
+  StudyWordExample,
+  StudyWordProfile,
+} from '../actions'
 
 type DueStudyCategory = 'leech_due' | 'overdue' | 'weak_due' | 'due'
 
@@ -9,8 +14,8 @@ interface StudyReviewDataServiceDeps {
   toPostgrestInList: (ids: string[]) => string
   normalizeStudyBatchItem: (
     value: unknown,
-    overrides: Pick<StudyBatchItem, 'isNew' | 'priorityReason'>
-  ) => StudyBatchItem | null
+    overrides: Pick<StudyBatchWordItem, 'isNew' | 'priorityReason'>
+  ) => StudyBatchWordItem | null
   normalizeStudyWordProfile: (value: unknown) => StudyWordProfile | null
   normalizeStudyWordExamples: (rows: unknown[]) => StudyWordExample[]
   isMissingWordProfileTableError: (error: { message?: string; details?: string } | null) => boolean
@@ -274,7 +279,7 @@ export async function loadDueStudyItems({
   const startedAt = Date.now()
   const targetSize = Math.max(batchSize * 6, 24)
   const categories: DueStudyCategory[] = ['leech_due', 'overdue', 'weak_due', 'due']
-  const items: StudyBatchItem[] = []
+  const items: StudyBatchWordItem[] = []
 
   for (const category of categories) {
     const rows = await loadDueRowsByCategory({
@@ -332,7 +337,7 @@ export async function hydrateStudyBatchWordDetails({
   deps,
 }: {
   supabase: SupabaseClient
-  batch: StudyBatchItem[]
+  batch: StudyBatchWordItem[]
   deps: Pick<
     StudyReviewDataServiceDeps,
     | 'normalizeStudyWordProfile'
@@ -340,7 +345,7 @@ export async function hydrateStudyBatchWordDetails({
     | 'isMissingWordProfileTableError'
     | 'logStudyPerformance'
   >
-}): Promise<StudyBatchItem[]> {
+}): Promise<StudyBatchWordItem[]> {
   const startedAt = Date.now()
   if (batch.length === 0) {
     return batch

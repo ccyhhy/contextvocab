@@ -1,7 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { calculateNextReview } from '@/lib/srs'
 import { shiftDateString } from '@/lib/app-date'
-import type { EvaluationResult, StudySubmissionResult } from '../actions'
+import type {
+  EvaluationResult,
+  StudySubmissionResult,
+} from '../actions'
 
 interface SubmissionUserWordRecord {
   id: string
@@ -17,6 +20,18 @@ interface SubmissionUserWordRecord {
 
 interface SubmissionLibrary {
   id: string
+}
+
+interface SubmissionUserGrammarRecord {
+  id: string
+  repetitions: number
+  interval: number
+  ease_factor: number
+  next_review_date?: string | null
+  last_score?: number | null
+  last_reviewed_at?: string | null
+  consecutive_failures?: number | null
+  lapse_count?: number | null
 }
 
 interface StudySubmissionServiceDeps {
@@ -57,6 +72,57 @@ interface StudySubmissionServiceDeps {
     supabase: SupabaseClient,
     userId: string,
     wordId: string,
+    librarySlug?: string
+  ) => Promise<void>
+  formatModelLabel: (model: string, apiBase: string) => string
+}
+
+interface StudyGrammarSubmissionServiceDeps {
+  parseEvaluationJson: (
+    content: string,
+    fallbackSentence: string,
+    targetKind: 'word' | 'grammar'
+  ) => EvaluationResult
+  getGrammarLearningHistory: (
+    supabase: SupabaseClient,
+    userId: string,
+    grammarItemId: string
+  ) => Promise<string[]>
+  evaluateGrammarSentence: (input: {
+    title: string
+    pattern: string
+    coreExplanation: string
+    usageNote?: string | null
+    sceneTags?: string[]
+    templates?: string[]
+    examples?: string[]
+    sentence: string
+    learningHistory?: string[]
+  }) => Promise<EvaluationResult>
+  toUserGrammarRecord: (value: unknown) => SubmissionUserGrammarRecord | null
+  getLibraryBySlug: (
+    supabase: SupabaseClient,
+    librarySlug: string
+  ) => Promise<SubmissionLibrary | null>
+  attachGrammarItemToUser: (
+    grammarItemId: string,
+    reviewDate: string,
+    supabase: SupabaseClient,
+    userId: string,
+    libraryId?: string | null
+  ) => Promise<unknown>
+  getNextFailureCounters: (
+    currentSrs: SubmissionUserGrammarRecord,
+    reviewBucket: ReturnType<typeof calculateNextReview>['reviewBucket']
+  ) => {
+    consecutiveFailures: number
+    lapseCount: number
+  }
+  buildGrammarFeedbackForStorage: (evaluation: EvaluationResult, sentence: string) => string
+  touchLibraryGrammarProgress: (
+    supabase: SupabaseClient,
+    userId: string,
+    grammarItemId: string,
     librarySlug?: string
   ) => Promise<void>
   formatModelLabel: (model: string, apiBase: string) => string
@@ -104,6 +170,68 @@ async function resolveEvaluation({
 
   const learningHistory = await deps.getWordLearningHistory(supabase, userId, wordId)
   return deps.evaluateSentence(wordStr, sentence, definition, tags, learningHistory)
+}
+
+async function resolveGrammarEvaluation({
+  supabase,
+  userId,
+  grammarItemId,
+  title,
+  pattern,
+  coreExplanation,
+  usageNote,
+  sceneTags,
+  templates,
+  examples,
+  sentence,
+  streamedContent,
+  parseLogLabel,
+  deps,
+}: {
+  supabase: SupabaseClient
+  userId: string
+  grammarItemId: string
+  title: string
+  pattern: string
+  coreExplanation: string
+  usageNote?: string | null
+  sceneTags?: string[]
+  templates?: string[]
+  examples?: string[]
+  sentence: string
+  streamedContent?: string | null
+  parseLogLabel: string
+  deps: Pick<
+    StudyGrammarSubmissionServiceDeps,
+    'parseEvaluationJson' | 'getGrammarLearningHistory' | 'evaluateGrammarSentence'
+  >
+}) {
+  let evaluation: EvaluationResult | null = null
+
+  if (streamedContent?.trim()) {
+    try {
+      evaluation = deps.parseEvaluationJson(streamedContent, sentence, 'grammar')
+    } catch (error) {
+      console.error(parseLogLabel, error)
+    }
+  }
+
+  if (evaluation) {
+    return evaluation
+  }
+
+  const learningHistory = await deps.getGrammarLearningHistory(supabase, userId, grammarItemId)
+  return deps.evaluateGrammarSentence({
+    title,
+    pattern,
+    coreExplanation,
+    usageNote,
+    sceneTags,
+    templates,
+    examples,
+    sentence,
+    learningHistory,
+  })
 }
 
 function getEvaluationModelLabel(
@@ -250,7 +378,9 @@ export async function submitStudySentence({
     savedSentence,
     evaluationModelLabel: getEvaluationModelLabel(deps),
     reviewImpact: 'scheduled',
+    targetKind: 'word',
     userWordId: currentSrs.id,
+    userGrammarItemId: null,
   }
 }
 
@@ -305,6 +435,250 @@ export async function rewriteStudySentence({
     savedSentence: null,
     evaluationModelLabel: getEvaluationModelLabel(deps),
     reviewImpact: 'practice_only',
+    targetKind: 'word',
     userWordId: null,
+    userGrammarItemId: null,
+  }
+}
+
+export async function submitStudyGrammarAttempt({
+  supabase,
+  userId,
+  today,
+  userGrammarItemId,
+  grammarItemId,
+  title,
+  pattern,
+  coreExplanation,
+  usageNote,
+  sceneTags,
+  templates,
+  examples,
+  sentence,
+  librarySlug,
+  streamedContent,
+  deps,
+}: {
+  supabase: SupabaseClient
+  userId: string
+  today: string
+  userGrammarItemId: string | null
+  grammarItemId: string
+  title: string
+  pattern: string
+  coreExplanation: string
+  usageNote?: string | null
+  sceneTags?: string[]
+  templates?: string[]
+  examples?: string[]
+  sentence: string
+  librarySlug?: string
+  streamedContent?: string | null
+  deps: StudyGrammarSubmissionServiceDeps
+}): Promise<StudySubmissionResult> {
+  const evaluation = await resolveGrammarEvaluation({
+    supabase,
+    userId,
+    grammarItemId,
+    title,
+    pattern,
+    coreExplanation,
+    usageNote,
+    sceneTags,
+    templates,
+    examples,
+    sentence,
+    streamedContent,
+    parseLogLabel: 'Failed to parse streamed grammar evaluation content:',
+    deps,
+  })
+
+  let currentSrs: SubmissionUserGrammarRecord | null = null
+
+  if (userGrammarItemId) {
+    const { data } = await supabase
+      .from('user_grammar_items')
+      .select('*')
+      .eq('id', userGrammarItemId)
+      .single()
+    currentSrs = deps.toUserGrammarRecord(data)
+  }
+
+  if (!currentSrs) {
+    const library = await deps.getLibraryBySlug(supabase, librarySlug ?? 'all')
+    const attached = await deps.attachGrammarItemToUser(
+      grammarItemId,
+      today,
+      supabase,
+      userId,
+      library?.id
+    )
+    currentSrs = deps.toUserGrammarRecord(attached)
+
+    if (!currentSrs) {
+      throw new Error('User grammar item not found')
+    }
+  }
+
+  const nextSrs = calculateNextReview(
+    {
+      repetitions: currentSrs.repetitions,
+      interval: currentSrs.interval,
+      easeFactor: currentSrs.ease_factor,
+    },
+    evaluation.score
+  )
+
+  const reviewStats = deps.getNextFailureCounters(currentSrs, nextSrs.reviewBucket)
+  const reviewedAt = new Date().toISOString()
+  const nextReviewDate = shiftDateString(today, nextSrs.interval)
+
+  const { error: updateError } = await supabase
+    .from('user_grammar_items')
+    .update({
+      repetitions: nextSrs.repetitions,
+      interval: nextSrs.interval,
+      ease_factor: nextSrs.easeFactor,
+      next_review_date: nextReviewDate,
+      last_score: evaluation.score,
+      last_reviewed_at: reviewedAt,
+      consecutive_failures: reviewStats.consecutiveFailures,
+      lapse_count: reviewStats.lapseCount,
+    })
+    .eq('id', currentSrs.id)
+
+  if (updateError) {
+    throw updateError
+  }
+
+  const correctedText = evaluation.correctedSentence || evaluation.polishedSentence || null
+  const correctedTextTranslation =
+    evaluation.correctedSentenceMeaning || evaluation.polishedSentenceMeaning || null
+
+  const { data: savedAttempt, error: savedAttemptError } = await supabase
+    .from('grammar_attempts')
+    .insert({
+      user_id: userId,
+      grammar_item_id: grammarItemId,
+      original_text: sentence,
+      ai_score: evaluation.score,
+      ai_feedback: deps.buildGrammarFeedbackForStorage(evaluation, sentence),
+      corrected_text: correctedText,
+      corrected_text_translation: correctedTextTranslation,
+      attempt_status: evaluation.attemptStatus,
+      pattern_matched: evaluation.patternMatched,
+      structure_accuracy: evaluation.structureAccuracy,
+      scene_fit: evaluation.sceneFit,
+      naturalness: evaluation.naturalness,
+    })
+    .select()
+    .single()
+
+  if (savedAttemptError) {
+    const { error: rollbackError } = await supabase
+      .from('user_grammar_items')
+      .update({
+        repetitions: currentSrs.repetitions,
+        interval: currentSrs.interval,
+        ease_factor: currentSrs.ease_factor,
+        next_review_date: currentSrs.next_review_date ?? today,
+        last_score: currentSrs.last_score ?? null,
+        last_reviewed_at: currentSrs.last_reviewed_at ?? null,
+        consecutive_failures: currentSrs.consecutive_failures ?? 0,
+        lapse_count: currentSrs.lapse_count ?? 0,
+      })
+      .eq('id', currentSrs.id)
+
+    if (rollbackError) {
+      console.error(
+        'Failed to rollback user_grammar_items after grammar_attempts insert error:',
+        rollbackError
+      )
+      throw new Error('Failed to save grammar history and rollback study state.')
+    }
+
+    throw savedAttemptError
+  }
+
+  await deps.touchLibraryGrammarProgress(supabase, userId, grammarItemId, librarySlug)
+
+  return {
+    evaluation,
+    nextSrs,
+    savedSentence: savedAttempt,
+    evaluationModelLabel: getEvaluationModelLabel(deps),
+    reviewImpact: 'scheduled',
+    targetKind: 'grammar',
+    userWordId: null,
+    userGrammarItemId: currentSrs.id,
+  }
+}
+
+export async function rewriteStudyGrammarAttempt({
+  supabase,
+  userId,
+  grammarItemId,
+  title,
+  pattern,
+  coreExplanation,
+  usageNote,
+  sceneTags,
+  templates,
+  examples,
+  sentence,
+  librarySlug,
+  streamedContent,
+  deps,
+}: {
+  supabase: SupabaseClient
+  userId: string
+  grammarItemId: string
+  title: string
+  pattern: string
+  coreExplanation: string
+  usageNote?: string | null
+  sceneTags?: string[]
+  templates?: string[]
+  examples?: string[]
+  sentence: string
+  librarySlug?: string
+  streamedContent?: string | null
+  deps: Pick<
+    StudyGrammarSubmissionServiceDeps,
+    | 'parseEvaluationJson'
+    | 'getGrammarLearningHistory'
+    | 'evaluateGrammarSentence'
+    | 'touchLibraryGrammarProgress'
+    | 'formatModelLabel'
+  >
+}): Promise<StudySubmissionResult> {
+  const evaluation = await resolveGrammarEvaluation({
+    supabase,
+    userId,
+    grammarItemId,
+    title,
+    pattern,
+    coreExplanation,
+    usageNote,
+    sceneTags,
+    templates,
+    examples,
+    sentence,
+    streamedContent,
+    parseLogLabel: 'Failed to parse streamed grammar rewrite content:',
+    deps,
+  })
+
+  await deps.touchLibraryGrammarProgress(supabase, userId, grammarItemId, librarySlug)
+
+  return {
+    evaluation,
+    nextSrs: null,
+    savedSentence: null,
+    evaluationModelLabel: getEvaluationModelLabel(deps),
+    reviewImpact: 'practice_only',
+    targetKind: 'grammar',
+    userWordId: null,
+    userGrammarItemId: null,
   }
 }

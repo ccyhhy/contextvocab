@@ -3,6 +3,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   buildEvaluationSystemPrompt,
+  buildGrammarEvaluationSystemPrompt,
   buildEvaluationUserPrompt,
   extractEvaluationJson,
 } from '@/lib/evaluation-format'
@@ -12,7 +13,16 @@ import {
   getOpenAiApiUrl,
   normalizeOpenAiApiType,
 } from '@/lib/openai-api'
-import type { StudyContentType } from '@/lib/study-content'
+import type {
+  GrammarContrastInfo,
+  GrammarExampleInfo,
+  GrammarSlotDefinition,
+  GrammarStudyInfo,
+  GrammarTemplateInfo,
+  StudyContentType,
+  StudyTargetKind,
+} from '@/lib/study-content'
+import { normalizeStudyContentType } from '@/lib/study-content'
 import { isLearnerFriendlyExampleSentence } from '@/lib/example-safety'
 import { type ReviewBucket, type SRSData } from '@/lib/srs'
 import { type StudyPriorityReason } from '@/lib/study-scheduler'
@@ -29,7 +39,9 @@ import {
   loadStudyLibraries,
   loadStudyLibraryOptions,
   loadStudySidebarData,
+  rewriteStudyGrammarAttempt,
   submitStudySentence,
+  submitStudyGrammarAttempt,
 } from './services'
 
 export type AttemptStatus = 'valid' | 'needs_help'
@@ -70,6 +82,9 @@ export interface EvaluationResult {
   usageQuality: UsageQuality
   usesWordInContext: boolean
   isMetaSentence: boolean
+  patternMatched: boolean
+  structureAccuracy: number
+  sceneFit: number
 }
 
 export interface StudySubmissionResult {
@@ -78,7 +93,9 @@ export interface StudySubmissionResult {
   savedSentence: unknown | null
   evaluationModelLabel: string
   reviewImpact: 'scheduled' | 'practice_only'
+  targetKind: StudyTargetKind
   userWordId: string | null
+  userGrammarItemId: string | null
 }
 
 export interface StudyWordContrast {
@@ -113,13 +130,42 @@ export interface StudyWordInfo {
   examples?: StudyWordExample[]
 }
 
-export interface StudyBatchItem {
+export interface StudyBatchWordItem {
+  kind: 'word'
   id: string
   userWordId: string | null
   word_id: string
   words: StudyWordInfo
   isNew: boolean
   priorityReason: StudyPriorityReason
+}
+
+export interface StudyBatchGrammarItem {
+  kind: 'grammar'
+  id: string
+  userGrammarItemId: string | null
+  grammar_item_id: string
+  grammar: GrammarStudyInfo
+  isNew: boolean
+  priorityReason: StudyPriorityReason
+}
+
+export type StudyBatchItem = StudyBatchWordItem | StudyBatchGrammarItem
+
+export function isStudyBatchWordItem(
+  item: StudyBatchItem | null | undefined
+): item is StudyBatchWordItem {
+  return item?.kind === 'word'
+}
+
+export function isStudyBatchGrammarItem(
+  item: StudyBatchItem | null | undefined
+): item is StudyBatchGrammarItem {
+  return item?.kind === 'grammar'
+}
+
+export function getStudyBatchItemKey(item: StudyBatchItem) {
+  return item.kind === 'grammar' ? item.grammar_item_id : item.word_id
 }
 
 export interface StudyLibrary {
@@ -194,6 +240,9 @@ interface EvaluationPayload {
   usageQuality?: unknown
   usesWordInContext?: unknown
   isMetaSentence?: unknown
+  patternMatched?: unknown
+  structureAccuracy?: unknown
+  sceneFit?: unknown
 }
 
 interface ErrorPayload {
@@ -245,6 +294,56 @@ interface WordProfileExampleRow {
   quality_score?: number | null
 }
 
+interface GrammarItemRow {
+  id: string
+  slug: string
+  title: string
+  short_label?: string | null
+  pattern: string
+  family: string
+  subtype?: string | null
+  anchor?: string | null
+  core_explanation: string
+  usage_note?: string | null
+  usage_register?: string | null
+  scene_tags?: string[] | null
+  slot_schema?: unknown
+  common_errors?: unknown
+}
+
+interface LibraryGrammarItemRow {
+  grammar_item_id?: string | null
+  position?: number | null
+  grammar_items?: GrammarItemRow | GrammarItemRow[] | null
+}
+
+interface GrammarItemExampleRow {
+  grammar_item_id: string
+  sentence?: string | null
+  translation?: string | null
+  note?: string | null
+  scene?: string | null
+  is_primary?: boolean | null
+  quality_score?: number | null
+}
+
+interface GrammarItemTemplateRow {
+  grammar_item_id: string
+  label?: string | null
+  template?: string | null
+  slot_hints?: unknown
+  example_sentence?: string | null
+  example_translation?: string | null
+  position?: number | null
+}
+
+interface GrammarItemContrastRow {
+  grammar_item_id: string
+  contrast_item_id?: string | null
+  note?: string | null
+  position?: number | null
+}
+
 interface UserWordRecord {
   id: string
   word_id: string
@@ -257,6 +356,19 @@ interface UserWordRecord {
   consecutive_failures?: number | null
   lapse_count?: number | null
   words?: WordRow | WordRow[] | null
+}
+
+interface UserGrammarItemRecord {
+  id: string
+  grammar_item_id: string
+  repetitions: number
+  interval: number
+  ease_factor: number
+  next_review_date?: string | null
+  last_score?: number | null
+  last_reviewed_at?: string | null
+  consecutive_failures?: number | null
+  lapse_count?: number | null
 }
 
 type FailureCounterRecord = Pick<UserWordRecord, 'consecutive_failures' | 'lapse_count'>
@@ -712,10 +824,17 @@ function makeErrorResult(message: string): EvaluationResult {
     usageQuality: 'invalid',
     usesWordInContext: false,
     isMetaSentence: false,
+    patternMatched: false,
+    structureAccuracy: 0,
+    sceneFit: 0,
   }
 }
 
-function normalizeEvaluation(payload: EvaluationPayload, fallbackSentence: string): EvaluationResult {
+function normalizeEvaluation(
+  payload: EvaluationPayload,
+  fallbackSentence: string,
+  targetKind: 'word' | 'grammar' = 'word'
+): EvaluationResult {
   const errorItems = Array.isArray(payload.errors) ? (payload.errors as ErrorPayload[]) : []
   const advancedItems = Array.isArray(payload.advancedExpressions)
     ? (payload.advancedExpressions as AdvancedExpressionPayload[])
@@ -728,6 +847,24 @@ function normalizeEvaluation(payload: EvaluationPayload, fallbackSentence: strin
     (attemptStatus === 'valid' ||
       sanitizeText(payload.correctedSentence).length > 0 ||
       sanitizeText(payload.polishedSentence).length > 0)
+  const structureAccuracy = clamp(
+    Number(payload.structureAccuracy) || Number(payload.grammarScore) || 3,
+    1,
+    5
+  )
+  const sceneFit = clamp(Number(payload.sceneFit) || Number(payload.wordUsageScore) || 3, 1, 5)
+  const grammarScore =
+    targetKind === 'grammar'
+      ? structureAccuracy
+      : clamp(Number(payload.grammarScore) || 3, 1, 5)
+  const wordUsageScore =
+    targetKind === 'grammar'
+      ? sceneFit
+      : clamp(Number(payload.wordUsageScore) || 3, 1, 5)
+  const patternMatched =
+    targetKind === 'grammar'
+      ? payload.patternMatched === true
+      : payload.patternMatched === true || payload.usesWordInContext === true
 
   return {
     score: clamp(Number(payload.score) || 0, 0, 100),
@@ -744,8 +881,8 @@ function normalizeEvaluation(payload: EvaluationPayload, fallbackSentence: strin
       sanitizeText(payload.suggestion) ||
       '先用造句辅助搭一个简单句，再逐步补充细节。',
     naturalness: clamp(Number(payload.naturalness) || 3, 1, 5),
-    grammarScore: clamp(Number(payload.grammarScore) || 3, 1, 5),
-    wordUsageScore: clamp(Number(payload.wordUsageScore) || 3, 1, 5),
+    grammarScore,
+    wordUsageScore,
     advancedExpressions: allowRewrite
       ? advancedItems.map((item) => ({
           original: sanitizeText(item.original),
@@ -763,13 +900,20 @@ function normalizeEvaluation(payload: EvaluationPayload, fallbackSentence: strin
     usageQuality,
     usesWordInContext: payload.usesWordInContext === true,
     isMetaSentence: payload.isMetaSentence === true,
+    patternMatched,
+    structureAccuracy,
+    sceneFit,
   }
 }
 
-function parseEvaluationJson(content: string, fallbackSentence: string): EvaluationResult {
+function parseEvaluationJson(
+  content: string,
+  fallbackSentence: string,
+  targetKind: 'word' | 'grammar' = 'word'
+): EvaluationResult {
   const jsonStr = extractEvaluationJson(content)
   const parsed = JSON.parse(jsonStr) as EvaluationPayload
-  return normalizeEvaluation(parsed, fallbackSentence)
+  return normalizeEvaluation(parsed, fallbackSentence, targetKind)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1225,13 +1369,31 @@ function buildSentenceHelpFallbackResultSafe(args: {
   }
 }
 
-function buildSystemPrompt(word: string, definition: string, tags?: string, learningHistory?: string[]) {
+function buildWordSystemPrompt(
+  word: string,
+  definition: string,
+  tags?: string,
+  learningHistory?: string[]
+) {
   return buildEvaluationSystemPrompt({
     word,
     definition,
     tags,
     learningHistory,
   })
+}
+
+function buildGrammarSystemPrompt(input: {
+  title: string
+  pattern: string
+  coreExplanation: string
+  usageNote?: string | null
+  sceneTags?: string[]
+  examples?: string[]
+  templates?: string[]
+  learningHistory?: string[]
+}) {
+  return buildGrammarEvaluationSystemPrompt(input)
 }
 
 function isMissingFavoriteColumnError(error: { message?: string; details?: string } | null) {
@@ -1244,8 +1406,10 @@ function isMissingLibrariesTableError(error: { message?: string; details?: strin
   return (
     message.includes('libraries') ||
     message.includes('library_words') ||
+    message.includes('library_grammar_items') ||
     message.includes('user_library_plans') ||
-    message.includes('user_library_words')
+    message.includes('user_library_words') ||
+    message.includes('user_library_grammar_items')
   )
 }
 
@@ -1365,10 +1529,164 @@ function normalizeStudyWordExamples(rows: unknown[]) {
     }))
 }
 
+function normalizeGrammarItemRow(value: unknown): GrammarItemRow | null {
+  if (Array.isArray(value)) {
+    return normalizeGrammarItemRow(value[0])
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return null
+  }
+
+  const row = value as GrammarItemRow
+  if (
+    typeof row.id !== 'string' ||
+    typeof row.slug !== 'string' ||
+    typeof row.title !== 'string' ||
+    typeof row.pattern !== 'string' ||
+    typeof row.family !== 'string' ||
+    typeof row.core_explanation !== 'string'
+  ) {
+    return null
+  }
+
+  return row
+}
+
+function normalizeGrammarSlotSchema(value: unknown): GrammarSlotDefinition[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  const slots: GrammarSlotDefinition[] = []
+
+  for (const item of value) {
+    if (typeof item !== 'object' || item === null) {
+      continue
+    }
+
+    const record = item as Record<string, unknown>
+    const key = sanitizeText(record.key).trim()
+    const label = sanitizeText(record.label).trim()
+    const type = sanitizeText(record.type).trim()
+    const hint = sanitizeText(record.hint).trim()
+
+    if (!key || !label || !type) {
+      continue
+    }
+
+    slots.push({
+      key,
+      label,
+      type: type as GrammarSlotDefinition['type'],
+      required: record.required !== false,
+      hint: hint || null,
+    })
+  }
+
+  return slots
+}
+
+function normalizeGrammarExamples(rows: unknown[]): GrammarExampleInfo[] {
+  return rows
+    .filter((row): row is GrammarItemExampleRow => typeof row === 'object' && row !== null)
+    .filter((row) => typeof row.sentence === 'string' && row.sentence.trim().length > 0)
+    .sort((left, right) => {
+      if (Boolean(left.is_primary) !== Boolean(right.is_primary)) {
+        return left.is_primary ? -1 : 1
+      }
+
+      return (right.quality_score ?? 0) - (left.quality_score ?? 0)
+    })
+    .map((row) => ({
+      sentence: row.sentence as string,
+      translation: row.translation ?? null,
+      note: row.note ?? null,
+      scene: row.scene ?? null,
+      isPrimary: row.is_primary === true,
+    }))
+}
+
+function normalizeGrammarTemplates(rows: unknown[]): GrammarTemplateInfo[] {
+  return rows
+    .filter((row): row is GrammarItemTemplateRow => typeof row === 'object' && row !== null)
+    .filter(
+      (row) =>
+        typeof row.label === 'string' &&
+        row.label.trim().length > 0 &&
+        typeof row.template === 'string' &&
+        row.template.trim().length > 0
+    )
+    .sort((left, right) => (left.position ?? 0) - (right.position ?? 0))
+    .map((row, index) => ({
+      label: row.label as string,
+      template: row.template as string,
+      slotHints: normalizeStringArray(row.slot_hints),
+      exampleSentence: row.example_sentence ?? null,
+      exampleTranslation: row.example_translation ?? null,
+      position: typeof row.position === 'number' ? row.position : index + 1,
+    }))
+}
+
+function normalizeGrammarContrasts(
+  rows: unknown[],
+  titlesById: Map<string, { slug: string; title: string }>
+): GrammarContrastInfo[] {
+  return rows
+    .filter((row): row is GrammarItemContrastRow => typeof row === 'object' && row !== null)
+    .filter(
+      (row) =>
+        typeof row.contrast_item_id === 'string' &&
+        typeof row.note === 'string' &&
+        row.note.trim().length > 0
+    )
+    .sort((left, right) => (left.position ?? 0) - (right.position ?? 0))
+    .map((row) => {
+      const linked = titlesById.get(row.contrast_item_id as string)
+      if (!linked) {
+        return null
+      }
+
+      return {
+        slug: linked.slug,
+        title: linked.title,
+        note: row.note as string,
+      }
+    })
+    .filter((item): item is GrammarContrastInfo => item !== null)
+}
+
+function buildGrammarStudyInfo(
+  row: GrammarItemRow,
+  examples: GrammarExampleInfo[],
+  templates: GrammarTemplateInfo[],
+  contrasts: GrammarContrastInfo[]
+): GrammarStudyInfo {
+  return {
+    kind: 'grammar',
+    slug: row.slug,
+    title: row.title,
+    shortLabel: row.short_label ?? null,
+    pattern: row.pattern,
+    family: row.family,
+    subtype: row.subtype ?? null,
+    anchor: row.anchor ?? null,
+    coreExplanation: row.core_explanation,
+    usageNote: row.usage_note ?? null,
+    usageRegister: row.usage_register ?? null,
+    sceneTags: normalizeStringArray(row.scene_tags),
+    slotSchema: normalizeGrammarSlotSchema(row.slot_schema),
+    commonErrors: normalizeStringArray(row.common_errors),
+    contrasts,
+    examples,
+    templates,
+  }
+}
+
 function normalizeStudyBatchItem(
   value: unknown,
-  overrides: Pick<StudyBatchItem, 'isNew' | 'priorityReason'>
-): StudyBatchItem | null {
+  overrides: Pick<StudyBatchWordItem, 'isNew' | 'priorityReason'>
+): StudyBatchWordItem | null {
   if (!isUserWordRecord(value)) {
     return null
   }
@@ -1379,6 +1697,7 @@ function normalizeStudyBatchItem(
   }
 
   return {
+    kind: 'word',
     id: value.id,
     userWordId: value.id,
     word_id: value.word_id,
@@ -1390,8 +1709,8 @@ function normalizeStudyBatchItem(
 
 function normalizeNewStudyBatchItem(
   value: unknown,
-  overrides: Pick<StudyBatchItem, 'isNew' | 'priorityReason'>
-): StudyBatchItem | null {
+  overrides: Pick<StudyBatchWordItem, 'isNew' | 'priorityReason'>
+): StudyBatchWordItem | null {
   if (!isWordRecord(value)) {
     return null
   }
@@ -1402,6 +1721,7 @@ function normalizeNewStudyBatchItem(
   }
 
   return {
+    kind: 'word',
     id: `new:${value.id}`,
     userWordId: null,
     word_id: value.id,
@@ -1485,6 +1805,21 @@ async function getLibraryWordIds(supabase: SupabaseClient, libraryId: string) {
   )
 }
 
+function isUserGrammarItemRecord(value: unknown): value is UserGrammarItemRecord {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  const record = value as UserGrammarItemRecord
+  return (
+    typeof record.id === 'string' &&
+    typeof record.grammar_item_id === 'string' &&
+    typeof record.repetitions === 'number' &&
+    typeof record.interval === 'number' &&
+    typeof record.ease_factor === 'number'
+  )
+}
+
 async function ensureUserLibraryPlan(
   supabase: SupabaseClient,
   userId: string,
@@ -1555,6 +1890,36 @@ async function touchUserLibraryWord(
   }
 }
 
+async function touchUserLibraryGrammarItems(
+  supabase: SupabaseClient,
+  userId: string,
+  libraryId: string,
+  grammarItemIds: string[]
+) {
+  if (grammarItemIds.length === 0) {
+    return
+  }
+
+  const now = new Date().toISOString()
+  const payload = Array.from(new Set(grammarItemIds)).map((grammarItemId) => ({
+    user_id: userId,
+    library_id: libraryId,
+    grammar_item_id: grammarItemId,
+    introduced_at: now,
+    first_studied_at: now,
+    last_studied_at: now,
+    source: 'scheduled',
+  }))
+
+  const { error } = await supabase
+    .from('user_library_grammar_items')
+    .upsert(payload, { onConflict: 'user_id,library_id,grammar_item_id' })
+
+  if (error) {
+    console.error('Failed to touch user library grammar items:', error)
+  }
+}
+
 async function touchLibraryProgress(
   supabase: SupabaseClient,
   userId: string,
@@ -1568,6 +1933,21 @@ async function touchLibraryProgress(
 
   await ensureUserLibraryPlan(supabase, userId, library.id)
   await touchUserLibraryWord(supabase, userId, library.id, wordId)
+}
+
+async function touchLibraryGrammarProgress(
+  supabase: SupabaseClient,
+  userId: string,
+  grammarItemId: string,
+  librarySlug?: string | null
+) {
+  const library = await getLibraryBySlug(supabase, librarySlug ?? 'all')
+  if (!library) {
+    return
+  }
+
+  await ensureUserLibraryPlan(supabase, userId, library.id)
+  await touchUserLibraryGrammarItems(supabase, userId, library.id, [grammarItemId])
 }
 
 function buildWordFeedbackForStorage(
@@ -1591,6 +1971,23 @@ function buildWordFeedbackForStorage(
       : '',
     `【点评】${evaluation.praise}`,
     `【建议】${evaluation.suggestion}`,
+  ]
+
+  return sections.filter(Boolean).join('\n\n')
+}
+
+function buildGrammarFeedbackForStorage(
+  evaluation: EvaluationResult,
+  originalSentence: string
+) {
+  const sections = [
+    evaluation.patternMatched
+      ? '【结构命中】已命中目标句法结构。'
+      : '【结构命中】本次没有清晰命中目标句法结构。',
+    `【原句】${originalSentence}`,
+    evaluation.correctedSentence ? `【建议改写】${evaluation.correctedSentence}` : '',
+    evaluation.praise ? `【点评】${evaluation.praise}` : '',
+    evaluation.suggestion ? `【建议】${evaluation.suggestion}` : '',
   ]
 
   return sections.filter(Boolean).join('\n\n')
@@ -1809,6 +2206,58 @@ async function attachWordToUser(
   return existing
 }
 
+async function attachGrammarItemToUser(
+  grammarItemId: string,
+  reviewDate: string,
+  supabase: SupabaseClient,
+  userId: string,
+  libraryId?: string | null
+) {
+  const { data: inserted, error: insertError } = await supabase
+    .from('user_grammar_items')
+    .insert({
+      user_id: userId,
+      grammar_item_id: grammarItemId,
+      interval: 0,
+      ease_factor: 2.5,
+      repetitions: 0,
+      next_review_date: reviewDate,
+      is_favorite: false,
+    })
+    .select('*')
+    .maybeSingle()
+
+  if (inserted) {
+    if (libraryId) {
+      await ensureUserLibraryPlan(supabase, userId, libraryId)
+      await touchUserLibraryGrammarItems(supabase, userId, libraryId, [grammarItemId])
+    }
+    return inserted
+  }
+
+  if (insertError && insertError.code !== '23505') {
+    throw insertError
+  }
+
+  const { data: existing, error: existingError } = await supabase
+    .from('user_grammar_items')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('grammar_item_id', grammarItemId)
+    .maybeSingle()
+
+  if (existingError) {
+    throw existingError
+  }
+
+  if (existing && libraryId) {
+    await ensureUserLibraryPlan(supabase, userId, libraryId)
+    await touchUserLibraryGrammarItems(supabase, userId, libraryId, [grammarItemId])
+  }
+
+  return existing
+}
+
 async function getDueWordCount(
   supabase: SupabaseClient,
   userId: string,
@@ -1894,8 +2343,8 @@ async function getNewStudyItems(
 
 async function hydrateStudyBatchWordDetails(
   supabase: SupabaseClient,
-  batch: StudyBatchItem[]
-): Promise<StudyBatchItem[]> {
+  batch: StudyBatchWordItem[]
+): Promise<StudyBatchWordItem[]> {
   return loadHydratedStudyBatchWordDetails({
     supabase,
     batch,
@@ -1925,6 +2374,197 @@ async function getWordLearningHistory(
     .map((record) => (record as PastSentenceRow).original_text)
     .filter((value): value is string => typeof value === 'string')
     .reverse()
+}
+
+async function getGrammarLearningHistory(
+  supabase: SupabaseClient,
+  userId: string,
+  grammarItemId: string
+) {
+  const { data: pastRecords } = await supabase
+    .from('grammar_attempts')
+    .select('original_text')
+    .eq('user_id', userId)
+    .eq('grammar_item_id', grammarItemId)
+    .order('created_at', { ascending: false })
+    .limit(5)
+
+  return (pastRecords ?? [])
+    .map((record) => (record as PastSentenceRow).original_text)
+    .filter((value): value is string => typeof value === 'string')
+    .reverse()
+}
+
+async function loadGrammarStudyBatch({
+  supabase,
+  userId,
+  library,
+  skippedItemIds,
+  batchSize,
+}: {
+  supabase: SupabaseClient
+  userId: string
+  library: LibraryRow
+  skippedItemIds: string[]
+  batchSize: number
+}): Promise<StudyBatchGrammarItem[]> {
+  const query = supabase
+    .from('library_grammar_items')
+    .select(
+      'grammar_item_id, position, grammar_items!inner(id, slug, title, short_label, pattern, family, subtype, anchor, core_explanation, usage_note, usage_register, scene_tags, slot_schema, common_errors)'
+    )
+    .eq('library_id', library.id)
+    .order('position', { ascending: true, nullsFirst: false })
+    .limit(batchSize)
+
+  if (skippedItemIds.length > 0) {
+    query.not('grammar_item_id', 'in', toPostgrestInList(skippedItemIds))
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Failed to load grammar study batch:', error)
+    return []
+  }
+
+  const grammarRows = ((data ?? []) as LibraryGrammarItemRow[])
+    .map((row) => {
+      const grammar = normalizeGrammarItemRow(row.grammar_items)
+      const grammarItemId =
+        typeof row.grammar_item_id === 'string' ? row.grammar_item_id : grammar?.id ?? null
+      if (!grammar || !grammarItemId) {
+        return null
+      }
+
+      return {
+        grammarItemId,
+        grammar,
+      }
+    })
+    .filter(
+      (row): row is { grammarItemId: string; grammar: GrammarItemRow } => row !== null
+    )
+
+  if (grammarRows.length === 0) {
+    return []
+  }
+
+  const grammarItemIds = grammarRows.map((row) => row.grammarItemId)
+  const [{ data: exampleRows, error: examplesError }, { data: templateRows, error: templatesError }, { data: contrastRows, error: contrastsError }] =
+    await Promise.all([
+      supabase
+        .from('grammar_item_examples')
+        .select('grammar_item_id, sentence, translation, note, scene, is_primary, quality_score')
+        .in('grammar_item_id', grammarItemIds),
+      supabase
+        .from('grammar_item_templates')
+        .select(
+          'grammar_item_id, label, template, slot_hints, example_sentence, example_translation, position'
+        )
+        .in('grammar_item_id', grammarItemIds),
+      supabase
+        .from('grammar_item_contrasts')
+        .select('grammar_item_id, contrast_item_id, note, position')
+        .in('grammar_item_id', grammarItemIds),
+    ])
+
+  if (examplesError) {
+    console.error('Failed to load grammar examples:', examplesError)
+  }
+
+  if (templatesError) {
+    console.error('Failed to load grammar templates:', templatesError)
+  }
+
+  if (contrastsError) {
+    console.error('Failed to load grammar contrasts:', contrastsError)
+  }
+
+  const contrastRowsList = (contrastRows ?? []) as GrammarItemContrastRow[]
+  const contrastItemIds = Array.from(
+    new Set(
+      contrastRowsList
+        .map((row) => row.contrast_item_id)
+        .filter((grammarItemId): grammarItemId is string => typeof grammarItemId === 'string')
+    )
+  )
+
+  const contrastTitleMap = new Map<string, { slug: string; title: string }>()
+  if (contrastItemIds.length > 0) {
+    const { data: contrastItems, error: contrastItemsError } = await supabase
+      .from('grammar_items')
+      .select('id, slug, title')
+      .in('id', contrastItemIds)
+
+    if (contrastItemsError) {
+      console.error('Failed to load grammar contrast item titles:', contrastItemsError)
+    } else {
+      for (const row of (contrastItems ?? []) as Array<{
+        id?: string | null
+        slug?: string | null
+        title?: string | null
+      }>) {
+        if (
+          typeof row.id === 'string' &&
+          typeof row.slug === 'string' &&
+          typeof row.title === 'string'
+        ) {
+          contrastTitleMap.set(row.id, {
+            slug: row.slug,
+            title: row.title,
+          })
+        }
+      }
+    }
+  }
+
+  const examplesByItemId = new Map<string, GrammarExampleInfo[]>()
+  for (const row of grammarItemIds) {
+    const items = normalizeGrammarExamples(
+      ((exampleRows ?? []) as GrammarItemExampleRow[]).filter(
+        (example) => example.grammar_item_id === row
+      )
+    )
+    examplesByItemId.set(row, items)
+  }
+
+  const templatesByItemId = new Map<string, GrammarTemplateInfo[]>()
+  for (const row of grammarItemIds) {
+    const items = normalizeGrammarTemplates(
+      ((templateRows ?? []) as GrammarItemTemplateRow[]).filter(
+        (template) => template.grammar_item_id === row
+      )
+    )
+    templatesByItemId.set(row, items)
+  }
+
+  const contrastsByItemId = new Map<string, GrammarContrastInfo[]>()
+  for (const row of grammarItemIds) {
+    const items = normalizeGrammarContrasts(
+      contrastRowsList.filter((contrast) => contrast.grammar_item_id === row),
+      contrastTitleMap
+    )
+    contrastsByItemId.set(row, items)
+  }
+
+  await ensureUserLibraryPlan(supabase, userId, library.id)
+  await touchUserLibraryGrammarItems(supabase, userId, library.id, grammarItemIds)
+
+  return grammarRows.map((row) => ({
+    kind: 'grammar',
+    id: row.grammarItemId,
+    userGrammarItemId: null,
+    grammar_item_id: row.grammarItemId,
+    grammar: buildGrammarStudyInfo(
+      row.grammar,
+      examplesByItemId.get(row.grammarItemId) ?? [],
+      templatesByItemId.get(row.grammarItemId) ?? [],
+      contrastsByItemId.get(row.grammarItemId) ?? []
+    ),
+    isNew: false,
+    priorityReason: 'new',
+  }))
 }
 
 export async function getStudyLibraries(): Promise<StudyLibrary[]> {
@@ -2237,7 +2877,7 @@ export async function evaluateSentence(
     }
   }
 
-  const systemPrompt = buildSystemPrompt(word, definition, tags, learningHistory)
+  const systemPrompt = buildWordSystemPrompt(word, definition, tags, learningHistory)
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
@@ -2280,7 +2920,7 @@ export async function evaluateSentence(
         throw new Error('AI returned empty content')
       }
 
-      return parseEvaluationJson(content, sentence)
+      return parseEvaluationJson(content, sentence, 'word')
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         if (attempt < 1) {
@@ -2306,8 +2946,133 @@ export async function evaluateSentence(
   return makeErrorResult('多次尝试后仍未拿到评估结果。')
 }
 
+export async function evaluateGrammarSentence(input: {
+  title: string
+  pattern: string
+  coreExplanation: string
+  usageNote?: string | null
+  sceneTags?: string[]
+  templates?: string[]
+  examples?: string[]
+  sentence: string
+  learningHistory?: string[]
+}): Promise<EvaluationResult> {
+  const apiKey = process.env.OPENAI_API_KEY
+  const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+  const apiType = normalizeOpenAiApiType(process.env.OPENAI_API_TYPE)
+  const model = process.env.OPENAI_MODEL || 'gpt-5.2'
+
+  if (!apiKey) {
+    console.warn('OPENAI_API_KEY is missing. Using mock grammar evaluation.')
+    return {
+      ...makeErrorResult('请先配置服务端 AI 环境变量。'),
+      correctedSentence: input.sentence,
+      score: 50,
+      attemptStatus: 'needs_help',
+      usageQuality: 'invalid',
+      praise: `你已经开始练习 "${input.title}"，但当前环境还没有真实 AI 评估。`,
+      suggestion: '请先配置 OPENAI_API_KEY、OPENAI_API_BASE 和 OPENAI_MODEL。',
+      grammarScore: 2,
+      wordUsageScore: 2,
+      structureAccuracy: 2,
+      sceneFit: 2,
+    }
+  }
+
+  const systemPrompt = buildGrammarSystemPrompt({
+    title: input.title,
+    pattern: input.pattern,
+    coreExplanation: input.coreExplanation,
+    usageNote: input.usageNote,
+    sceneTags: input.sceneTags,
+    templates: input.templates,
+    examples: input.examples,
+    learningHistory: input.learningHistory,
+  })
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+      const response = await fetch(getChatCompletionsUrl(apiBase, apiType), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(
+          buildTextGenerationRequest({
+            apiType,
+            model,
+            systemPrompt,
+            userPrompt: buildEvaluationUserPrompt(input.sentence),
+            temperature: 0.3,
+            maxOutputTokens: EVALUATION_MAX_OUTPUT_TOKENS,
+          })
+        ),
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        if (response.status === 429 && attempt < 1) {
+          await new Promise((resolve) => setTimeout(resolve, 2000))
+          continue
+        }
+        throw new Error(`API error (${response.status}): ${errorText.slice(0, 200)}`)
+      }
+
+      const data = await response.json()
+      const content = extractTextFromOpenAiResponse(data)
+      if (!content) {
+        throw new Error('AI returned empty content')
+      }
+
+      return parseEvaluationJson(content, input.sentence, 'grammar')
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        if (attempt < 1) {
+          continue
+        }
+        return makeErrorResult('评估超时，请稍后重试。')
+      }
+
+      if (error instanceof SyntaxError) {
+        console.error('AI returned malformed grammar JSON:', error)
+        return makeErrorResult('AI 返回格式异常，请重试。')
+      }
+
+      if (attempt < 1) {
+        continue
+      }
+
+      console.error('Failed to evaluate grammar sentence:', error)
+      return makeErrorResult(`评估失败：${getErrorMessage(error)}`)
+    }
+  }
+
+  return makeErrorResult('多次尝试后仍未拿到评估结果。')
+}
+
 export async function getStudyBatch(params: GetStudyBatchParams = {}) {
   const { supabase, user } = await requireActionSession()
+  const librarySlug = normalizeLibrarySlug(params.librarySlug)
+  const library =
+    librarySlug !== 'all' ? await getLibraryBySlug(supabase, librarySlug) : null
+
+  if (library && normalizeStudyContentType(library.content_type) === 'grammar') {
+    return loadGrammarStudyBatch({
+      supabase,
+      userId: user.id,
+      library,
+      skippedItemIds: params.skippedWordIds ?? [],
+      batchSize: clamp(params.batchSize ?? DEFAULT_STUDY_BATCH_SIZE, 1, 20),
+    })
+  }
+
   return loadStudyBatch({
     supabase,
     userId: user.id,
@@ -2411,6 +3176,90 @@ export async function rewriteSentence(
       getWordLearningHistory,
       evaluateSentence,
       touchLibraryProgress,
+      formatModelLabel,
+    },
+  })
+}
+
+export async function submitGrammarSentence(
+  userGrammarItemId: string | null,
+  grammarItemId: string,
+  title: string,
+  pattern: string,
+  coreExplanation: string,
+  usageNote: string | null,
+  sceneTags: string[],
+  templates: string[],
+  examples: string[],
+  sentence: string,
+  librarySlug?: string,
+  streamedContent?: string | null
+): Promise<StudySubmissionResult> {
+  const { supabase, user } = await requireActionSession()
+  return submitStudyGrammarAttempt({
+    supabase,
+    userId: user.id,
+    today: getTodayDateString(),
+    userGrammarItemId,
+    grammarItemId,
+    title,
+    pattern,
+    coreExplanation,
+    usageNote,
+    sceneTags,
+    templates,
+    examples,
+    sentence,
+    librarySlug,
+    streamedContent,
+    deps: {
+      parseEvaluationJson,
+      getGrammarLearningHistory,
+      evaluateGrammarSentence,
+      toUserGrammarRecord: (value) => (isUserGrammarItemRecord(value) ? value : null),
+      getLibraryBySlug,
+      attachGrammarItemToUser,
+      getNextFailureCounters,
+      buildGrammarFeedbackForStorage,
+      touchLibraryGrammarProgress,
+      formatModelLabel,
+    },
+  })
+}
+
+export async function rewriteGrammarSentence(
+  grammarItemId: string,
+  title: string,
+  pattern: string,
+  coreExplanation: string,
+  usageNote: string | null,
+  sceneTags: string[],
+  templates: string[],
+  examples: string[],
+  sentence: string,
+  librarySlug?: string,
+  streamedContent?: string | null
+): Promise<StudySubmissionResult> {
+  const { supabase, user } = await requireActionSession()
+  return rewriteStudyGrammarAttempt({
+    supabase,
+    userId: user.id,
+    grammarItemId,
+    title,
+    pattern,
+    coreExplanation,
+    usageNote,
+    sceneTags,
+    templates,
+    examples,
+    sentence,
+    librarySlug,
+    streamedContent,
+    deps: {
+      parseEvaluationJson,
+      getGrammarLearningHistory,
+      evaluateGrammarSentence,
+      touchLibraryGrammarProgress,
       formatModelLabel,
     },
   })

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { StudyBatchItem } from '../actions'
+import type { StudyBatchWordItem } from '../actions'
 
 interface StudyNewWordServiceDeps {
   getStartedWordIds: (
@@ -10,8 +10,8 @@ interface StudyNewWordServiceDeps {
   toPostgrestInList: (ids: string[]) => string
   normalizeNewStudyBatchItem: (
     value: unknown,
-    overrides: Pick<StudyBatchItem, 'isNew' | 'priorityReason'>
-  ) => StudyBatchItem | null
+    overrides: Pick<StudyBatchWordItem, 'isNew' | 'priorityReason'>
+  ) => StudyBatchWordItem | null
   logStudyPerformance: (
     label: string,
     startedAt: number,
@@ -245,7 +245,7 @@ export async function loadNewStudyItems({
   deps: StudyNewWordServiceDeps
 }) {
   const startedAt = Date.now()
-  const items: StudyBatchItem[] = []
+  const items: StudyBatchWordItem[] = []
   const excludedWordIds = new Set(skippedWordIds)
   let libraryUnseenWordIds = libraryWordIds
 

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { buildStudyMixPlan } from '@/lib/study-scheduler'
-import type { GetStudyBatchParams, StudyBatchItem, StudyView } from '../actions'
+import type { GetStudyBatchParams, StudyBatchWordItem, StudyView } from '../actions'
 
 interface StudyBatchScopeLibrary {
   id: string
@@ -43,7 +43,7 @@ interface StudyBatchServiceDeps {
     batchSize: number,
     studyView: StudyView,
     libraryWordIds?: string[]
-  ) => Promise<StudyBatchItem[]>
+  ) => Promise<StudyBatchWordItem[]>
   getNewStudyItems: (
     supabase: SupabaseClient,
     userId: string,
@@ -52,11 +52,11 @@ interface StudyBatchServiceDeps {
     preferredWordIds: string[],
     batchSize: number,
     libraryWordIds?: string[]
-  ) => Promise<StudyBatchItem[]>
+  ) => Promise<StudyBatchWordItem[]>
   hydrateStudyBatchWordDetails: (
     supabase: SupabaseClient,
-    batch: StudyBatchItem[]
-  ) => Promise<StudyBatchItem[]>
+    batch: StudyBatchWordItem[]
+  ) => Promise<StudyBatchWordItem[]>
   logStudyPerformance: (
     label: string,
     startedAt: number,
@@ -65,8 +65,8 @@ interface StudyBatchServiceDeps {
 }
 
 function composeStudyBatch(
-  dueItems: StudyBatchItem[],
-  newItems: StudyBatchItem[],
+  dueItems: StudyBatchWordItem[],
+  newItems: StudyBatchWordItem[],
   dueCount: number,
   favoritesOnly: boolean,
   batchSize: number
@@ -74,7 +74,7 @@ function composeStudyBatch(
   const plan = buildStudyMixPlan(dueCount, batchSize, favoritesOnly)
   const dueQueue = [...dueItems]
   const newQueue = [...newItems]
-  const batch: StudyBatchItem[] = []
+  const batch: StudyBatchWordItem[] = []
 
   for (const slot of plan) {
     if (slot === 'review' && dueQueue.length > 0) {
@@ -128,7 +128,7 @@ export async function loadStudyBatch({
   params?: GetStudyBatchParams
   defaultBatchSize: number
   deps: StudyBatchServiceDeps
-}): Promise<StudyBatchItem[]> {
+}): Promise<StudyBatchWordItem[]> {
   const startedAt = Date.now()
   const {
     librarySlug,

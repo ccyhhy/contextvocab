@@ -22,8 +22,9 @@ import {
 } from "./actions"
 
 const OFFICIAL_LIBRARY_DESCRIPTIONS: Record<string, string> = {
-  "cet-4": "大学英语四级核心词库",
-  "cet-6": "大学英语六级核心词库",
+  "cet-4": "Core CET-4 vocabulary library.",
+  "cet-6": "Core CET-6 vocabulary library.",
+  "basic-scene-grammar": "Core scene-based grammar library for high-frequency structures and sentence frames.",
 }
 
 function getLibraryProgress(library: Pick<StudyLibrary, "wordCount" | "activeCount">) {
@@ -37,14 +38,14 @@ function getLibraryProgress(library: Pick<StudyLibrary, "wordCount" | "activeCou
 function getPlanLabel(status: "active" | "paused" | "completed" | "not_started") {
   switch (status) {
     case "active":
-      return "进行中"
+      return "Active"
     case "paused":
-      return "已暂停"
+      return "Paused"
     case "completed":
-      return "已完成"
+      return "Completed"
     case "not_started":
     default:
-      return "未开始"
+      return "Not started"
   }
 }
 
@@ -53,16 +54,35 @@ function getLibraryDescription(library: Pick<StudyLibrary, "slug" | "sourceType"
     return (
       OFFICIAL_LIBRARY_DESCRIPTIONS[library.slug] ??
       library.description ??
-      "按词库组织新词来源，复习仍共享全局 SRS 和记忆进度。"
+      "Organize learning content into libraries while keeping progress on the shared study system."
     )
   }
 
-  return library.description || "按词库组织新词来源，复习仍共享全局 SRS 和记忆进度。"
+  return (
+    library.description ??
+    "Organize learning content into libraries while keeping progress on the shared study system."
+  )
+}
+
+function getContentTypeLabel(contentType: StudyLibrary["contentType"]) {
+  switch (contentType) {
+    case "grammar":
+      return "Grammar"
+    case "mixed":
+      return "Mixed"
+    case "word":
+    default:
+      return "Words"
+  }
+}
+
+function getItemLabel(contentType: StudyLibrary["contentType"]) {
+  return contentType === "grammar" ? "Items" : "Words"
 }
 
 function ResultNotice({
   result,
-  fallbackLinkLabel = "直接开始学习",
+  fallbackLinkLabel = "Start studying",
 }: {
   result: LibraryMutationResult | null
   fallbackLinkLabel?: string
@@ -93,7 +113,7 @@ function ResultNotice({
       )}
       {result.unmatchedWords && result.unmatchedWords.length > 0 && (
         <p className="mt-3 text-xs leading-6 opacity-90">
-          未匹配：{result.unmatchedWords.join(", ")}
+          Unmatched: {result.unmatchedWords.join(", ")}
         </p>
       )}
     </div>
@@ -115,7 +135,7 @@ export default function LibrariesClient({
   const [manualName, setManualName] = useState("")
   const [manualDescription, setManualDescription] = useState("")
   const [wordsText, setWordsText] = useState("")
-  const [favoriteName, setFavoriteName] = useState("收藏词库")
+  const [favoriteName, setFavoriteName] = useState("Favorites Library")
   const [favoriteDescription, setFavoriteDescription] = useState("")
 
   const [manualResult, setManualResult] = useState<LibraryMutationResult | null>(null)
@@ -167,7 +187,7 @@ export default function LibrariesClient({
         return
       }
 
-      setFavoriteName("收藏词库")
+      setFavoriteName("Favorites Library")
       setFavoriteDescription("")
       router.refresh()
     })
@@ -175,7 +195,7 @@ export default function LibrariesClient({
 
   const handleDelete = async (library: StudyLibrary) => {
     const confirmed = window.confirm(
-      `确定删除自定义词库“${library.name}”吗？这个操作不会删除全局单词和学习记录。`
+      `Delete the custom library "${library.name}"? This will not delete global words or study history.`
     )
     if (!confirmed) {
       return
@@ -197,17 +217,20 @@ export default function LibrariesClient({
 
   const renderLibraryCard = (library: StudyLibrary) => {
     const progress = getLibraryProgress(library)
+    const itemLabel = getItemLabel(library.contentType)
 
     return (
-      <div
-        key={library.id}
-        className="glass-panel rounded-3xl border border-white/[0.08] p-6"
-      >
+      <div key={library.id} className="glass-panel rounded-3xl border border-white/[0.08] p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-zinc-400">
-              <Layers3 className="h-3.5 w-3.5" />
-              {library.sourceType === "official" ? "Official" : "Custom"}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-zinc-400">
+                <Layers3 className="h-3.5 w-3.5" />
+                {library.sourceType === "official" ? "Official" : "Custom"}
+              </div>
+              <div className="inline-flex items-center rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-blue-100">
+                {getContentTypeLabel(library.contentType)}
+              </div>
             </div>
             <h2 className="mt-4 text-2xl font-bold text-white">{library.name}</h2>
             <p className="mt-2 min-h-12 text-sm leading-6 text-zinc-400">
@@ -227,7 +250,7 @@ export default function LibrariesClient({
                 className="inline-flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-100 transition-colors hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-                {deletingLibraryId === library.id ? "删除中..." : "删除"}
+                {deletingLibraryId === library.id ? "Deleting..." : "Delete"}
               </button>
             )}
           </div>
@@ -235,7 +258,7 @@ export default function LibrariesClient({
 
         <div className="mt-6 grid grid-cols-2 gap-3">
           <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Words</p>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">{itemLabel}</p>
             <p className="mt-2 text-2xl font-black text-white">{library.wordCount}</p>
           </div>
           <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
@@ -254,7 +277,7 @@ export default function LibrariesClient({
 
         <div className="mt-6 rounded-2xl border border-white/8 bg-black/20 p-4">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-zinc-400">新词引入进度</span>
+            <span className="text-zinc-400">Study progress</span>
             <span className="font-semibold text-white">{progress}%</span>
           </div>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/8">
@@ -264,19 +287,19 @@ export default function LibrariesClient({
             />
           </div>
           <div className="mt-3 flex items-center justify-between text-xs text-zinc-500">
-            <span>已开始 {library.activeCount}</span>
-            <span>总计 {library.wordCount}</span>
+            <span>Started {library.activeCount}</span>
+            <span>Total {library.wordCount}</span>
           </div>
         </div>
 
         <div className="mt-6 flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-zinc-400">
           <div className="flex items-center gap-2">
             <Clock3 className="h-4 w-4 text-zinc-500" />
-            {library.dailyNewLimit ? `每日新词 ${library.dailyNewLimit}` : "每日新词暂未设置"}
+            {library.dailyNewLimit ? `Daily new ${library.dailyNewLimit}` : "Daily new not set"}
           </div>
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-zinc-500" />
-            全局 SRS
+            Shared study system
           </div>
         </div>
 
@@ -284,14 +307,16 @@ export default function LibrariesClient({
           href={`/study?library=${encodeURIComponent(library.slug)}`}
           className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-white/15"
         >
-          进入学习
+          Start studying
           <ArrowRight className="h-4 w-4" />
         </Link>
         <Link
           href={`/libraries/${encodeURIComponent(library.slug)}`}
           className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm font-medium text-zinc-200 transition-all hover:bg-white/5"
         >
-          {library.sourceType === "custom" ? "管理词库" : "查看详情"}
+          {library.sourceType === "custom" && library.contentType === "word"
+            ? "Manage library"
+            : "View details"}
         </Link>
       </div>
     )
@@ -305,9 +330,9 @@ export default function LibrariesClient({
         </p>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">词库</h1>
+            <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Libraries</h1>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
-              词库决定新词从哪里来，复习节奏仍由全局 SRS 控制。你可以手动创建自定义词库，也可以把收藏单词整理成单独词库。
+              Libraries decide where new study content comes from. Review pacing still runs on the shared study system. Custom libraries currently support word collections, while official grammar libraries are read-only browsers plus study entry points.
             </p>
           </div>
           <Link
@@ -315,7 +340,7 @@ export default function LibrariesClient({
             className="inline-flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-3 text-sm font-medium text-blue-100 transition-all hover:bg-blue-500/15"
           >
             <Sparkles className="h-4 w-4" />
-            返回学习
+            Back to study
           </Link>
         </div>
       </div>
@@ -328,44 +353,43 @@ export default function LibrariesClient({
           >
             <div className="flex items-center gap-2 text-white">
               <Plus className="h-4 w-4 text-blue-400" />
-              <h2 className="text-lg font-semibold">手动创建自定义词库</h2>
+              <h2 className="text-lg font-semibold">Create a custom word library</h2>
             </div>
             <p className="mt-2 text-sm leading-7 text-zinc-400">
-              把现有词表里的单词重新组织成你自己的专题词库。当前版本会精确匹配
-              `words` 表里已经存在的单词。
+              Reorganize words that already exist in the global word list into your own topic-based library. This form currently matches only existing entries from the `words` table.
             </p>
 
             <div className="mt-5 space-y-4">
               <div>
-                <label className="mb-2 block text-sm text-zinc-300">词库名称</label>
+                <label className="mb-2 block text-sm text-zinc-300">Library name</label>
                 <input
                   value={manualName}
                   onChange={(event) => setManualName(event.target.value)}
-                  placeholder="例如：面试高频词"
+                  placeholder="Interview essentials"
                   className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-blue-500/40"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm text-zinc-300">描述</label>
+                <label className="mb-2 block text-sm text-zinc-300">Description</label>
                 <input
                   value={manualDescription}
                   onChange={(event) => setManualDescription(event.target.value)}
-                  placeholder="一句话说明这个词库的用途"
+                  placeholder="What this word library is for"
                   className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-blue-500/40"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm text-zinc-300">单词列表</label>
+                <label className="mb-2 block text-sm text-zinc-300">Word list</label>
                 <textarea
                   value={wordsText}
                   onChange={(event) => setWordsText(event.target.value)}
-                  placeholder={`每行一个，或直接粘贴一串。\nexample\nimpact\nbear\nissue`}
+                  placeholder={`One word per line, or paste a list.\nexample\nimpact\nbear\nissue`}
                   className="h-52 w-full rounded-3xl border border-white/10 bg-[#09090b]/80 p-4 text-sm leading-7 text-zinc-100 outline-none transition-colors focus:border-blue-500/40"
                 />
                 <p className="mt-2 text-xs leading-6 text-zinc-500">
-                  支持换行、空格、逗号、分号分隔。未匹配到的单词会单独列出来。
+                  New lines, spaces, commas, and semicolons are all supported. Unmatched words will be listed separately.
                 </p>
               </div>
 
@@ -375,7 +399,7 @@ export default function LibrariesClient({
                 className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-all disabled:bg-white/10 disabled:text-zinc-500"
               >
                 <Plus className="h-4 w-4" />
-                {isCreatingManual ? "创建中..." : "创建词库"}
+                {isCreatingManual ? "Creating..." : "Create library"}
               </button>
             </div>
 
@@ -390,33 +414,33 @@ export default function LibrariesClient({
           >
             <div className="flex items-center gap-2 text-white">
               <Heart className="h-4 w-4 text-rose-400" />
-              <h2 className="text-lg font-semibold">从收藏生成词库</h2>
+              <h2 className="text-lg font-semibold">Create from favorites</h2>
             </div>
             <p className="mt-2 text-sm leading-7 text-zinc-400">
-              把当前收藏的单词一键整理成词库，适合做专题复习或阶段性冲刺。
+              Turn your current favorite words into a focused library for review or a short sprint.
             </p>
 
             <div className="mt-4 rounded-2xl border border-rose-500/15 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
-              当前可用收藏词：<span className="font-semibold">{favoriteCount}</span> 个
+              Available favorite words: <span className="font-semibold">{favoriteCount}</span>
             </div>
 
             <div className="mt-5 space-y-4">
               <div>
-                <label className="mb-2 block text-sm text-zinc-300">词库名称</label>
+                <label className="mb-2 block text-sm text-zinc-300">Library name</label>
                 <input
                   value={favoriteName}
                   onChange={(event) => setFavoriteName(event.target.value)}
-                  placeholder="例如：我的收藏词库"
+                  placeholder="My favorite words"
                   className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-rose-500/40"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm text-zinc-300">描述</label>
+                <label className="mb-2 block text-sm text-zinc-300">Description</label>
                 <input
                   value={favoriteDescription}
                   onChange={(event) => setFavoriteDescription(event.target.value)}
-                  placeholder="例如：准备重点复习的收藏词"
+                  placeholder="Why this favorite library exists"
                   className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-rose-500/40"
                 />
               </div>
@@ -427,12 +451,12 @@ export default function LibrariesClient({
                 className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition-all disabled:bg-white/10 disabled:text-zinc-500"
               >
                 <Heart className="h-4 w-4" />
-                {isCreatingFavorites ? "生成中..." : "从收藏生成词库"}
+                {isCreatingFavorites ? "Creating..." : "Create from favorites"}
               </button>
             </div>
 
             <div className="mt-5">
-              <ResultNotice result={favoriteResult} fallbackLinkLabel="进入收藏词库学习" />
+              <ResultNotice result={favoriteResult} fallbackLinkLabel="Study this favorites library" />
             </div>
           </form>
 
@@ -442,8 +466,8 @@ export default function LibrariesClient({
         <div className="space-y-8">
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">官方词库</h2>
-              <span className="text-sm text-zinc-500">{officialLibraries.length} 个</span>
+              <h2 className="text-xl font-bold text-white">Official libraries</h2>
+              <span className="text-sm text-zinc-500">{officialLibraries.length}</span>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">{officialLibraries.map(renderLibraryCard)}</div>
@@ -451,15 +475,15 @@ export default function LibrariesClient({
 
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">自定义词库</h2>
-              <span className="text-sm text-zinc-500">{customLibraries.length} 个</span>
+              <h2 className="text-xl font-bold text-white">Custom libraries</h2>
+              <span className="text-sm text-zinc-500">{customLibraries.length}</span>
             </div>
 
             {customLibraries.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2">{customLibraries.map(renderLibraryCard)}</div>
             ) : (
               <div className="glass-panel rounded-3xl p-10 text-center text-zinc-400">
-                你还没有创建自定义词库。可以先手动输入单词，或把收藏词整理成一个专属词库。
+                You do not have any custom libraries yet. Create one manually or build one from your favorites.
               </div>
             )}
           </section>

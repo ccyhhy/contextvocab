@@ -12,6 +12,8 @@ export {
   loadStudySidebarData,
 } from './study-sidebar.service'
 export {
+  rewriteStudyGrammarAttempt,
   rewriteStudySentence,
+  submitStudyGrammarAttempt,
   submitStudySentence,
 } from './study-submission.service'

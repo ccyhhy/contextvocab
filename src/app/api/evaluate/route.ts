@@ -1,23 +1,40 @@
-import { NextRequest } from 'next/server'
+import { NextRequest } from "next/server"
 import {
   buildEvaluationSystemPrompt,
   buildEvaluationUserPrompt,
-} from '@/lib/evaluation-format'
+  buildGrammarEvaluationSystemPrompt,
+} from "@/lib/evaluation-format"
 import {
   buildTextGenerationRequest,
   extractTextFromResponseEvent,
   getOpenAiApiUrl,
   normalizeOpenAiApiType,
-} from '@/lib/openai-api'
-import { requireActionSession } from '@/lib/supabase/user'
+} from "@/lib/openai-api"
+import { requireActionSession } from "@/lib/supabase/user"
 
-interface EvaluateRequestBody {
+interface EvaluateWordRequestBody {
+  targetKind?: "word"
   word?: string
   sentence?: string
   definition?: string
   tags?: string
   wordId?: string
 }
+
+interface EvaluateGrammarRequestBody {
+  targetKind: "grammar"
+  sentence?: string
+  grammarItemId?: string
+  title?: string
+  pattern?: string
+  coreExplanation?: string
+  usageNote?: string | null
+  sceneTags?: unknown
+  templates?: unknown
+  examples?: unknown
+}
+
+type EvaluateRequestBody = EvaluateWordRequestBody | EvaluateGrammarRequestBody
 
 interface PastSentenceRow {
   original_text: string | null
@@ -35,30 +52,39 @@ function readChatCompletionDelta(payload: string): string | null {
     }>
   }
   const content = parsed.choices?.[0]?.delta?.content
-  return typeof content === 'string' ? content : null
+  return typeof content === "string" ? content : null
+}
+
+function toStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
 }
 
 export async function POST(request: NextRequest) {
   let body: EvaluateRequestBody
 
   try {
-    body = await request.json() as EvaluateRequestBody
+    body = (await request.json()) as EvaluateRequestBody
   } catch {
-    return Response.json({ error: 'invalid-json' }, { status: 400 })
+    return Response.json({ error: "invalid-json" }, { status: 400 })
   }
 
-  const { word, sentence, definition = '', tags = '', wordId } = body
+  const sentence = typeof body.sentence === "string" ? body.sentence : ""
 
   const apiKey = process.env.OPENAI_API_KEY
-  const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-  const model = process.env.OPENAI_MODEL || 'gpt-5.2'
+  const apiBase = process.env.OPENAI_API_BASE || "https://api.openai.com/v1"
+  const model = process.env.OPENAI_MODEL || "gpt-5.2"
   const apiType = normalizeOpenAiApiType(process.env.OPENAI_API_TYPE)
 
   if (!apiKey) {
-    return Response.json({ error: 'no-key' }, { status: 400 })
+    return Response.json({ error: "no-key" }, { status: 400 })
   }
-  if (!word || !sentence || !wordId) {
-    return Response.json({ error: 'invalid-request' }, { status: 400 })
+
+  if (!sentence.trim()) {
+    return Response.json({ error: "invalid-request" }, { status: 400 })
   }
 
   let supabase
@@ -69,28 +95,78 @@ export async function POST(request: NextRequest) {
     supabase = session.supabase
     userId = session.user.id
   } catch {
-    return Response.json({ error: 'unauthorized' }, { status: 401 })
+    return Response.json({ error: "unauthorized" }, { status: 401 })
   }
 
-  const { data: pastRecords } = await supabase
-    .from('sentences')
-    .select('original_text')
-    .eq('user_id', userId)
-    .eq('word_id', wordId)
-    .order('created_at', { ascending: false })
-    .limit(5)
+  let systemPrompt = ""
 
-  const learningHistory = (pastRecords ?? [])
-    .map((record) => (record as PastSentenceRow).original_text)
-    .filter((value): value is string => typeof value === 'string')
-    .reverse()
+  if (body.targetKind === "grammar") {
+    const grammarBody = body as EvaluateGrammarRequestBody
+    const grammarItemId =
+      typeof grammarBody.grammarItemId === "string" ? grammarBody.grammarItemId : ""
+    const title = typeof grammarBody.title === "string" ? grammarBody.title : ""
+    const pattern = typeof grammarBody.pattern === "string" ? grammarBody.pattern : ""
+    const coreExplanation =
+      typeof grammarBody.coreExplanation === "string" ? grammarBody.coreExplanation : ""
 
-  const systemPrompt = buildEvaluationSystemPrompt({
-    word,
-    definition,
-    tags,
-    learningHistory,
-  })
+    if (!grammarItemId || !title || !pattern || !coreExplanation) {
+      return Response.json({ error: "invalid-request" }, { status: 400 })
+    }
+
+    const { data: pastRecords } = await supabase
+      .from("grammar_attempts")
+      .select("original_text")
+      .eq("user_id", userId)
+      .eq("grammar_item_id", grammarItemId)
+      .order("created_at", { ascending: false })
+      .limit(5)
+
+    const learningHistory = (pastRecords ?? [])
+      .map((record) => (record as PastSentenceRow).original_text)
+      .filter((value): value is string => typeof value === "string")
+      .reverse()
+
+    systemPrompt = buildGrammarEvaluationSystemPrompt({
+      title,
+      pattern,
+      coreExplanation,
+      usageNote: typeof grammarBody.usageNote === "string" ? grammarBody.usageNote : null,
+      sceneTags: toStringArray(grammarBody.sceneTags),
+      templates: toStringArray(grammarBody.templates),
+      examples: toStringArray(grammarBody.examples),
+      learningHistory,
+    })
+  } else {
+    const wordBody = body as EvaluateWordRequestBody
+    const word = typeof wordBody.word === "string" ? wordBody.word : ""
+    const wordId = typeof wordBody.wordId === "string" ? wordBody.wordId : ""
+    const definition = typeof wordBody.definition === "string" ? wordBody.definition : ""
+    const tags = typeof wordBody.tags === "string" ? wordBody.tags : ""
+
+    if (!word || !wordId) {
+      return Response.json({ error: "invalid-request" }, { status: 400 })
+    }
+
+    const { data: pastRecords } = await supabase
+      .from("sentences")
+      .select("original_text")
+      .eq("user_id", userId)
+      .eq("word_id", wordId)
+      .order("created_at", { ascending: false })
+      .limit(5)
+
+    const learningHistory = (pastRecords ?? [])
+      .map((record) => (record as PastSentenceRow).original_text)
+      .filter((value): value is string => typeof value === "string")
+      .reverse()
+
+    systemPrompt = buildEvaluationSystemPrompt({
+      word,
+      definition,
+      tags,
+      learningHistory,
+    })
+  }
 
   const providerController = new AbortController()
   let timeoutId: ReturnType<typeof setTimeout> | null = null
@@ -105,23 +181,23 @@ export async function POST(request: NextRequest) {
   const refreshProviderTimeout = () => {
     clearProviderTimeout()
     timeoutId = setTimeout(() => {
-      providerController.abort('provider-timeout')
+      providerController.abort("provider-timeout")
     }, PROVIDER_TIMEOUT_MS)
   }
 
   const abortProvider = () => {
-    providerController.abort('client-abort')
+    providerController.abort("client-abort")
   }
 
   try {
     refreshProviderTimeout()
-    request.signal.addEventListener('abort', abortProvider, { once: true })
+    request.signal.addEventListener("abort", abortProvider, { once: true })
 
     const response = await fetch(getOpenAiApiUrl(apiBase, apiType), {
-      method: 'POST',
-      cache: 'no-store',
+      method: "POST",
+      cache: "no-store",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(
@@ -140,7 +216,7 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       clearProviderTimeout()
-      request.signal.removeEventListener('abort', abortProvider)
+      request.signal.removeEventListener("abort", abortProvider)
       const errText = await response.text()
       return Response.json(
         { error: `API error (${response.status}): ${errText.slice(0, 200)}` },
@@ -151,8 +227,8 @@ export async function POST(request: NextRequest) {
     const providerBody = response.body
     if (!providerBody) {
       clearProviderTimeout()
-      request.signal.removeEventListener('abort', abortProvider)
-      return Response.json({ error: 'Empty provider stream' }, { status: 502 })
+      request.signal.removeEventListener("abort", abortProvider)
+      return Response.json({ error: "Empty provider stream" }, { status: 502 })
     }
 
     const encoder = new TextEncoder()
@@ -160,7 +236,7 @@ export async function POST(request: NextRequest) {
       async start(controller) {
         const reader = providerBody.getReader()
         const decoder = new TextDecoder()
-        let streamBuffer = ''
+        let streamBuffer = ""
         let eventDataLines: string[] = []
         let eventName: string | null = null
         let sentDone = false
@@ -172,36 +248,36 @@ export async function POST(request: NextRequest) {
             return
           }
 
-          const data = eventDataLines.join('\n').trim()
+          const data = eventDataLines.join("\n").trim()
           eventDataLines = []
 
           if (!data) {
             return
           }
 
-          if (data === '[DONE]') {
+          if (data === "[DONE]") {
             sentDone = true
-            controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"))
             eventName = null
             return
           }
 
           try {
             const content =
-              apiType === 'responses'
+              apiType === "responses"
                 ? extractTextFromResponseEvent(eventName, JSON.parse(data))
                 : readChatCompletionDelta(data)
             if (content) {
               if (
-                apiType === 'responses' &&
+                apiType === "responses" &&
                 sawDeltaContent &&
-                eventName?.includes('output_text.done')
+                eventName?.includes("output_text.done")
               ) {
                 eventName = null
                 return
               }
 
-              if (apiType === 'responses' && eventName?.includes('output_text.delta')) {
+              if (apiType === "responses" && eventName?.includes("output_text.delta")) {
                 sawDeltaContent = true
               }
 
@@ -215,17 +291,17 @@ export async function POST(request: NextRequest) {
         }
 
         const consumeLine = (line: string) => {
-          if (line === '') {
+          if (line === "") {
             pushEventData()
             return
           }
 
-          if (line.startsWith('event:')) {
+          if (line.startsWith("event:")) {
             eventName = line.slice(6).trimStart() || null
             return
           }
 
-          if (line.startsWith('data:')) {
+          if (line.startsWith("data:")) {
             eventDataLines.push(line.slice(5).trimStart())
           }
         }
@@ -241,31 +317,31 @@ export async function POST(request: NextRequest) {
 
             streamBuffer += decoder.decode(value, { stream: true })
 
-            let newlineIndex = streamBuffer.indexOf('\n')
+            let newlineIndex = streamBuffer.indexOf("\n")
             while (newlineIndex !== -1) {
-              const line = streamBuffer.slice(0, newlineIndex).replace(/\r$/, '')
+              const line = streamBuffer.slice(0, newlineIndex).replace(/\r$/, "")
               streamBuffer = streamBuffer.slice(newlineIndex + 1)
               consumeLine(line)
-              newlineIndex = streamBuffer.indexOf('\n')
+              newlineIndex = streamBuffer.indexOf("\n")
             }
           }
 
           streamBuffer += decoder.decode()
           if (streamBuffer) {
-            consumeLine(streamBuffer.replace(/\r$/, ''))
+            consumeLine(streamBuffer.replace(/\r$/, ""))
           }
           pushEventData()
 
           if (!sentDone) {
-            controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"))
           }
         } catch {
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ error: 'Stream interrupted' })}\n\n`)
+            encoder.encode(`data: ${JSON.stringify({ error: "Stream interrupted" })}\n\n`)
           )
         } finally {
           clearProviderTimeout()
-          request.signal.removeEventListener('abort', abortProvider)
+          request.signal.removeEventListener("abort", abortProvider)
           reader.releaseLock()
           controller.close()
         }
@@ -274,21 +350,21 @@ export async function POST(request: NextRequest) {
 
     return new Response(readable, {
       headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache, no-transform',
-        Connection: 'keep-alive',
-        'X-Accel-Buffering': 'no',
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
       },
     })
   } catch (error: unknown) {
     clearProviderTimeout()
-    request.signal.removeEventListener('abort', abortProvider)
+    request.signal.removeEventListener("abort", abortProvider)
 
-    if (error instanceof Error && error.name === 'AbortError') {
-      return Response.json({ error: 'provider-timeout' }, { status: 504 })
+    if (error instanceof Error && error.name === "AbortError") {
+      return Response.json({ error: "provider-timeout" }, { status: 504 })
     }
 
-    const message = error instanceof Error ? error.message : 'Unknown error'
+    const message = error instanceof Error ? error.message : "Unknown error"
     return Response.json({ error: message }, { status: 500 })
   }
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { BookOpen, Heart, Lightbulb, Volume2 } from "lucide-react"
-import type { StudyBatchItem } from "../actions"
+import type { StudyBatchWordItem } from "../actions"
 import { getPriorityLabel, getSceneTagLabel, getUsageRegisterLabel, shouldHighlightPriority } from "./study-ui"
 
 export function StudyWordPanel({
@@ -14,7 +14,7 @@ export function StudyWordPanel({
   onApplySentenceHelp,
   loadingNext,
 }: {
-  currentWord: StudyBatchItem
+  currentWord: StudyBatchWordItem
   isFavorite: boolean
   favoritePending: boolean
   isSubmitting: boolean

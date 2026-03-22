@@ -5,7 +5,7 @@ import {
   generateSentenceHelp,
   type SentenceHelpItem,
   type SentenceHelpResult,
-  type StudyBatchItem,
+  type StudyBatchWordItem,
 } from "../actions"
 
 export type SentenceHelpState = "idle" | "loading" | "ready"
@@ -21,7 +21,7 @@ function loadSentenceHelpForWord({
   cache,
   inflightRequests,
 }: {
-  word: StudyBatchItem
+  word: StudyBatchWordItem
   cache: MutableRefObject<Record<string, SentenceHelpResult>>
   inflightRequests: MutableRefObject<Record<string, Promise<SentenceHelpResult>>>
 }) {
@@ -60,7 +60,7 @@ export function useSentenceHelp({
   currentWord,
   enabled,
 }: {
-  currentWord: StudyBatchItem | null
+  currentWord: StudyBatchWordItem | null
   enabled: boolean
 }) {
   const [sentenceHelpItems, setSentenceHelpItems] = useState<SentenceHelpItem[]>([])
