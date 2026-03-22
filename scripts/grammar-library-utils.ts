@@ -23,10 +23,18 @@ const DEFAULT_OUTPUT_FILE = path.join(
   'generated',
   'grammar-items.generated.json'
 )
-const DEFAULT_GENERATE_TIMEOUT_MS = Number(process.env.OPENAI_ENRICH_TIMEOUT_MS || 65000)
+const DEFAULT_GENERATE_TIMEOUT_MS = Number(process.env.OPENAI_ENRICH_TIMEOUT_MS || 95000)
 const DEFAULT_RETRY_COUNT = 5
 const DEFAULT_CONCURRENCY = 2
 const VALID_USAGE_REGISTERS = new Set(['formal', 'neutral', 'informal'])
+const MIN_CORE_EXPLANATION_LENGTH = 70
+const MIN_USAGE_NOTE_LENGTH = 120
+const MIN_SCENE_TAGS = 4
+const MIN_SLOT_SCHEMA = 2
+const MIN_COMMON_ERRORS = 5
+const MIN_CONTRASTS = 4
+const MIN_EXAMPLES = 5
+const MIN_TEMPLATES = 3
 const VALID_SLOT_TYPES = new Set<GrammarSlotType>([
   'clause',
   'noun_phrase',
@@ -201,7 +209,7 @@ export async function generateGrammarItemDraft(
             model: aiConfig.model,
             temperature: 0.2,
             jsonMode: false,
-            maxOutputTokens: 700,
+            maxOutputTokens: 1700,
             systemPrompt,
             userPrompt: JSON.stringify(userPayload, null, 2),
           })
@@ -317,15 +325,53 @@ function normalizeGeneratedItem(seed: GrammarSeedItem, value: unknown): GrammarG
   }
 
   const row = value as Record<string, unknown>
+  const coreExplanation =
+    pickOptionalString(row, ['coreExplanation', 'core_explanation']) ?? seed.brief
+  const usageNote = pickOptionalString(row, ['usageNote', 'usage_note'])
+  const sceneTags = dedupeStrings([
+    ...(seed.sceneHints ?? []),
+    ...normalizeStringArray(row.sceneTags),
+    ...normalizeStringArray(row.scene_tags),
+  ]).slice(0, 8)
+  const slotSchema = normalizeSlotSchema(row.slotSchema ?? row.slot_schema)
+  const commonErrors = dedupeStrings([
+    ...normalizeStringArray(row.commonErrors),
+    ...normalizeStringArray(row.common_errors),
+  ]).slice(0, 6)
+  const contrasts = normalizeContrasts(seed, row.contrasts)
   const examples = normalizeExamples(row.examples)
   const templates = normalizeTemplates(row.templates)
 
-  if (examples.length === 0) {
-    throw new Error(`Generated item ${seed.slug} has no valid examples.`)
+  if (coreExplanation.length < MIN_CORE_EXPLANATION_LENGTH) {
+    throw new Error(`Generated item ${seed.slug} has a core explanation that is too short.`)
   }
 
-  if (templates.length === 0) {
-    throw new Error(`Generated item ${seed.slug} has no valid templates.`)
+  if (!usageNote || usageNote.length < MIN_USAGE_NOTE_LENGTH) {
+    throw new Error(`Generated item ${seed.slug} has a usage note that is too short.`)
+  }
+
+  if (sceneTags.length < MIN_SCENE_TAGS) {
+    throw new Error(`Generated item ${seed.slug} has too few scene tags.`)
+  }
+
+  if (slotSchema.length < MIN_SLOT_SCHEMA) {
+    throw new Error(`Generated item ${seed.slug} has too few slot definitions.`)
+  }
+
+  if (commonErrors.length < MIN_COMMON_ERRORS) {
+    throw new Error(`Generated item ${seed.slug} has too few common errors.`)
+  }
+
+  if (contrasts.length < MIN_CONTRASTS) {
+    throw new Error(`Generated item ${seed.slug} has too few contrasts.`)
+  }
+
+  if (examples.length < MIN_EXAMPLES) {
+    throw new Error(`Generated item ${seed.slug} has too few valid examples.`)
+  }
+
+  if (templates.length < MIN_TEMPLATES) {
+    throw new Error(`Generated item ${seed.slug} has too few valid templates.`)
   }
 
   return {
@@ -336,23 +382,15 @@ function normalizeGeneratedItem(seed: GrammarSeedItem, value: unknown): GrammarG
     family: seed.family,
     subtype: seed.subtype ?? null,
     anchor: seed.anchor ?? null,
-    coreExplanation:
-      pickOptionalString(row, ['coreExplanation', 'core_explanation']) ?? seed.brief,
-    usageNote: pickOptionalString(row, ['usageNote', 'usage_note']),
+    coreExplanation,
+    usageNote,
     usageRegister: normalizeUsageRegister(
       pickOptionalString(row, ['usageRegister', 'usage_register'])
     ),
-    sceneTags: dedupeStrings([
-      ...(seed.sceneHints ?? []),
-      ...normalizeStringArray(row.sceneTags),
-      ...normalizeStringArray(row.scene_tags),
-    ]).slice(0, 8),
-    slotSchema: normalizeSlotSchema(row.slotSchema ?? row.slot_schema),
-    commonErrors: dedupeStrings([
-      ...normalizeStringArray(row.commonErrors),
-      ...normalizeStringArray(row.common_errors),
-    ]).slice(0, 6),
-    contrasts: normalizeContrasts(seed, row.contrasts),
+    sceneTags,
+    slotSchema,
+    commonErrors,
+    contrasts,
     examples,
     templates,
     difficulty: normalizeDifficulty(row.difficulty),
@@ -491,13 +529,7 @@ function normalizeContrasts(seed: GrammarSeedItem, value: unknown): GrammarContr
     })
     .filter(isPresent)
 
-  const hintRows = (seed.contrastHints ?? []).map((hint) => ({
-    slug: slugifyContrastHint(hint),
-    title: hint,
-    note: 'Easily confused with this pattern; compare scenario and slot usage carefully.',
-  }))
-
-  return dedupeByKey([...normalized, ...hintRows], (item) => item.slug).slice(0, 6)
+  return dedupeByKey(normalized, (item) => item.slug).slice(0, 6)
 }
 
 function normalizeDifficulty(value: unknown) {
@@ -668,16 +700,26 @@ function buildGrammarUserPayload(seed: GrammarSeedItem, familyPeers: GrammarSeed
 
 function buildCompactGrammarSystemPrompt() {
   return [
-    'Create one grammar study card for a Chinese learner.',
-    'Return valid minified JSON only. No markdown.',
-    'Use Chinese for explanations, notes, and translations.',
-    'Keep title and pattern in English.',
-    'Be concise and practical.',
+    'You are generating one premium grammar study card for a Chinese learner.',
+    'Your goal is not to briefly describe a grammar pattern, but to teach it well enough that the learner can actually write a correct sentence after reading the card.',
+    'Return exactly one valid minified JSON object. No markdown. No prose outside JSON.',
+    'Keep title and pattern in English. Use Chinese for all explanations, notes, hints, error descriptions, and translations.',
+    'Explanations must be concrete, learner-facing, and easy to act on. Do not explain only with abstract grammar jargon.',
+    'This is a foundational grammar card. Prioritize clarity, correctness, usability, and contrastive learning over breadth.',
+    'The learner must understand what this pattern does, what can appear after it, where it usually appears, when it sounds natural, when not to use it, how it differs from similar patterns, and one safe beginner template they can use immediately.',
     'Use usageRegister only: formal, neutral, informal, or null.',
-    'Give at most 4 sceneTags, 3 commonErrors, 2 contrasts, 2 examples, and 1 template.',
+    'coreExplanation must be 80-160 Chinese characters and include function + structural requirement + common sentence position.',
+    'usageNote must be 140-260 Chinese characters and include tone/register + suitable scenes + unsuitable scenes + punctuation/position reminder + beginner-friendly advice.',
+    'sceneTags must contain 4 to 6 concrete learner-facing items.',
+    'slotSchema must contain 2 to 4 items. Each hint must clearly say what can go in the slot, one common mistake, and one mini example.',
+    'commonErrors must contain 5 to 6 items. Each item must contain wrong pattern + why wrong + how to fix it.',
+    'contrasts must contain 4 to 5 items. Each note must include structural difference, scene/tone difference, and one mini comparison or very short minimal pair.',
+    'examples must contain 5 to 6 items and cover easiest core example, alternate position example, writing-style example, comparison-sensitive example, and everyday example.',
+    'templates must contain 3 to 4 items and include safest beginner template, alternate-position template, and writing-oriented template.',
     'slotSchema must be an array of objects with keys: key, label, type, required, hint.',
     'Each example must use keys: sentence, translation, note, scene, isPrimary.',
     'Each template must use keys: label, template, slotHints, exampleSentence, exampleTranslation, position.',
+    'Hard bans: no vague filler, no empty contrasts, no missing translations, no duplicate content, no contradiction between explanation and examples.',
     'Output keys:',
     '{"shortLabel":"string or null","coreExplanation":"string","usageNote":"string or null","usageRegister":"formal|neutral|informal|null","sceneTags":["string"],"slotSchema":[{"key":"string","label":"string","type":"clause|noun_phrase|verb_ing|to_infinitive|relative_clause|statement_clause|question_clause|prepositional_phrase|fixed_chunk|custom","required":true,"hint":"string or null"}],"commonErrors":["string"],"contrasts":[{"slug":"string","title":"string","note":"string"}],"examples":[{"sentence":"string","translation":"string","note":"string or null","scene":"string or null","isPrimary":true}],"templates":[{"label":"string","template":"string","slotHints":["string"],"exampleSentence":"string or null","exampleTranslation":"string or null","position":1}],"difficulty":1}',
   ].join('\n')
