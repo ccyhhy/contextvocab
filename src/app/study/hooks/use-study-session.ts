@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   getStudyBatch,
-  getStudyBatchItemKey,
-  isStudyBatchWordItem,
   type StudyBatchItem,
   type StudyBatchWordItem,
   type StudyView,
 } from "../actions"
+import { getStudyBatchItemKey, isStudyBatchWordItem } from "../study-batch-item"
 
 function buildExcludedItemIds(
   deferredItems: StudyBatchItem[],

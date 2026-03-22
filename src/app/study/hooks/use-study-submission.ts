@@ -8,8 +8,6 @@ import {
   type VisibleFeedbackSections,
 } from "@/lib/evaluation-format"
 import {
-  isStudyBatchGrammarItem,
-  isStudyBatchWordItem,
   rewriteGrammarSentence,
   rewriteSentence,
   submitGrammarSentence,
@@ -18,6 +16,7 @@ import {
   type StudyBatchWordItem,
   type StudySubmissionResult,
 } from "../actions"
+import { isStudyBatchGrammarItem, isStudyBatchWordItem } from "../study-batch-item"
 
 export type StreamPhase = "idle" | "connecting" | "feedback" | "structuring"
 export type SubmissionStatus = "idle" | "submitting" | "result"

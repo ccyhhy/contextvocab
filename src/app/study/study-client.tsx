@@ -2,14 +2,13 @@
 
 import { type ChangeEvent, useEffect, useRef, useState } from "react"
 import {
-  isStudyBatchGrammarItem,
-  isStudyBatchWordItem,
   toggleFavoriteWord,
   type StudyBatchItem,
   type StudyEnrichmentProgress,
   type StudyLibrary,
   type StudyView,
 } from "./actions"
+import { isStudyBatchGrammarItem, isStudyBatchWordItem } from "./study-batch-item"
 import {
   StudyContextSummary,
   StudyEmptyState,
