@@ -15,6 +15,7 @@ import {
   StudyEmptyState,
   StudyEnrichmentSummary,
   StudyEvaluationResult,
+  StudyGrammarHelpPanel,
   StudyGrammarPanel,
   StudySentenceComposer,
   StudySentenceHelpPanel,
@@ -54,6 +55,7 @@ export default function StudyClient({
   const [favoriteWordIds, setFavoriteWordIds] = useState<string[]>(initialFavoriteWordIds)
   const [favoritePending, setFavoritePending] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showGrammarHints, setShowGrammarHints] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   const sentenceInputRef = useRef<HTMLTextAreaElement | null>(null)
@@ -127,6 +129,7 @@ export default function StudyClient({
     resetSubmissionState()
     if (!options?.keepSentenceHelp) {
       setShowSentenceHelp(false)
+      setShowGrammarHints(false)
     }
   }
 
@@ -354,7 +357,7 @@ export default function StudyClient({
               targetLabel={currentGrammar.grammar.title}
               sentence={sentence}
               inputRef={sentenceInputRef}
-              showHelpButton={false}
+              showSentenceHelp={showGrammarHints}
               isSubmitting={status === "submitting"}
               isPracticeMode={submissionMode === "practice"}
               placeholderText={`Write a sentence that clearly uses "${currentGrammar.grammar.pattern}".`}
@@ -362,9 +365,18 @@ export default function StudyClient({
               skipLabel="Next card"
               onSentenceChange={setSentence}
               onSubmit={() => void submitCurrentSentence(submissionMode)}
+              onToggleHelp={() => setShowGrammarHints((current) => !current)}
               onSkip={() => void handleNext(librarySlug, true)}
             />
           )}
+
+          <StudyGrammarHelpPanel
+            visible={showGrammarHints && status !== "result"}
+            templates={currentGrammar.grammar.templates}
+            examples={currentGrammar.grammar.examples}
+            onClose={() => setShowGrammarHints(false)}
+            onApply={applySentenceHelp}
+          />
 
           <StudyStreamingPreview
             visible={status === "submitting"}
