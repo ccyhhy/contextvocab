@@ -1,0 +1,5060 @@
+{
+  "library": {
+    "slug": "basic-scene-grammar",
+    "name": "Basic Scene Grammar",
+    "description": "Core scene-based grammar library for high-frequency structures, contrastive function words, and sentence frames.",
+    "sourceType": "official",
+    "language": "en",
+    "isPublic": true
+  },
+  "generatedAt": "2026-03-22T05:23:56.150Z",
+  "source": "E:\\codework\\words\\data\\grammar\\basic-scene-grammar.seed.json",
+  "model": "gpt-5.2",
+  "items": [
+    {
+      "slug": "because-clause",
+      "title": "because + clause",
+      "shortLabel": null,
+      "pattern": "because + clause",
+      "family": "reason_result",
+      "subtype": "cause_clause",
+      "anchor": "because",
+      "coreExplanation": "用 because + 从句 直接说明原因；because 后面必须接“主语+谓语”的完整句子。",
+      "usageNote": "口语和写作都常用；在正式写作中可用 since/as 更委婉，because 更直接。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "explaining",
+        "conversation",
+        "writing"
+      ],
+      "slotSchema": [
+        {
+          "key": "reasonClause",
+          "label": "Reason clause",
+          "type": "clause",
+          "required": true,
+          "hint": "完整从句：主语+谓语（如：I was tired / it was raining）"
+        },
+        {
+          "key": "resultClause",
+          "label": "Main clause (result)",
+          "type": "clause",
+          "required": true,
+          "hint": "结果/主句"
+        }
+      ],
+      "commonErrors": [
+        "because 后面只接名词或短语（应改为 because of + 名词/动名词，或补全从句）",
+        "because 后面用不完整从句（缺主语或谓语）",
+        "把 because 和 so 放在同一句里造成重复（英语里通常二选一）"
+      ],
+      "contrasts": [
+        {
+          "slug": "because-of-noun",
+          "title": "because of + noun / v-ing",
+          "note": "because of 后面接名词/动名词短语；because 后面接完整从句。"
+        },
+        {
+          "slug": "since-clause-reason",
+          "title": "since + clause (reason)",
+          "note": "since 更委婉、偏书面或逻辑提示；because 更强调直接原因。"
+        },
+        {
+          "slug": "because-of-noun-v-ing",
+          "title": "because of + noun / v-ing",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "since-clause",
+          "title": "since + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "as-clause",
+          "title": "as + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I stayed home because it was raining.",
+          "translation": "我待在家里，因为正在下雨。",
+          "note": "because 后接完整从句 it was raining。",
+          "scene": "conversation",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Because I was tired, I went to bed early.",
+          "translation": "因为我累了，所以我早早就睡了。",
+          "note": "because 从句也可放句首，后面通常用逗号隔开。",
+          "scene": "writing",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "{resultClause} because {reasonClause}.",
+          "slotHints": [
+            "先说结果/决定，再用 because 说明原因",
+            "reasonClause 用完整句：主语+动词"
+          ],
+          "exampleSentence": "We canceled the picnic because the weather was bad.",
+          "exampleTranslation": "我们取消了野餐，因为天气不好。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "because-of-noun",
+      "title": "because of + noun / v-ing",
+      "shortLabel": null,
+      "pattern": "because of + noun / v-ing",
+      "family": "reason_result",
+      "subtype": "cause_phrase",
+      "anchor": "because of",
+      "coreExplanation": "“because of”后面接名词/名词短语或动名词（v-ing）来表示原因；不接完整从句。",
+      "usageNote": "常放在句首或句中；句首多用逗号隔开。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "explaining",
+        "conversation",
+        "rewriting",
+        "writing"
+      ],
+      "slotSchema": [
+        {
+          "key": "reason",
+          "label": "Reason (noun / v-ing)",
+          "type": "custom",
+          "required": true,
+          "hint": "名词/名词短语或v-ing，不要用“主语+谓语”从句"
+        }
+      ],
+      "commonErrors": [
+        "误用：because of + S + V（应改为 because + 从句 或把原因改成名词/动名词）",
+        "because of 后用不定式 to do（多数情况应改为 v-ing 或名词）",
+        "句首原因短语后不加逗号导致读起来不清晰"
+      ],
+      "contrasts": [
+        {
+          "slug": "because-clause",
+          "title": "because + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "due-to-noun",
+          "title": "due to + noun",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Because of the heavy rain, the game was canceled.",
+          "translation": "因为大雨，比赛被取消了。",
+          "note": "句首用逗号分隔，原因是名词短语。",
+          "scene": "explaining",
+          "isPrimary": true
+        },
+        {
+          "sentence": "We stayed home because of feeling sick.",
+          "translation": "因为觉得不舒服，我们待在家里。",
+          "note": "because of + v-ing（feeling）。更口语也可说：because we felt sick。",
+          "scene": "conversation",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "Because of {reason}, {result}.",
+          "slotHints": [
+            "reason：名词/名词短语或v-ing"
+          ],
+          "exampleSentence": "Because of traffic, I was late.",
+          "exampleTranslation": "因为堵车，我迟到了。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "since-clause-reason",
+      "title": "since + clause (reason)",
+      "shortLabel": "Reason (background)",
+      "pattern": "since + clause",
+      "family": "reason_result",
+      "subtype": "background_reason",
+      "anchor": "since",
+      "coreExplanation": "用“since + 从句”引出原因，语气更像“既然/鉴于”，把原因当作双方已知或默认的背景信息，后面接结论或决定。",
+      "usageNote": "多用于书面或较正式的说明、邮件；口语强调直接原因时更常用because。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "reasoning",
+        "writing",
+        "formal-writing"
+      ],
+      "slotSchema": [
+        {
+          "key": "reason",
+          "label": "Reason clause",
+          "type": "clause",
+          "required": true,
+          "hint": "陈述一个已知/默认的原因（一般不用疑问句）"
+        },
+        {
+          "key": "result",
+          "label": "Main clause (result/decision)",
+          "type": "clause",
+          "required": true,
+          "hint": "说明结论、安排或建议"
+        }
+      ],
+      "commonErrors": [
+        "把since误解为“自从”（时间含义）导致语义不清",
+        "用since引出明显新信息或强烈因果时不自然（应改because）",
+        "since后面接名词短语（应为because of/due to）"
+      ],
+      "contrasts": [
+        {
+          "slug": "because-clause",
+          "title": "because + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "as-clause-reason",
+          "title": "as + clause (reason)",
+          "note": "as语气更弱、更书面；since常带“既然/鉴于”的前提感。"
+        },
+        {
+          "slug": "as-clause",
+          "title": "as + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Since you’ve already finished, you can leave early.",
+          "translation": "既然你已经做完了，你可以提前走。",
+          "note": "原因当作已知事实，语气像“既然”。",
+          "scene": "workplace",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Since the data is incomplete, we can’t draw a conclusion yet.",
+          "translation": "鉴于数据不完整，我们还不能下结论。",
+          "note": "偏书面说明背景原因。",
+          "scene": "report",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Decision based on a known reason",
+          "template": "Since {reason}, {result}.",
+          "slotHints": [
+            "{reason}: 已知/默认的原因从句",
+            "{result}: 结论/决定从句"
+          ],
+          "exampleSentence": "Since it’s raining, we’ll take a taxi.",
+          "exampleTranslation": "既然下雨了，我们就打车。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "as-clause-reason",
+      "title": "as + clause (reason)",
+      "shortLabel": null,
+      "pattern": "as + clause",
+      "family": "reason_result",
+      "subtype": "light_reason",
+      "anchor": "as",
+      "coreExplanation": "用“as + 从句”表示原因，语气较轻，常把原因当作背景信息；更常见于书面语/叙述中。",
+      "usageNote": "常放句首并用逗号隔开；不适合强调、回答“为什么”的强因果。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "formal-writing",
+        "narration",
+        "reasoning"
+      ],
+      "slotSchema": [
+        {
+          "key": "asClause",
+          "label": "as clause（原因从句）",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "用一般陈述句；常放句首：As + S + V"
+        },
+        {
+          "key": "mainClause",
+          "label": "main clause（主句）",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "结果/决定/动作"
+        }
+      ],
+      "commonErrors": [
+        "用as回答直接提问“Why...?”导致语气太轻（更常用because）",
+        "把as当“当……时候”用，造成歧义（as也可表时间/方式）",
+        "句首as从句后漏逗号，书面表达不自然"
+      ],
+      "contrasts": [
+        {
+          "slug": "because-clause",
+          "title": "because + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "since-clause-reason",
+          "title": "since + clause (reason)",
+          "note": "与as相近，但since常带“既然/既然如此”的前提感。"
+        },
+        {
+          "slug": "since-clause",
+          "title": "since + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "As it was raining, we stayed indoors.",
+          "translation": "因为在下雨，我们就待在室内。",
+          "note": "原因作背景，句首更自然。",
+          "scene": "narration",
+          "isPrimary": true
+        },
+        {
+          "sentence": "As you are new here, I’ll show you around.",
+          "translation": "既然你刚来，我带你熟悉一下环境。",
+          "note": "语气温和，接近since的“既然”。",
+          "scene": "reasoning",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Background reason (as)",
+          "template": "As {asClause}, {mainClause}.",
+          "slotHints": [
+            "填原因陈述：it was..., you are..., we don’t have...",
+            "填结果/决定：we..., I’ll..., the meeting was..."
+          ],
+          "exampleSentence": "As we don’t have enough data, we’ll postpone the decision.",
+          "exampleTranslation": "由于数据不够，我们将推迟决定。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "due-to-noun",
+      "title": "due to + noun",
+      "shortLabel": null,
+      "pattern": "due to + noun",
+      "family": "reason_result",
+      "subtype": "formal_cause_phrase",
+      "anchor": "due to",
+      "coreExplanation": "“due to + 名词/名词短语”表示原因，常用于较正式的说明、报告或公告中，相当于“由于/因为”。通常放在句中或句尾，用来解释结果。",
+      "usageNote": "更偏正式；口语里更常用“because of”。“due to”后面接名词（如：due to bad weather），不要直接接完整句子。",
+      "usageRegister": "formal",
+      "sceneTags": [
+        "formal-writing",
+        "reports",
+        "announcements",
+        "workplace"
+      ],
+      "slotSchema": [
+        {
+          "key": "cause_np",
+          "label": "Cause (noun phrase)",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "原因用名词/名词短语：bad weather, a system error, staff shortage"
+        },
+        {
+          "key": "result_clause",
+          "label": "Result (clause)",
+          "type": "clause",
+          "required": true,
+          "hint": "结果用完整句子：the meeting was postponed"
+        }
+      ],
+      "commonErrors": [
+        "due to 后面直接接完整句子（✗ due to it rained）",
+        "把 due to 当作 because 使用但结构不完整（✗ due to we were late）",
+        "误用 thanks to 表示负面原因（负面更适合 due to / because of）"
+      ],
+      "contrasts": [
+        {
+          "slug": "because-of-noun",
+          "title": "because of + noun / v-ing",
+          "note": "语气更中性/口语；且可接动名词：because of being late。due to 通常接名词短语。"
+        },
+        {
+          "slug": "thanks-to-noun",
+          "title": "thanks to + noun",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "because-of-noun-v-ing",
+          "title": "because of + noun / v-ing",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The flight was delayed due to bad weather.",
+          "translation": "航班因恶劣天气而延误。",
+          "note": "公告/通知常用。",
+          "scene": "announcements",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Due to a system error, the report was not generated.",
+          "translation": "由于系统错误，报告未能生成。",
+          "note": "更像书面/报告语气；句首后常加逗号。",
+          "scene": "reports",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Cause phrase for formal explanation",
+          "template": "{result_clause} due to {cause_np}.",
+          "slotHints": [
+            "先写结果，再用 due to 引出原因",
+            "cause_np 用名词短语，不要用完整句子"
+          ],
+          "exampleSentence": "The event was canceled due to safety concerns.",
+          "exampleTranslation": "活动因安全方面的担忧而取消。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "thanks-to-noun",
+      "title": "thanks to + noun",
+      "shortLabel": "thanks to",
+      "pattern": "thanks to + noun",
+      "family": "reason_result",
+      "subtype": "positive_cause_phrase",
+      "anchor": "thanks to",
+      "coreExplanation": "“thanks to + 名词/名词短语”表示“多亏……/幸亏……”，强调原因带来好结果，常带有感谢或庆幸的语气。",
+      "usageNote": "可放句首或句中；后面一般接名词短语（也可接代词）。想接动词时更常用“thanks to + the fact that + 从句”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "gratitude",
+        "positive-results",
+        "conversation",
+        "workplace"
+      ],
+      "slotSchema": [
+        {
+          "key": "cause",
+          "label": "helpful cause",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "人/帮助/支持/好条件等，如 your help, the new system"
+        },
+        {
+          "key": "result",
+          "label": "positive result",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "积极结果，如 we finished on time"
+        }
+      ],
+      "commonErrors": [
+        "把“thanks to”用在负面原因上（更适合用 because of / due to）",
+        "误写成“thank to”或漏掉s：应为 thanks to",
+        "后面直接接动词原形：thanks to help（应为 thanks to your help / thanks to helping…较少见）"
+      ],
+      "contrasts": [
+        {
+          "slug": "because-of-noun",
+          "title": "because of + noun / v-ing",
+          "note": "中性原因，正负都可；不一定带感谢语气。"
+        },
+        {
+          "slug": "due-to-noun",
+          "title": "due to + noun",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "because-of-noun-v-ing",
+          "title": "because of + noun / v-ing",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Thanks to your help, we finished the project on time.",
+          "translation": "多亏你的帮助，我们按时完成了项目。",
+          "note": "句首用逗号隔开，更突出原因。",
+          "scene": "workplace",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I got there early thanks to the new subway line.",
+          "translation": "多亏新地铁线，我到得很早。",
+          "note": "句末也常见，语气更口语。",
+          "scene": "daily_life",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Cause first",
+          "template": "Thanks to {cause}, {result}.",
+          "slotHints": [
+            "cause=有利原因（名词短语）",
+            "result=积极结果（完整陈述）"
+          ],
+          "exampleSentence": "Thanks to the clear instructions, I didn’t make any mistakes.",
+          "exampleTranslation": "多亏说明清楚，我没有犯任何错误。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "so-result-clause",
+      "title": "so + result clause",
+      "shortLabel": "Cause → so → result",
+      "pattern": "cause, so + result clause",
+      "family": "reason_result",
+      "subtype": "result_connector",
+      "anchor": "so",
+      "coreExplanation": "用“原因，so + 结果”把前一句当作原因，so引出顺势发生的结果；口语里很常用。",
+      "usageNote": "常用逗号隔开：cause, so result. 也可分成两句：Cause. So result.",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "conversation",
+        "storytelling",
+        "cause-and-effect"
+      ],
+      "slotSchema": [
+        {
+          "key": "cause",
+          "label": "Cause clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "先说原因（完整句）"
+        },
+        {
+          "key": "result",
+          "label": "Result clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "so后面接结果（完整句）"
+        }
+      ],
+      "commonErrors": [
+        "把“so”当成“因为”用：So I was tired...（应为Because...）",
+        "和because连用：Because..., so...（一般二选一）",
+        "so后面缺主谓，只放一个词导致不完整（写作时尤其明显）"
+      ],
+      "contrasts": [
+        {
+          "slug": "therefore",
+          "title": "therefore",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "thats-why",
+          "title": "That's why + result",
+          "note": "That's why强调“这就是原因”，更像解释/总结；so更像顺着讲故事。"
+        },
+        {
+          "slug": "that-s-why-result",
+          "title": "that's why + result",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I missed the bus, so I took a taxi.",
+          "translation": "我错过了公交车，所以我打了个出租车。",
+          "note": "自然口语因果。",
+          "scene": "conversation",
+          "isPrimary": true
+        },
+        {
+          "sentence": "It started raining, so we stayed inside.",
+          "translation": "开始下雨了，所以我们待在室内。",
+          "note": null,
+          "scene": "storytelling",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Cause → so → Result",
+          "template": "{cause}, so {result}.",
+          "slotHints": [
+            "cause：一个原因句（过去/现在都可以）",
+            "result：一个结果句（常见：决定/行动/状态）"
+          ],
+          "exampleSentence": "I was running late, so I called you.",
+          "exampleTranslation": "我快迟到了，所以我给你打电话。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "thats-why-result",
+      "title": "that's why + result",
+      "shortLabel": null,
+      "pattern": "that's why + result",
+      "family": "reason_result",
+      "subtype": "explained_result",
+      "anchor": "that's why",
+      "coreExplanation": "“That’s why + 结果”用来在说完原因后，强调并总结结论/结果（=“所以这就是为什么……”）。常见结构：原因。That’s why + 结果。",
+      "usageNote": "多用于口语或书面中带总结语气；结果部分通常是一个完整句子或具体行动。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "explaining",
+        "conversation",
+        "reflection"
+      ],
+      "slotSchema": [
+        {
+          "key": "result",
+          "label": "result clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "用完整结果句，常含主语+谓语；也可用建议/决定等行动结果"
+        }
+      ],
+      "commonErrors": [
+        "把“that’s why”当作“because”用：不要用“That’s why I was tired, I slept late.”（应先原因后结果）",
+        "“That’s why”后面只接名词短语：应接结果句（或用“That’s the reason for…”）",
+        "原因与结果缺少逻辑对应，听起来像硬总结"
+      ],
+      "contrasts": [
+        {
+          "slug": "so-result-clause",
+          "title": "so + result clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "the-reason-is-that",
+          "title": "the reason is that + clause",
+          "note": "用于解释原因本身；“that’s why”用于总结结果/结论。"
+        },
+        {
+          "slug": "the-reason-is-that-clause",
+          "title": "the reason is that + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I missed the last bus. That’s why I’m late.",
+          "translation": "我错过了最后一班公交车，所以我才迟到。",
+          "note": "先给原因，再用“That’s why”强调结论。",
+          "scene": "conversation",
+          "isPrimary": true
+        },
+        {
+          "sentence": "The data is incomplete. That’s why we can’t publish the report yet.",
+          "translation": "数据不完整，所以我们还不能发布报告。",
+          "note": null,
+          "scene": "explaining",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Cause. That’s why + result.",
+          "template": "{cause}. That’s why {result}.",
+          "slotHints": [
+            "cause写原因句（可用一般过去/现在完成等）",
+            "result写结果句，表达结论/决定/影响"
+          ],
+          "exampleSentence": "I didn’t sleep well last night. That’s why I’m so tired today.",
+          "exampleTranslation": "我昨晚没睡好，所以我今天特别累。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "although-clause",
+      "title": "although + clause",
+      "shortLabel": null,
+      "pattern": "although + clause, main clause",
+      "family": "concession_contrast",
+      "subtype": "concession_clause",
+      "anchor": "although",
+      "coreExplanation": "用although引导让步从句，表示“尽管……，但是……”。前半句提出不利情况，后半句给出结果/立场，语气较书面、较标准。",
+      "usageNote": "although从句里不再用but/so等连词；也可放句末：Main clause, although + clause。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "contrast",
+        "writing",
+        "formal-writing",
+        "argument"
+      ],
+      "slotSchema": [
+        {
+          "key": "concession",
+          "label": "Concession clause",
+          "type": "clause",
+          "required": true,
+          "hint": "完整从句（主语+谓语），说明“尽管……”"
+        },
+        {
+          "key": "main",
+          "label": "Main clause",
+          "type": "clause",
+          "required": true,
+          "hint": "主要结论/结果"
+        }
+      ],
+      "commonErrors": [
+        "在although从句后又加but（✗ Although..., but ...）",
+        "把although后面接名词/动名词（应改用despite/in spite of）",
+        "只写从句不写主句，导致意思不完整"
+      ],
+      "contrasts": [
+        {
+          "slug": "even-though-clause",
+          "title": "even though + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "despite-noun",
+          "title": "despite + noun / v-ing",
+          "note": "后面接名词或v-ing，不接完整从句：Despite the rain / Despite being tired,..."
+        },
+        {
+          "slug": "despite-noun-v-ing",
+          "title": "despite + noun / v-ing",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Although the deadline is tight, we can still finish the report on time.",
+          "translation": "虽然截止日期很紧，但我们仍然能按时完成报告。",
+          "note": "书面表达常用，still加强“仍然”。",
+          "scene": "work/writing",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I went for a walk, although it was raining.",
+          "translation": "我还是去散步了，尽管当时在下雨。",
+          "note": "although从句放句末更自然、语气稍轻。",
+          "scene": "daily life",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Standard",
+          "template": "Although {concession}, {main}.",
+          "slotHints": [
+            "concession: 不利情况/让步信息",
+            "main: 结果/决定/观点"
+          ],
+          "exampleSentence": "Although I was tired, I kept working.",
+          "exampleTranslation": "虽然我很累，但我还是继续工作。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "even-though-clause",
+      "title": "even though + clause",
+      "shortLabel": null,
+      "pattern": "even though + clause, main clause",
+      "family": "concession_contrast",
+      "subtype": "strong_concession_clause",
+      "anchor": "even though",
+      "coreExplanation": "“even though + 从句”表示“尽管/虽然”，用来强调让步与转折更强烈，主句结果依然成立（常带“出乎意料”的对比感）。",
+      "usageNote": "后面必须接完整从句（有主语+谓语）。可放句首或句中；句首常用逗号分隔。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "contrast",
+        "emotion",
+        "spoken-emphasis",
+        "writing"
+      ],
+      "slotSchema": [
+        {
+          "key": "concessionClause",
+          "label": "even though 从句",
+          "type": "clause",
+          "required": true,
+          "hint": "完整从句：主语+动词，如 even though I was tired"
+        },
+        {
+          "key": "mainClause",
+          "label": "主句",
+          "type": "clause",
+          "required": true,
+          "hint": "表达结果/仍然发生的事，如 I kept working"
+        }
+      ],
+      "commonErrors": [
+        "把 even though 后面接名词/动名词：even though the rain（应为 even though it was raining / despite the rain）",
+        "和 even if 混用：even though 表示事实让步；even if 表示假设让步",
+        "双重让步：Although/Even though... but...（英语里通常不加 but）"
+      ],
+      "contrasts": [
+        {
+          "slug": "although-clause",
+          "title": "although + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "even-if-clause",
+          "title": "even if + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Even though I was exhausted, I finished the report.",
+          "translation": "尽管我筋疲力尽，我还是把报告写完了。",
+          "note": "事实让步：确实很累，但结果仍完成。",
+          "scene": "work",
+          "isPrimary": true
+        },
+        {
+          "sentence": "She smiled, even though she was nervous.",
+          "translation": "她还是笑了，尽管她很紧张。",
+          "note": "可放句中，突出情绪对比。",
+          "scene": "social",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "Even though {concessionClause}, {mainClause}.",
+          "slotHints": [
+            "concessionClause=一个事实性的让步从句",
+            "mainClause=主要结果（仍然发生/仍然成立）"
+          ],
+          "exampleSentence": "Even though it was raining, we went for a walk.",
+          "exampleTranslation": "尽管在下雨，我们还是去散步了。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "despite-noun",
+      "title": "despite + noun / v-ing",
+      "shortLabel": null,
+      "pattern": "despite + noun / v-ing",
+      "family": "concession_contrast",
+      "subtype": "concession_phrase",
+      "anchor": "despite",
+      "coreExplanation": "despite后面接名词短语或动名词（v-ing），表示“尽管/即使……，仍然……”。不能直接接完整从句。",
+      "usageNote": "多用于书面或较正式表达；口语也可用但更常见于写作。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "writing",
+        "contrast",
+        "formal-writing",
+        "academic"
+      ],
+      "slotSchema": [
+        {
+          "key": "concession",
+          "label": "让步内容",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "名词短语或v-ing短语，如 the rain / being tired"
+        },
+        {
+          "key": "main",
+          "label": "主要结果/动作",
+          "type": "clause",
+          "required": true,
+          "hint": "主句，说明结果或继续发生的事"
+        }
+      ],
+      "commonErrors": [
+        "用despite直接接从句：despite he was tired（应改为 although he was tired 或 despite being tired）",
+        "把despite当作连词使用并加逗号连接两句",
+        "despite后用to do：despite to work hard（应为 despite working hard）"
+      ],
+      "contrasts": [
+        {
+          "slug": "although-clause",
+          "title": "although + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "in-spite-of-noun",
+          "title": "in spite of + noun / v-ing",
+          "note": "意义与despite几乎相同；in spite of更长、更正式一点。"
+        },
+        {
+          "slug": "in-spite-of-noun-v-ing",
+          "title": "in spite of + noun / v-ing",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Despite the rain, we went hiking.",
+          "translation": "尽管下雨，我们还是去徒步了。",
+          "note": "despite + 名词短语",
+          "scene": "travel",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Despite being tired, she finished the report on time.",
+          "translation": "尽管很累，她还是按时完成了报告。",
+          "note": "despite + v-ing",
+          "scene": "work",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "Despite {concession}, {main}.",
+          "slotHints": [
+            "concession用名词短语或v-ing短语",
+            "main写主要结果/动作（完整主句）"
+          ],
+          "exampleSentence": "Despite the delay, the meeting started on time.",
+          "exampleTranslation": "尽管有延误，会议还是准时开始了。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "in-spite-of-noun",
+      "title": "in spite of + noun / v-ing",
+      "shortLabel": "in spite of",
+      "pattern": "in spite of + noun / v-ing",
+      "family": "concession_contrast",
+      "subtype": "concession_phrase_variant",
+      "anchor": "in spite of",
+      "coreExplanation": "表示“尽管/虽然”，后面接名词、代词或动名词（v-ing），后面不直接接完整句子。常用于书面表达，语气比 despite 稍长、更正式一点。",
+      "usageNote": "若要接从句，用 in spite of the fact that + 从句，或改用 although/though + 从句。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "writing",
+        "contrast",
+        "rewriting",
+        "argument"
+      ],
+      "slotSchema": [
+        {
+          "key": "concession",
+          "label": "让步内容",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "名词/代词/动名词短语（v-ing）"
+        },
+        {
+          "key": "main",
+          "label": "主要结果",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "主句表达结果或事实"
+        }
+      ],
+      "commonErrors": [
+        "把从句直接放在 in spite of 后面：in spite of he was tired...（应改为 in spite of the fact that... 或 although...）",
+        "把 of 漏掉：in spite the rain（应为 in spite of the rain）",
+        "误用 to do：in spite of to be late（应为 in spite of being late）"
+      ],
+      "contrasts": [
+        {
+          "slug": "despite-noun",
+          "title": "despite + noun / v-ing",
+          "note": "意义几乎相同；despite 更简洁，in spite of 更长一点。"
+        },
+        {
+          "slug": "although-clause",
+          "title": "although + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "despite-noun-v-ing",
+          "title": "despite + noun / v-ing",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "In spite of the rain, we went hiking.",
+          "translation": "尽管下雨，我们还是去徒步了。",
+          "note": "in spite of + 名词短语 + 逗号 + 主句。",
+          "scene": "contrast",
+          "isPrimary": true
+        },
+        {
+          "sentence": "In spite of feeling exhausted, she finished the report on time.",
+          "translation": "尽管感到筋疲力尽，她还是按时完成了报告。",
+          "note": "in spite of + v-ing（动名词短语）。",
+          "scene": "writing",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "In spite of {concession}, {main}.",
+          "slotHints": [
+            "concession: 名词/代词/v-ing",
+            "main: 主句结果"
+          ],
+          "exampleSentence": "In spite of the delay, the meeting started on time.",
+          "exampleTranslation": "尽管有延误，会议还是准时开始了。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "even-if-clause",
+      "title": "even if + clause",
+      "shortLabel": null,
+      "pattern": "even if + clause, main clause",
+      "family": "concession_contrast",
+      "subtype": "hypothetical_concession",
+      "anchor": "even if",
+      "coreExplanation": "“even if + clause”表示“即使/就算……也……”，强调前面是设想的条件，不会改变主句结果。",
+      "usageNote": "常用于表达决心、让步或反驳：不管发生什么，结果/决定不变。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "argument",
+        "determination",
+        "hypothetical"
+      ],
+      "slotSchema": [
+        {
+          "key": "condition",
+          "label": "even if 条件分句",
+          "type": "clause",
+          "required": true,
+          "hint": "设想的情况（不一定会发生）"
+        },
+        {
+          "key": "result",
+          "label": "主句结果",
+          "type": "clause",
+          "required": true,
+          "hint": "不受条件影响的决定/结果"
+        }
+      ],
+      "commonErrors": [
+        "把 even if 当成 even though（把假设写成事实）",
+        "even if 后面用名词短语：even if the rain（应为 even if it rains / even if there is rain）",
+        "从句和主句时态乱用：even if it will rain（更自然：even if it rains / even if it does rain）"
+      ],
+      "contrasts": [
+        {
+          "slug": "even-though-clause",
+          "title": "even though + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "if-clause",
+          "title": "if + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Even if it rains, we’ll go hiking.",
+          "translation": "即使下雨，我们也会去徒步。",
+          "note": "强调决定不变；“下雨”是设想。",
+          "scene": "determination",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Even if you don’t agree, I’m going to tell the manager.",
+          "translation": "即使你不同意，我也要告诉经理。",
+          "note": "用于争论/表态。",
+          "scene": "argument",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "Even if {condition}, {result}.",
+          "slotHints": [
+            "condition: 一个完整分句（S+V）",
+            "result: 主要决定/结果"
+          ],
+          "exampleSentence": "Even if I’m busy, I’ll reply tonight.",
+          "exampleTranslation": "即使我很忙，我今晚也会回复。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "while-contrast-clause",
+      "title": "while + clause (contrast)",
+      "shortLabel": "对比用 while",
+      "pattern": "while + clause, main clause",
+      "family": "concession_contrast",
+      "subtype": "contrast_clause",
+      "anchor": "while",
+      "coreExplanation": "用于把两件事并列对照（而非表示“同时”）。常见结构：While + 子句, 主句。也可倒装为：主句, while + 子句。",
+      "usageNote": "多用于书面/说明性写作来做对比；口语里也可用，但更常用 whereas/ but。注意：这里的 while=“而、然而”，不是“当……时”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "comparison",
+        "writing",
+        "formal-writing",
+        "analysis"
+      ],
+      "slotSchema": [
+        {
+          "key": "whileClause",
+          "label": "while 从句",
+          "type": "clause",
+          "required": true,
+          "hint": "描述A的情况/特征，用一般现在时很常见"
+        },
+        {
+          "key": "mainClause",
+          "label": "主句",
+          "type": "clause",
+          "required": true,
+          "hint": "描述与A形成对照的B"
+        }
+      ],
+      "commonErrors": [
+        "把对比用 while 误解成时间用 while，导致句意跑偏",
+        "while 从句后面漏逗号（While..., 主句）或乱加逗号",
+        "把 while 后面接名词短语（应是子句；名词用 whereas不行，需改成 although/ despite 等结构）"
+      ],
+      "contrasts": [
+        {
+          "slug": "however",
+          "title": "however",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "although-clause",
+          "title": "although + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "While the new model is faster, it costs much more.",
+          "translation": "新款机型更快，但价格也高得多。",
+          "note": "对比两点：速度 vs 价格。",
+          "scene": "comparison",
+          "isPrimary": true
+        },
+        {
+          "sentence": "While some people prefer to work from home, others work better in an office.",
+          "translation": "有些人更喜欢在家工作，而另一些人在办公室工作效率更高。",
+          "note": null,
+          "scene": "writing",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "contrast (While..., ... )",
+          "template": "While {whileClause}, {mainClause}.",
+          "slotHints": [
+            "在这里写A的对照点（完整主谓结构）",
+            "在这里写B的对照点（完整主谓结构）"
+          ],
+          "exampleSentence": "While the plan sounds simple, it will be hard to execute.",
+          "exampleTranslation": "这个计划听起来很简单，但执行起来会很难。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "however-sentence-adverb",
+      "title": "however (sentence adverb)",
+      "shortLabel": null,
+      "pattern": "statement. However, statement.",
+      "family": "concession_contrast",
+      "subtype": "contrast_adverb",
+      "anchor": "however",
+      "coreExplanation": "However 作句子副词表示“然而/不过”，用来承接上一句并引出对比或转折的新观点，通常放在第二句句首，后面用逗号隔开。",
+      "usageNote": "多用于书面语/论文/报告；口语更常用 but。不要把 however 当作连词直接连接两个独立句。",
+      "usageRegister": "formal",
+      "sceneTags": [
+        "essay",
+        "formal-writing",
+        "argument"
+      ],
+      "slotSchema": [
+        {
+          "key": "s1",
+          "label": "first statement",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "先提出观点/事实A"
+        },
+        {
+          "key": "s2",
+          "label": "contrasting statement",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "提出对比/限制/相反观点B"
+        }
+      ],
+      "commonErrors": [
+        "把 however 当连词用：*I was tired, however I kept working.（缺少分号/句号）",
+        "在 however 后不用逗号（正式写作中建议：However, ...）",
+        "与 but 重复使用：*But however, ..."
+      ],
+      "contrasts": [
+        {
+          "slug": "but",
+          "title": "but",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "while-clause-contrast",
+          "title": "while + clause (contrast)",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The plan seems efficient. However, it may be too costly.",
+          "translation": "这个方案看起来很高效。然而，它可能成本太高。",
+          "note": "第二句对第一句提出限制/反面信息。",
+          "scene": "essay",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I agree with your goal. However, I disagree with your method.",
+          "translation": "我同意你的目标。然而，我不同意你的方法。",
+          "note": null,
+          "scene": "argument",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic contrast across sentences",
+          "template": "{s1}. However, {s2}.",
+          "slotHints": [
+            "陈述A",
+            "转折/对比陈述B"
+          ],
+          "exampleSentence": "The data are promising. However, the sample size is small.",
+          "exampleTranslation": "数据很有前景。然而，样本量很小。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "if-real-condition",
+      "title": "if + present, will / can + base",
+      "shortLabel": "Real future condition",
+      "pattern": "if + present, will / can + base",
+      "family": "condition",
+      "subtype": "real_condition",
+      "anchor": "if",
+      "coreExplanation": "用于表达“如果某个现实/很可能发生的条件成立，那么将会/能够做某事”。if从句用一般现在时表将来；主句常用will或can+动词原形。",
+      "usageNote": "也可把主句放前：I’ll call you if I arrive early. 注意if从句不用will。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "planning",
+        "advice",
+        "daily-life",
+        "work"
+      ],
+      "slotSchema": [
+        {
+          "key": "ifClause",
+          "label": "If clause (present)",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "一般现在时：If + 主语 + 动词(原形/三单)…"
+        },
+        {
+          "key": "mainClause",
+          "label": "Main clause (will/can + base)",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "will/can + 动词原形，表达结果/决定/能力"
+        }
+      ],
+      "commonErrors": [
+        "在if从句里用will（误：If it will rain...）",
+        "把if从句用将来时（误：If I will go...）",
+        "主句动词忘记用原形（误：will goes / can goes）"
+      ],
+      "contrasts": [
+        {
+          "slug": "unless + clause",
+          "title": "unless + clause, main clause",
+          "note": "unless=“除非/如果不”。结构类似，但语义是否定条件。"
+        },
+        {
+          "slug": "if + past, would + base",
+          "title": "if + past, would + base",
+          "note": "用于不太可能/假设/非现实情况；语气更委婉或不真实。"
+        },
+        {
+          "slug": "unless-clause",
+          "title": "unless + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "if-past-would-base",
+          "title": "if + past, would + base",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "If it rains tomorrow, we’ll stay home.",
+          "translation": "如果明天下雨，我们就待在家。",
+          "note": "if从句一般现在时表达将来可能情况。",
+          "scene": "daily-life",
+          "isPrimary": true
+        },
+        {
+          "sentence": "If you finish early, you can leave first.",
+          "translation": "如果你提前完成，你可以先走。",
+          "note": "主句用can表示允许/可能。",
+          "scene": "work",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "If {ifClause}, {mainClause}.",
+          "slotHints": [
+            "用一般现在时描述条件",
+            "用will/can+动词原形描述结果"
+          ],
+          "exampleSentence": "If you have time, I’ll show you around.",
+          "exampleTranslation": "如果你有时间，我带你四处看看。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "unless-clause",
+      "title": "unless + clause",
+      "shortLabel": "unless 条件句",
+      "pattern": "unless + clause, main clause",
+      "family": "condition",
+      "subtype": "negative_condition",
+      "anchor": "unless",
+      "coreExplanation": "unless + 从句表示“除非/如果不”，相当于“if ... not”，用于提出例外条件。",
+      "usageNote": "常用于规则、警告、条款。unless 从句一般用一般现在时表达将来；不要再加 not 形成双重否定。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "rules",
+        "warnings",
+        "conditions"
+      ],
+      "slotSchema": [
+        {
+          "key": "unlessClause",
+          "label": "unless 从句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "描述“如果不…”的条件，一般用现在时"
+        },
+        {
+          "key": "mainClause",
+          "label": "主句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "说明结果/后果，常用 will/can/must 等"
+        }
+      ],
+      "commonErrors": [
+        "在 unless 从句里再加 not：unless you don't...（应改为 unless you...）",
+        "把 unless 当成“除非…否则…一定…”的强制逻辑，忽略语境（有时更像一般条件）",
+        "时态误用：用 will 出现在 unless 从句里（一般用现在时表达将来）"
+      ],
+      "contrasts": [
+        {
+          "slug": "if-clause",
+          "title": "if + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "in-case-clause",
+          "title": "in case + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Unless you wear a helmet, you can't enter the site.",
+          "translation": "除非你戴安全帽，否则你不能进入工地。",
+          "note": "规则/规定场景常用。",
+          "scene": "rules",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I won’t go unless you come with me.",
+          "translation": "除非你和我一起去，不然我不去。",
+          "note": "口语中常用来设条件。",
+          "scene": "conditions",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic rule/warning",
+          "template": "Unless {unlessClause}, {mainClause}.",
+          "slotHints": [
+            "用一般现在时描述条件，如 you have a ticket / you wear a helmet",
+            "主句写结果，常用 will/can/must/need to"
+          ],
+          "exampleSentence": "Unless you have a ticket, you can't get in.",
+          "exampleTranslation": "除非你有票，否则你进不去。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "if-past-would",
+      "title": "if + past, would + base",
+      "shortLabel": null,
+      "pattern": "if + past, would + base",
+      "family": "condition",
+      "subtype": "unreal_present_condition",
+      "anchor": "if",
+      "coreExplanation": "用来谈论“与现在事实相反/不太可能发生”的假设：if从句用一般过去时，主句用would+动词原形。意思常等于“如果……就会……（但现实不是这样）”。",
+      "usageNote": "口语中would常缩写为’d；be动词在正式/考试中常用were（If I were...）。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "imagining",
+        "advice",
+        "dreaming",
+        "planning"
+      ],
+      "slotSchema": [
+        {
+          "key": "if_clause_past",
+          "label": "if-clause (past simple)",
+          "type": "clause",
+          "required": true,
+          "hint": "与现在相反的条件：If I had more time / If she lived here"
+        },
+        {
+          "key": "main_would_base",
+          "label": "main clause (would + base)",
+          "type": "clause",
+          "required": true,
+          "hint": "结果：I would travel more / she would help"
+        }
+      ],
+      "commonErrors": [
+        "把从句写成将来时：If I will...（应为If I had/was/were...）",
+        "主句用过去时而不是would：If I had money, I bought...（应为would buy）",
+        "把它当真实条件使用，导致语气不对（真实情况用if+present, will/can）"
+      ],
+      "contrasts": [
+        {
+          "slug": "if-present-will",
+          "title": "if + present, will / can + base",
+          "note": "用于真实/可能发生的条件：If it rains, we’ll stay home。"
+        },
+        {
+          "slug": "if-i-were-you",
+          "title": "if I were you, I'd...",
+          "note": "给建议的固定说法，是本句型的常见特例。"
+        },
+        {
+          "slug": "if-present-will-can-base",
+          "title": "if + present, will / can + base",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "if-i-were-you-i-d",
+          "title": "if I were you, I'd...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "If I had more time, I would learn Chinese every day.",
+          "translation": "如果我有更多时间，我就会每天学中文。（但现在时间不够）",
+          "note": "现在不真实的假设：had + would learn",
+          "scene": "imagining",
+          "isPrimary": true
+        },
+        {
+          "sentence": "If I were you, I’d talk to the teacher first.",
+          "translation": "如果我是你，我会先跟老师谈谈。",
+          "note": "建议：were常见于该固定句型",
+          "scene": "advice",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Unreal present conditional",
+          "template": "If {if_clause_past}, {main_would_base}.",
+          "slotHints": [
+            "if从句用一般过去时（表示与现在相反）",
+            "主句用would/’d + 动词原形"
+          ],
+          "exampleSentence": "If she lived closer, she would visit us more often.",
+          "exampleTranslation": "如果她住得近一点，她就会更常来看我们。（但她住得不近）",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "if-i-were-you",
+      "title": "if I were you, I'd...",
+      "shortLabel": "Advice formula",
+      "pattern": "if I were you, I would + base",
+      "family": "condition",
+      "subtype": "advice_formula",
+      "anchor": "if I were you",
+      "coreExplanation": "“If I were you, I’d/ I would + 动词原形”表示“如果我是你，我会……”，用来委婉给建议。were用于所有人称（I/he/she/it）更自然。",
+      "usageNote": "常用缩写：I’d。语气比“You should”更柔和。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "advice",
+        "conversation",
+        "problem-solving"
+      ],
+      "slotSchema": [
+        {
+          "key": "action",
+          "label": "建议做的事",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "用动词原形开头，如: talk to..., take a break, see a doctor"
+        }
+      ],
+      "commonErrors": [
+        "说成 if I was you（更口语但不如 were 标准）",
+        "would 后面加 to（误：I would to go）",
+        "把主句用 will（误：If I were you, I will...）"
+      ],
+      "contrasts": [
+        {
+          "slug": "you-should-base",
+          "title": "you should + base",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "if-past-would",
+          "title": "if + past, would + base",
+          "note": "泛指假设：If I had time, I’d help.；“If I were you”专用于给对方建议。"
+        },
+        {
+          "slug": "if-past-would-base",
+          "title": "if + past, would + base",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "If I were you, I’d talk to your manager about it.",
+          "translation": "如果我是你，我会去跟你的经理谈谈这件事。",
+          "note": "给建议，语气委婉。",
+          "scene": "workplace advice",
+          "isPrimary": true
+        },
+        {
+          "sentence": "If I were you, I’d take a day off and rest.",
+          "translation": "如果我是你，我会请一天假好好休息。",
+          "note": null,
+          "scene": "health / stress",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic advice",
+          "template": "If I were you, I’d {action}.",
+          "slotHints": [
+            "action=动词原形短语：call him back / see a doctor / wait until tomorrow"
+          ],
+          "exampleSentence": "If I were you, I’d wait until tomorrow.",
+          "exampleTranslation": "如果我是你，我会等到明天。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "as-long-as-clause",
+      "title": "as long as + clause",
+      "shortLabel": null,
+      "pattern": "as long as + clause, main clause",
+      "family": "condition",
+      "subtype": "required_condition",
+      "anchor": "as long as",
+      "coreExplanation": "“as long as + clause, main clause”表示“只要/只要一直…就…”，强调条件必须持续成立（常用于规则、许可、协议）。",
+      "usageNote": "可放句首或句中；常与can/will等情态动词连用；用于时间含义时接近“只要…期间”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "agreement",
+        "rules",
+        "permission",
+        "workplace"
+      ],
+      "slotSchema": [
+        {
+          "key": "condition",
+          "label": "as long as 后的条件从句",
+          "type": "clause",
+          "required": true,
+          "hint": "描述必须持续为真的条件"
+        },
+        {
+          "key": "main",
+          "label": "主句结果/许可/承诺",
+          "type": "clause",
+          "required": true,
+          "hint": "说明在条件成立时会发生/允许的事"
+        }
+      ],
+      "commonErrors": [
+        "把“as long as”误写成“as long”单独使用",
+        "用它表达一次性的条件（更像 if），导致语气不自然",
+        "与“so long as”（同义）混用但忽略正式度：正式写作更常用 provided that/if"
+      ],
+      "contrasts": [
+        {
+          "slug": "if-clause",
+          "title": "if + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "provided-that",
+          "title": "provided that + clause",
+          "note": "更正式、合同/条款感更强，语气更像“前提是…”。"
+        },
+        {
+          "slug": "provided-that-clause",
+          "title": "provided that + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "As long as you follow the rules, you can stay here.",
+          "translation": "只要你遵守规则，你就可以留在这里。",
+          "note": "强调“遵守规则”需要一直成立。",
+          "scene": "rules",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I’ll support your plan as long as it doesn’t cost too much.",
+          "translation": "只要花费别太高，我就支持你的计划。",
+          "note": "常用于协商/条件同意。",
+          "scene": "agreement",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Permission/Agreement condition",
+          "template": "As long as {condition}, {main}.",
+          "slotHints": [
+            "condition: 必须持续满足的条件",
+            "main: 许可/承诺/结果"
+          ],
+          "exampleSentence": "As long as you finish by Friday, you can take Monday off.",
+          "exampleTranslation": "只要你周五前完成，你周一就可以休假。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "in-case-clause",
+      "title": "in case + clause",
+      "shortLabel": "in case + clause",
+      "pattern": "main clause in case + clause",
+      "family": "condition",
+      "subtype": "preventive_condition",
+      "anchor": "in case",
+      "coreExplanation": "用“in case + 从句”表示“以防/万一……”，主句是在为可能发生的情况做准备（预防性措施），不是在说条件一发生就必然导致结果。",
+      "usageNote": "常与may/might/could等可能性语气搭配。可放句末或句首（句首后常加逗号）。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "preparation",
+        "safety",
+        "daily-life",
+        "travel"
+      ],
+      "slotSchema": [
+        {
+          "key": "main",
+          "label": "Main clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "先做的准备/预防动作"
+        },
+        {
+          "key": "risk",
+          "label": "In-case clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "可能发生的情况（不用will）"
+        }
+      ],
+      "commonErrors": [
+        "把in case当成if，用来表示“如果…就…”的直接条件结果",
+        "在in case从句里用will（如*in case it will rain）",
+        "把in case of（+名词）和in case + 从句混用（如*in case of it rains）"
+      ],
+      "contrasts": [
+        {
+          "slug": "if-real-condition",
+          "title": "if + clause",
+          "note": "if强调“条件成立则结果发生”；in case强调“提前准备以防万一”，不表示必然因果。"
+        },
+        {
+          "slug": "unless-clause",
+          "title": "unless + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "if-clause",
+          "title": "if + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Take an umbrella in case it rains.",
+          "translation": "带把伞，以防下雨。",
+          "note": "主句是准备动作；从句是可能情况。",
+          "scene": "daily-life",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I'll save his number in case I need to contact him later.",
+          "translation": "我会把他的号码存起来，以防之后需要联系他。",
+          "note": null,
+          "scene": "work",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "{main} in case {risk}.",
+          "slotHints": [
+            "做准备/预防的动作",
+            "可能发生的情况（用一般现在时）"
+          ],
+          "exampleSentence": "Charge your phone in case you need it.",
+          "exampleTranslation": "给手机充电，以防你需要用。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "when-clause",
+      "title": "when + clause",
+      "shortLabel": null,
+      "pattern": "when + clause, main clause",
+      "family": "time_sequence",
+      "subtype": "time_point",
+      "anchor": "when",
+      "coreExplanation": "用 when 引出时间从句，说明“在某个时间点/某种情况发生时”，主句发生。可指一次性事件或一般规律/习惯。",
+      "usageNote": "从句可在句首或句末；句首常加逗号。描述将来时，when 从句通常用一般现在时表达将来。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "daily-life",
+        "habits",
+        "stories",
+        "work"
+      ],
+      "slotSchema": [
+        {
+          "key": "whenClause",
+          "label": "when 从句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "用一般现在时/一般过去时等描述时间条件，如 when I get home"
+        },
+        {
+          "key": "mainClause",
+          "label": "主句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "描述结果/动作，如 I call my mom"
+        }
+      ],
+      "commonErrors": [
+        "把 when 从句当作疑问句：误用 When do you arrive, I…（应为 When you arrive, I…）",
+        "将来含义时 when 从句误用 will：When I will arrive, I’ll call you（应为 When I arrive…）",
+        "把 while 的“持续同时”误用为 when：While I arrived, he left（应为 When I arrived…）"
+      ],
+      "contrasts": [
+        {
+          "slug": "while-time-clause",
+          "title": "while + clause (time)",
+          "note": "while 强调两个动作“同时进行/持续期间”；when 更像时间点触发或一般规律。"
+        },
+        {
+          "slug": "once-clause",
+          "title": "once + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "while-clause-time",
+          "title": "while + clause (time)",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "When I get home, I usually make tea.",
+          "translation": "我到家后通常会泡茶。",
+          "note": "一般规律/习惯；when 从句用一般现在时。",
+          "scene": "habits",
+          "isPrimary": true
+        },
+        {
+          "sentence": "When I arrived, he was already waiting.",
+          "translation": "我到的时候，他已经在等了。",
+          "note": "过去时间点触发；主句可用过去进行/过去完成等。",
+          "scene": "stories",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Time trigger with when",
+          "template": "When {whenClause}, {mainClause}.",
+          "slotHints": [
+            "{whenClause}=时间/条件触发（多用一般现在/一般过去）",
+            "{mainClause}=发生的动作/结果"
+          ],
+          "exampleSentence": "When you finish, send me the file.",
+          "exampleTranslation": "你做完后，把文件发给我。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "while-time-clause",
+      "title": "while + clause (time)",
+      "shortLabel": null,
+      "pattern": "while + clause, main clause",
+      "family": "time_sequence",
+      "subtype": "parallel_time",
+      "anchor": "while",
+      "coreExplanation": "用 while 引导时间状语从句，表示两个动作在同一段时间内同时发生（常用于“进行中”的背景动作 + 另一动作）。",
+      "usageNote": "时间用法通常搭配进行时（was/were + V-ing），强调“在……期间”。不要和“对比转折”的 while 混用。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "stories",
+        "describing-actions",
+        "process",
+        "daily-life"
+      ],
+      "slotSchema": [
+        {
+          "key": "whileClause",
+          "label": "while 从句",
+          "type": "clause",
+          "required": true,
+          "hint": "描述背景/持续动作，常用过去进行时或现在进行时"
+        },
+        {
+          "key": "mainClause",
+          "label": "主句",
+          "type": "clause",
+          "required": true,
+          "hint": "同时发生的动作，或在这段时间内发生的事件"
+        }
+      ],
+      "commonErrors": [
+        "把时间用法的 while 误写成转折对比（= although）的意思",
+        "while 从句用一般时但想表达“正在进行”，导致时间感不强（如 while I cooked...）",
+        "误用 when 替代 while：when 更偏“某一时刻/事件触发”，while 偏“持续期间”"
+      ],
+      "contrasts": [
+        {
+          "slug": "when-clause",
+          "title": "when + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "while-contrast-clause",
+          "title": "while + clause (contrast)",
+          "note": "对比用法表示“而/但是”，不强调时间同时发生。"
+        },
+        {
+          "slug": "while-clause-contrast",
+          "title": "while + clause (contrast)",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "While I was cooking, he was setting the table.",
+          "translation": "我做饭的时候，他在摆桌子。",
+          "note": "两个动作同时进行，常用过去进行时。",
+          "scene": "daily-life",
+          "isPrimary": true
+        },
+        {
+          "sentence": "While we were waiting for the bus, it started to rain.",
+          "translation": "我们等公交的时候，开始下雨了。",
+          "note": "等待是背景持续动作；“开始下雨”是在这段时间里发生的事件。",
+          "scene": "stories",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Time overlap",
+          "template": "While {whileClause}, {mainClause}.",
+          "slotHints": [
+            "whileClause: 持续进行的背景动作（常用进行时）",
+            "mainClause: 同时发生的动作/事件"
+          ],
+          "exampleSentence": "While I was studying, my phone kept ringing.",
+          "exampleTranslation": "我学习的时候，我的手机一直在响。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "before-clause",
+      "title": "before + clause",
+      "shortLabel": "before + clause",
+      "pattern": "before + clause",
+      "family": "time_sequence",
+      "subtype": "prior_time",
+      "anchor": "before",
+      "coreExplanation": "用 before + 从句 表示“在……之前”，说明主句动作发生在从句动作之前。before 后接完整从句（主语+谓语）。",
+      "usageNote": "常见位置：主句 + before 从句；或 Before 从句, 主句（更强调先做什么）。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "instructions",
+        "routines",
+        "planning"
+      ],
+      "slotSchema": [
+        {
+          "key": "main_clause",
+          "label": "Main clause",
+          "type": "clause",
+          "required": true,
+          "hint": "先发生的动作/结果"
+        },
+        {
+          "key": "before_clause",
+          "label": "Before clause",
+          "type": "clause",
+          "required": true,
+          "hint": "后发生的动作；用一般现在时表达将来很常见：before you leave"
+        }
+      ],
+      "commonErrors": [
+        "before 后面只放动词原形而不是从句：*before go -> before I go",
+        "把时序写反（主句其实发生在之后）导致逻辑不通",
+        "误用将来时：*before you will leave（更常用 before you leave）"
+      ],
+      "contrasts": [
+        {
+          "slug": "after-clause",
+          "title": "after + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "until-clause",
+          "title": "until + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Please wash your hands before you eat.",
+          "translation": "吃饭前请先洗手。",
+          "note": "指令场景；主句动作（洗手）发生在从句动作（吃饭）之前。",
+          "scene": "instructions",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I’ll check the schedule before we book the tickets.",
+          "translation": "我们订票前我会先查一下时间表。",
+          "note": "计划场景；before 从句用一般现在时表示将来。",
+          "scene": "planning",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "{main_clause} before {before_clause}.",
+          "slotHints": [
+            "主句：先做的事",
+            "before 从句：后做的事（主语+谓语）"
+          ],
+          "exampleSentence": "Finish your homework before you play games.",
+          "exampleTranslation": "玩游戏前先把作业写完。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "after-clause",
+      "title": "after + clause",
+      "shortLabel": null,
+      "pattern": "after + clause",
+      "family": "time_sequence",
+      "subtype": "later_time",
+      "anchor": "after",
+      "coreExplanation": "用“after + 从句”表示两个动作的先后顺序：从句的事先发生，主句的事后发生。可放句首或句中。",
+      "usageNote": "口语和写作都常用；若强调“立刻在之后”，可用“right after”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "stories",
+        "steps",
+        "reflection"
+      ],
+      "slotSchema": [
+        {
+          "key": "afterClause",
+          "label": "after 从句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "用一般过去/现在/完成时均可，按时间选择；从句描述先发生的事"
+        },
+        {
+          "key": "mainClause",
+          "label": "主句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "描述后发生的事"
+        }
+      ],
+      "commonErrors": [
+        "把时间顺序搞反：after 从句其实是先发生的事",
+        "误用成“after to do”：应接从句(主语+谓语)，或改用“after + V-ing”",
+        "忽略连接词位置：句首用逗号隔开，句中一般不需要逗号"
+      ],
+      "contrasts": [
+        {
+          "slug": "before-clause",
+          "title": "before + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "once-clause",
+          "title": "once + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "After I finished the report, I sent it to my manager.",
+          "translation": "我写完报告后，把它发给了经理。",
+          "note": "句首 after 从句，表示“完成”先发生。",
+          "scene": "steps",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I felt much better after I talked to her.",
+          "translation": "我跟她聊过之后，感觉好多了。",
+          "note": "句末 after 从句，更口语自然。",
+          "scene": "reflection",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "After {afterClause}, {mainClause}.",
+          "slotHints": [
+            "afterClause: 先发生的事（完整从句）",
+            "mainClause: 后发生的事"
+          ],
+          "exampleSentence": "After we arrived, we had dinner.",
+          "exampleTranslation": "我们到了之后就吃了晚饭。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "until-clause",
+      "title": "until + clause",
+      "shortLabel": null,
+      "pattern": "main clause until + clause",
+      "family": "time_sequence",
+      "subtype": "end_point",
+      "anchor": "until",
+      "coreExplanation": "“until + clause”表示动作/状态持续到某个时间点为止，后面的从句说明终点（某事发生）。",
+      "usageNote": "常与持续性动词连用（wait, stay, keep, work）。若主句是否定，常可理解为“直到…才…”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "waiting",
+        "duration",
+        "plans",
+        "work"
+      ],
+      "slotSchema": [
+        {
+          "key": "main",
+          "label": "Main clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "描述持续的动作/状态（常用 will/keep/stay/wait）"
+        },
+        {
+          "key": "untilClause",
+          "label": "until + clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "说明结束点：某事发生/某时到来（如 the meeting ends / you come back）"
+        }
+      ],
+      "commonErrors": [
+        "把until后面接名词时仍用clause（应改为until + noun phrase：until tomorrow / until next week）",
+        "用非持续性动词直接配until（如 *I arrive until 5），应改为I won’t arrive until 5 或 I’ll stay until 5",
+        "时态不自然：谈将来时，从句一般用一般现在时（I’ll wait until you arrive，不是 *until you will arrive）"
+      ],
+      "contrasts": [
+        {
+          "slug": "before-clause",
+          "title": "before + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "when-clause",
+          "title": "when + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I’ll wait here until you get back.",
+          "translation": "我会在这里等到你回来。",
+          "note": "将来含义：until从句用一般现在时(get back)。",
+          "scene": "waiting",
+          "isPrimary": true
+        },
+        {
+          "sentence": "We didn’t start until everyone arrived.",
+          "translation": "直到所有人都到了，我们才开始。",
+          "note": "否定+until常表达“直到…才…”。",
+          "scene": "plans",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "{main} until {untilClause}.",
+          "slotHints": [
+            "用持续性动作/状态",
+            "用一般现在/一般过去描述终点事件"
+          ],
+          "exampleSentence": "I’ll stay at the office until the report is finished.",
+          "exampleTranslation": "我会待在办公室，直到报告完成。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "once-clause",
+      "title": "once + clause",
+      "shortLabel": "once-clause",
+      "pattern": "once + clause, main clause",
+      "family": "time_sequence",
+      "subtype": "immediate_sequence",
+      "anchor": "once",
+      "coreExplanation": "“once + clause”表示“一……就……/一旦……就……”。强调前件完成后，主句立刻发生或安排马上执行。",
+      "usageNote": "常用于计划、指令、流程说明；可指将来或一般情况。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "plans",
+        "instructions",
+        "sequence",
+        "workplace"
+      ],
+      "slotSchema": [
+        {
+          "key": "once_clause",
+          "label": "once clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "用一般现在时或现在完成时描述条件/完成的动作"
+        },
+        {
+          "key": "main_clause",
+          "label": "main clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "结果/下一步动作；可用will/imperative"
+        }
+      ],
+      "commonErrors": [
+        "把once当作“曾经”，误用为过去经历（应为once=as soon as/一旦）",
+        "once从句用will（一般不用will：Once you finish..., I’ll...）",
+        "与when混用导致语气不清：once更强调“完成后立刻/一旦达成”"
+      ],
+      "contrasts": [
+        {
+          "slug": "when-clause",
+          "title": "when + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "after-clause",
+          "title": "after + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Once you finish the report, send it to me.",
+          "translation": "你一写完报告就发给我。",
+          "note": "指令场景；强调完成后立即执行。",
+          "scene": "instructions",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Once the meeting is over, we’ll go for lunch.",
+          "translation": "会议一结束我们就去吃午饭。",
+          "note": "计划安排；“is over”表示条件达成。",
+          "scene": "plans",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Once condition, then action",
+          "template": "Once {once_clause}, {main_clause}.",
+          "slotHints": [
+            "在{once_clause}写“条件完成/达成”的动作",
+            "在{main_clause}写“立刻发生/下一步”的动作"
+          ],
+          "exampleSentence": "Once you get home, call me.",
+          "exampleTranslation": "你一到家就给我打电话。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "that-clause-opinion",
+      "title": "that-clause after think / say / know",
+      "shortLabel": "that从句（转述内容）",
+      "pattern": "verb + that + clause",
+      "family": "noun_clause",
+      "subtype": "reported_content",
+      "anchor": "that",
+      "coreExplanation": "用于think/say/know/claim等动词后，引出“所想/所说/所知道的内容”。口语中that常可省略，但意思不变。",
+      "usageNote": "从句用陈述语序；主句是过去时，若内容仍然成立可不回退时态。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "opinions",
+        "reporting",
+        "discussion"
+      ],
+      "slotSchema": [
+        {
+          "key": "verb",
+          "label": "Reporting verb",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "如 think/say/know/believe/claim/hope"
+        },
+        {
+          "key": "clause",
+          "label": "That-clause content",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "完整陈述句，不能用疑问语序"
+        }
+      ],
+      "commonErrors": [
+        "把that从句写成疑问语序：I think that is he right.",
+        "把whether/if问题误用成that：I don't know that he will come.（应为whether/if）",
+        "that从句里漏主语或谓语，导致句子不完整"
+      ],
+      "contrasts": [
+        {
+          "slug": "whether-if-clause",
+          "title": "whether / if + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "wh-embedded-question",
+          "title": "wh- clause",
+          "note": "用于“具体信息问题”：I know what he said."
+        },
+        {
+          "slug": "wh-clause",
+          "title": "wh- clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I think that we should leave now.",
+          "translation": "我觉得我们现在应该走。",
+          "note": "口语中that常省略：I think we should leave now.",
+          "scene": "discussion",
+          "isPrimary": true
+        },
+        {
+          "sentence": "She said that the meeting was canceled.",
+          "translation": "她说会议取消了。",
+          "note": null,
+          "scene": "reporting",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "{verb} (that) {clause}.",
+          "slotHints": [
+            "动词用think/say/know等",
+            "从句用陈述句，表达内容/观点/信息"
+          ],
+          "exampleSentence": "We know (that) the plan will work.",
+          "exampleTranslation": "我们知道这个计划会奏效。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "that-clause-fact",
+      "title": "that-clause after fact / idea / belief nouns",
+      "shortLabel": "Noun + that clause",
+      "pattern": "noun + that + clause",
+      "family": "noun_clause",
+      "subtype": "content_noun_clause",
+      "anchor": "that",
+      "coreExplanation": "用于抽象名词（fact/idea/belief/claim/assumption等）后，用that从句具体说明“这个名词的内容是什么”。常见结构：the fact/idea/belief/claim + that + 陈述句。",
+      "usageNote": "that可在口语中省略，但正式写作里保留更清晰；从句用陈述语序，不要用疑问倒装。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "formal-writing",
+        "argument",
+        "analysis",
+        "academic"
+      ],
+      "slotSchema": [
+        {
+          "key": "noun",
+          "label": "content noun",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "抽象名词：the fact/idea/belief/claim/assumption 等"
+        },
+        {
+          "key": "clause",
+          "label": "that-clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "陈述句：主语+谓语...；可用现在/过去/完成时"
+        }
+      ],
+      "commonErrors": [
+        "把that从句写成疑问语序：that is he...（应为that he is...）",
+        "用what从句替代导致语义偏移：the fact what...（应为the fact that...）",
+        "that从句不完整或缺主语：the idea that can work（应为the idea that it can work / that this plan can work）"
+      ],
+      "contrasts": [
+        {
+          "slug": "the-fact-that",
+          "title": "the fact that + clause",
+          "note": "更强调“事实”本身，常用于论证：The fact that... shows...；而一般noun + that可用于多种名词（idea/claim等）。"
+        },
+        {
+          "slug": "the-reason-is-that",
+          "title": "the reason is that + clause",
+          "note": "用于解释原因的系表结构；不是名词后置内容说明：The reason is that...（“原因是……”）。"
+        },
+        {
+          "slug": "the-fact-that-clause",
+          "title": "the fact that + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "the-reason-is-that-clause",
+          "title": "the reason is that + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The fact that prices rose so quickly surprised investors.",
+          "translation": "价格上涨得如此之快这一事实让投资者感到意外。",
+          "note": "the fact that + 从句，用来陈述“事实内容”。",
+          "scene": "analysis",
+          "isPrimary": true
+        },
+        {
+          "sentence": "We rejected the assumption that the data was complete.",
+          "translation": "我们否定了“数据是完整的”这一假设。",
+          "note": "assumption后接that从句说明假设的具体内容。",
+          "scene": "argument",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "State the content of an abstract noun",
+          "template": "{noun} that {clause}",
+          "slotHints": [
+            "名词前常加the/this/that等限定词",
+            "从句用陈述语序，必要时保留that以更正式清楚"
+          ],
+          "exampleSentence": "This belief that hard work always leads to success is widespread.",
+          "exampleTranslation": "“努力就一定成功”这一信念很普遍。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "what-clause",
+      "title": "what + clause",
+      "shortLabel": "what-clause",
+      "pattern": "what + clause",
+      "family": "noun_clause",
+      "subtype": "thing_clause",
+      "anchor": "what",
+      "coreExplanation": "“what + 从句”表示“……的东西/事情”，相当于名词，可作主语、宾语或表语；从句里what本身充当成分（主语/宾语）。",
+      "usageNote": "不要再在从句里重复名词（如*what I need it）。若要表达“……这件事”，可用what happened/what you said等。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "explaining",
+        "focus",
+        "conversation"
+      ],
+      "slotSchema": [
+        {
+          "key": "what_clause",
+          "label": "what clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "what + 主语 + 谓语（what在从句中充当主语或宾语）"
+        }
+      ],
+      "commonErrors": [
+        "把what从句当成疑问句用倒装：*I don't know what is this.",
+        "在what从句里重复宾语：*What I need it is time.",
+        "用that代替what表达“……的东西”：*I want that you said."
+      ],
+      "contrasts": [
+        {
+          "slug": "that-clause-opinion",
+          "title": "that-clause after think / say / know",
+          "note": "that从句=“这一事实/观点”；what从句=“……的东西/内容”。I know that he came（我知道他来了）vs I know what he said（我知道他说了什么/他说的内容）。"
+        },
+        {
+          "slug": "wh-embedded-question",
+          "title": "wh- clause after ask / know / tell",
+          "note": "what可用于“嵌入式疑问/信息缺口”；但在名词性what从句里，整体指“东西/内容”，常可换成“the thing(s) that…”。"
+        },
+        {
+          "slug": "that-clause",
+          "title": "that-clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "wh-clause",
+          "title": "wh- clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "What you said really helped me.",
+          "translation": "你说的话真的帮了我。",
+          "note": "作主语；=The thing(s) you said…",
+          "scene": "conversation",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I can’t remember what he looks like.",
+          "translation": "我记不清他长什么样了。",
+          "note": "作宾语；从句语序不倒装。",
+          "scene": "explaining",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "{main} what {what_clause}",
+          "slotHints": [
+            "main：主句（如I know / Tell me / What surprised me is…）"
+          ],
+          "exampleSentence": "Tell me what you need.",
+          "exampleTranslation": "告诉我你需要什么。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "whether-if-clause",
+      "title": "whether / if + clause",
+      "shortLabel": "whether/if 从句",
+      "pattern": "verb + whether / if + clause",
+      "family": "noun_clause",
+      "subtype": "yes_no_content_clause",
+      "anchor": "whether",
+      "coreExplanation": "用于引出“是/否”型的间接疑问或不确定的信息：I don’t know whether/if + 陈述语序从句。常接在 know/ask/wonder/decide/check/see/remember 等动词后。",
+      "usageNote": "whether 比 if 更正式；在介词后、to 不定式前、以及 whether...or not 结构中通常用 whether。if 更口语。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "uncertainty",
+        "planning",
+        "reporting",
+        "decision"
+      ],
+      "slotSchema": [
+        {
+          "key": "v",
+          "label": "reporting/knowing verb",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "如 know/ask/wonder/decide/check/see"
+        },
+        {
+          "key": "clause",
+          "label": "yes-no clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "用陈述语序：whether/if + 主语 + 动词"
+        }
+      ],
+      "commonErrors": [
+        "把从句写成疑问语序：*I don’t know if is he coming. → if he is coming.",
+        "误用 that 引出是/否问题：*I don’t know that he will come. → whether/if he will come.",
+        "在介词后用 if：*It depends on if... → It depends on whether..."
+      ],
+      "contrasts": [
+        {
+          "slug": "that-clause",
+          "title": "that-clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "wh-embedded-question",
+          "title": "verb + wh- clause",
+          "note": "wh- 从句用于“信息型”问题（what/where/why），不是 yes/no。"
+        },
+        {
+          "slug": "wh-clause",
+          "title": "wh- clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I’m not sure whether I should take the job.",
+          "translation": "我不确定我是否应该接受这份工作。",
+          "note": "whether 更自然，表达不确定与权衡。",
+          "scene": "planning",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Could you check if the meeting is still on?",
+          "translation": "你能确认一下会议是否还照常进行吗？",
+          "note": "口语中常用 if；从句用陈述语序。",
+          "scene": "reporting",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Uncertainty / indirect yes-no question",
+          "template": "{v} whether/if {clause}",
+          "slotHints": [
+            "v: know/ask/wonder/decide/check/see",
+            "clause: 主语+动词（陈述语序）"
+          ],
+          "exampleSentence": "We need to decide whether we can finish by Friday.",
+          "exampleTranslation": "我们需要决定是否能在周五前完成。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "wh-embedded-question",
+      "title": "wh- clause after ask / know / tell",
+      "shortLabel": "embedded wh- questions",
+      "pattern": "verb + wh- clause",
+      "family": "noun_clause",
+      "subtype": "embedded_question",
+      "anchor": "how",
+      "coreExplanation": "用在“ask/know/tell/remember/figure out”等动词后，把疑问词引导的从句当作宾语：I don’t know how to do it / how he did it。注意这是“陈述语序”，不用倒装。",
+      "usageNote": "常见wh-词：what/where/when/why/how/who/which；后面可接完整从句，也可接“wh- + to do”（当主语一致时更自然）。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "questions",
+        "reporting",
+        "problem-solving"
+      ],
+      "slotSchema": [
+        {
+          "key": "verb",
+          "label": "Verb",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "ask/know/tell/remember/figure out 等"
+        },
+        {
+          "key": "whClause",
+          "label": "wh- clause",
+          "type": "custom",
+          "required": true,
+          "hint": "how/what/where/when/why/who/which + (S + V) 或 wh- + to + V"
+        }
+      ],
+      "commonErrors": [
+        "把embedded question写成疑问语序：I don’t know how does it work.（应为 how it works）",
+        "误加问号：Please tell me where you are?（通常不用?）",
+        "该用whether/if时误用wh-：I don’t know where he will come.（应为 whether/if he will come，表示“是否来”）"
+      ],
+      "contrasts": [
+        {
+          "slug": "whether-if-clause",
+          "title": "whether / if + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "what-clause",
+          "title": "what + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I don’t know how it works.",
+          "translation": "我不知道它是怎么运作的。",
+          "note": "embedded question用陈述语序：how it works。",
+          "scene": "problem-solving",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Can you tell me where to park?",
+          "translation": "你能告诉我在哪里停车吗？",
+          "note": "主语一致时可用“where to + V”。",
+          "scene": "questions",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Ask/know/tell + wh- clause",
+          "template": "{verb} {whClause}.",
+          "slotHints": [
+            "例如：I don’t know / Can you tell me / Please ask",
+            "例如：how it works / where to park / what she said"
+          ],
+          "exampleSentence": "Please tell me when the meeting starts.",
+          "exampleTranslation": "请告诉我会议什么时候开始。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "the-fact-that-clause",
+      "title": "the fact that + clause",
+      "shortLabel": null,
+      "pattern": "the fact that + clause",
+      "family": "noun_clause",
+      "subtype": "fact_expression",
+      "anchor": "the fact that",
+      "coreExplanation": "“the fact that + 从句”把后面的内容名词化，强调这是一个既定事实或需要被讨论的事实点；常作主语、宾语或介词宾语。",
+      "usageNote": "常用于较正式的论证/写作；that一般不省略，且后面必须是完整句子（主语+谓语）。",
+      "usageRegister": "formal",
+      "sceneTags": [
+        "argument",
+        "formal-writing",
+        "analysis"
+      ],
+      "slotSchema": [
+        {
+          "key": "clause",
+          "label": "that-clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "用完整陈述句：主语+谓语，如“he was late”"
+        }
+      ],
+      "commonErrors": [
+        "把that从句写成短语：*the fact that his lateness（应为the fact that he was late）",
+        "误用what：*the fact what...（应为the fact that...）",
+        "在非正式口语中过度使用，显得生硬（可改用“That...”或“Actually,...”）"
+      ],
+      "contrasts": [
+        {
+          "slug": "noun-that-clause",
+          "title": "noun + that + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "the-reason-is-that",
+          "title": "the reason is that + clause",
+          "note": "用于解释原因；“the fact that...”只是提出一个事实点，不一定是原因。"
+        },
+        {
+          "slug": "the-reason-is-that-clause",
+          "title": "the reason is that + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The fact that the data were incomplete undermines the conclusion.",
+          "translation": "数据不完整这一事实削弱了该结论。",
+          "note": "作主语，强调“事实点→影响”。",
+          "scene": "analysis",
+          "isPrimary": true
+        },
+        {
+          "sentence": "We cannot ignore the fact that costs have risen sharply.",
+          "translation": "我们不能忽视成本大幅上升这一事实。",
+          "note": "作宾语，常与ignore/accept/acknowledge等动词搭配。",
+          "scene": "argument",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Raise a fact point",
+          "template": "We cannot ignore the fact that {clause}.",
+          "slotHints": [
+            "用完整陈述句，时态与事实一致"
+          ],
+          "exampleSentence": "We cannot ignore the fact that customers are leaving.",
+          "exampleTranslation": "我们不能忽视客户正在流失这一事实。",
+          "position": 1
+        }
+      ],
+      "difficulty": 3
+    },
+    {
+      "slug": "it-is-adj-that",
+      "title": "it is + adjective + that...",
+      "shortLabel": "stance/evaluation",
+      "pattern": "it is + adjective + that + clause",
+      "family": "noun_clause",
+      "subtype": "stance_clause",
+      "anchor": "it is",
+      "coreExplanation": "用 it is + adjective + that + 从句 来对“that 从句中的内容”做评价或表态；it 为形式主语，that 从句是真正内容。常见形容词：clear, important, likely, possible, surprising, unfortunate 等。",
+      "usageNote": "更常见于书面/正式表达；口语可用 It’s… that… 或改用 I think/It seems…。that 在口语中有时可省略，但正式写作建议保留。",
+      "usageRegister": "formal",
+      "sceneTags": [
+        "formal-writing",
+        "argument",
+        "evaluation"
+      ],
+      "slotSchema": [
+        {
+          "key": "adjective",
+          "label": "Adjective",
+          "type": "custom",
+          "required": true,
+          "hint": "如 important/clear/likely/surprising/necessary 等"
+        },
+        {
+          "key": "thatClause",
+          "label": "That-clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "陈述一个观点/事实/判断；可用完整从句"
+        }
+      ],
+      "commonErrors": [
+        "把 that 从句写成不完整句（缺主语或谓语）",
+        "误用 it is + adj + to...：当后面是完整从句时应选 that 从句",
+        "形容词搭配不当（如 *it is likely that to...）"
+      ],
+      "contrasts": [
+        {
+          "slug": "its-adj-to",
+          "title": "it's + adjective + to...",
+          "note": "to 不定式更像“做某事”本身；that 从句是对“一个命题/事实”评价。例：It’s important to exercise. vs It’s important that you exercise."
+        },
+        {
+          "slug": "that-clause-opinion",
+          "title": "that-clause after think / say / know",
+          "note": "用主语明确观点来源：I think/say/know that...；it is + adj + that 更客观/更像评价结论。"
+        },
+        {
+          "slug": "it-s-adjective-to",
+          "title": "it's + adjective + to...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "that-clause-after-think-say-know",
+          "title": "that-clause after think / say / know",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "It is important that we act now.",
+          "translation": "我们现在就采取行动很重要。",
+          "note": "强调“采取行动”这一命题的重要性（较正式）。",
+          "scene": "argument",
+          "isPrimary": true
+        },
+        {
+          "sentence": "It is clear that the data were misreported.",
+          "translation": "很明显数据被错误地报告了。",
+          "note": "用于报告/分析中的判断。",
+          "scene": "formal-writing",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Make an evaluation",
+          "template": "It is {adjective} that {thatClause}.",
+          "slotHints": [
+            "形容词选评价/判断类（important/likely/clear/necessary等）",
+            "that 从句用完整陈述句，表达你要评价的内容"
+          ],
+          "exampleSentence": "It is likely that prices will rise.",
+          "exampleTranslation": "价格很可能会上涨。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "who-relative-clause",
+      "title": "who relative clause",
+      "shortLabel": "who + clause",
+      "pattern": "noun + who + clause",
+      "family": "relative_clause",
+      "subtype": "person_subject",
+      "anchor": "who",
+      "coreExplanation": "用来修饰前面的名词（人），在从句里who充当主语：the person who + 动词…（=“那个……的人”）。",
+      "usageNote": "从句里不要再重复主语（不要再用he/she）。主从句时态按语境决定。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "describing-people",
+        "storytelling",
+        "writing"
+      ],
+      "slotSchema": [
+        {
+          "key": "noun",
+          "label": "Person noun",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "要被修饰的人，如 the man/my friend/someone"
+        },
+        {
+          "key": "whoClause",
+          "label": "who-clause",
+          "type": "relative_clause",
+          "required": true,
+          "hint": "以who开头，后面接谓语；who在从句中作主语"
+        }
+      ],
+      "commonErrors": [
+        "在who从句里重复主语：*the man who he lives next door",
+        "把人用which修饰：*the woman which called me",
+        "把关系代词省略：*the person I met yesterday（这里需要who/that作主语）"
+      ],
+      "contrasts": [
+        {
+          "slug": "that-relative-clause",
+          "title": "that relative clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "whose-relative-clause",
+          "title": "whose + noun",
+          "note": "表示“……的”：the man whose car was stolen（不是who car…）。"
+        },
+        {
+          "slug": "whose-noun",
+          "title": "whose + noun",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "She’s the doctor who helped my mom.",
+          "translation": "她就是帮助过我妈妈的那位医生。",
+          "note": "who在从句里作主语（helped的执行者）。",
+          "scene": "describing-people",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I met someone who speaks four languages.",
+          "translation": "我遇到一个会说四种语言的人。",
+          "note": "someone后接who从句，补充身份特征。",
+          "scene": "storytelling",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Identify a person",
+          "template": "{noun} who {whoClause}",
+          "slotHints": [
+            "noun=要描述的人",
+            "whoClause=who后面的动作/状态（不要再加he/she）"
+          ],
+          "exampleSentence": "This is the teacher who explains everything clearly.",
+          "exampleTranslation": "这就是那位把每件事都讲得很清楚的老师。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "which-relative-clause",
+      "title": "which relative clause",
+      "shortLabel": null,
+      "pattern": "noun + which + clause",
+      "family": "relative_clause",
+      "subtype": "thing_subject",
+      "anchor": "which",
+      "coreExplanation": "用“which”引导定语从句来修饰前面的名词，说明“是哪一个/什么样的东西”。常用于事物、观点、事情。",
+      "usageNote": "可作限定性（不加逗号，指明是哪一个）或非限定性（加逗号，补充说明）。非限定性更常用which，不常用that。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "describing-things",
+        "formal-writing",
+        "clarifying"
+      ],
+      "slotSchema": [
+        {
+          "key": "noun",
+          "label": "Noun (thing/idea)",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "被修饰的事物/概念名词"
+        },
+        {
+          "key": "whichClause",
+          "label": "Which clause",
+          "type": "relative_clause",
+          "required": true,
+          "hint": "从句里需要一个“缺位”对应前面的名词（主语或宾语）"
+        }
+      ],
+      "commonErrors": [
+        "把非限定性从句写成不加逗号，导致意思变成“限定哪一个”",
+        "从句结构不完整：which后面缺谓语或主语宾语关系不清",
+        "用which指人（人一般用who/that）"
+      ],
+      "contrasts": [
+        {
+          "slug": "that-relative-clause",
+          "title": "that relative clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "where-relative-clause",
+          "title": "where relative clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The report which explains the changes is attached.",
+          "translation": "解释这些变化的报告已作为附件发送。",
+          "note": "限定性：which从句说明“是哪一份报告”。",
+          "scene": "formal-writing",
+          "isPrimary": true
+        },
+        {
+          "sentence": "The device, which was released last year, is already sold out.",
+          "translation": "这款设备去年发布，如今已经售罄。",
+          "note": "非限定性：逗号表示补充信息。",
+          "scene": "describing-things",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "{noun} which {whichClause}",
+          "slotHints": [
+            "先写要修饰的名词，再用which接从句；从句里与名词对应的位置要“空出来”（如作主语/宾语）"
+          ],
+          "exampleSentence": "I chose a plan which fits my budget.",
+          "exampleTranslation": "我选了一个符合我预算的方案。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "that-relative-clause",
+      "title": "that relative clause",
+      "shortLabel": "that RC",
+      "pattern": "noun + that + clause",
+      "family": "relative_clause",
+      "subtype": "restrictive_relative",
+      "anchor": "that",
+      "coreExplanation": "用在限定性定语从句：在名词后用 that 引出从句，补充“是哪一个/哪些”的关键信息；可指人或物。",
+      "usageNote": "多用于口语和一般写作；限定性从句通常不加逗号。that 在从句中作宾语时常可省略。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "daily-life",
+        "conversation",
+        "defining",
+        "writing"
+      ],
+      "slotSchema": [
+        {
+          "key": "N",
+          "label": "Head noun",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "被修饰的名词（人/物）"
+        },
+        {
+          "key": "RC",
+          "label": "that clause",
+          "type": "relative_clause",
+          "required": true,
+          "hint": "that + 从句；说明该名词的关键信息"
+        }
+      ],
+      "commonErrors": [
+        "把限定性定语从句用逗号隔开（*the book, that...）",
+        "在 that 作宾语已省略时仍重复宾语（*the book that I bought it）",
+        "在人前一律用 who，忽视 that 也可指人（口语常用 that）"
+      ],
+      "contrasts": [
+        {
+          "slug": "who-relative-clause",
+          "title": "who relative clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "which-relative-clause",
+          "title": "which relative clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Do you know the guy that lives upstairs?",
+          "translation": "你认识住在楼上的那个人吗？",
+          "note": "that 指人；限定性信息“住在楼上”。",
+          "scene": "conversation",
+          "isPrimary": true
+        },
+        {
+          "sentence": "This is the phone (that) I bought yesterday.",
+          "translation": "这是我昨天买的那部手机。",
+          "note": "that 作宾语可省略。",
+          "scene": "daily-life",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Define a person/thing with that",
+          "template": "[N] that [RC]",
+          "slotHints": [
+            "先给出名词，再用 that + 从句说明“是哪一个/哪些”"
+          ],
+          "exampleSentence": "I like movies that make me laugh.",
+          "exampleTranslation": "我喜欢那些能让我发笑的电影。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "whose-relative-clause",
+      "title": "whose + noun",
+      "shortLabel": "whose",
+      "pattern": "noun + whose + noun + clause",
+      "family": "relative_clause",
+      "subtype": "possession_relative",
+      "anchor": "whose",
+      "coreExplanation": "用 whose 表示“……的”，在定语从句里连接先行词（人或物）与其所属/拥有的名词。结构：名词 + whose + 名词 + 从句。",
+      "usageNote": "whose 后面必须跟一个名词（如 whose car/whose idea），不能单独用。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "describing-people",
+        "describing-things",
+        "writing"
+      ],
+      "slotSchema": [
+        {
+          "key": "antecedent",
+          "label": "先行词名词",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "要被说明的人或物"
+        },
+        {
+          "key": "possessedNoun",
+          "label": "所属名词",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "属于先行词的东西/部分"
+        },
+        {
+          "key": "clause",
+          "label": "从句内容",
+          "type": "clause",
+          "required": true,
+          "hint": "围绕所属名词继续说明"
+        }
+      ],
+      "commonErrors": [
+        "把 whose 当成疑问词来问“谁的”，导致整句缺少先行词",
+        "whose 后面不加名词（误：the man whose is broken）",
+        "用 his/her/its 代替 whose，导致结构不自然或指代不清"
+      ],
+      "contrasts": [
+        {
+          "slug": "who-relative-clause",
+          "title": "who relative clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "that-relative-clause",
+          "title": "that relative clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I met a woman whose brother works at Google.",
+          "translation": "我遇到一位女士，她的哥哥在谷歌工作。",
+          "note": "whose brother = her brother（更正式/书面、避免重复）。",
+          "scene": "describing-people",
+          "isPrimary": true
+        },
+        {
+          "sentence": "We stayed in a hotel whose rooms face the ocean.",
+          "translation": "我们住在一家酒店，酒店的房间朝向大海。",
+          "note": "whose 也可指物/机构的“……的”。",
+          "scene": "describing-things",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "[antecedent] whose [possessedNoun] [clause]",
+          "slotHints": [
+            "antecedent=先行词名词",
+            "possessedNoun=所属名词",
+            "clause=对所属名词的补充说明"
+          ],
+          "exampleSentence": "She's the author whose books changed my life.",
+          "exampleTranslation": "她就是那位作者，她的书改变了我的人生。",
+          "position": 1
+        }
+      ],
+      "difficulty": 3
+    },
+    {
+      "slug": "where-relative-clause",
+      "title": "where relative clause",
+      "shortLabel": "where RC",
+      "pattern": "place + where + clause",
+      "family": "relative_clause",
+      "subtype": "place_relative",
+      "anchor": "where",
+      "coreExplanation": "用“place + where + clause”给地点加补充信息；where在从句里表示“在那个地方/在那里”。",
+      "usageNote": "先用地点名词，再用where引出从句；不要在从句里重复地点（如*where I live in）。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "describing-places",
+        "storytelling",
+        "travel"
+      ],
+      "slotSchema": [
+        {
+          "key": "place",
+          "label": "Place noun",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "地点名词或地点短语，如 the park / the city / the hotel"
+        },
+        {
+          "key": "clause",
+          "label": "Where-clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "包含主谓，描述在该地点发生的事；不要再加in/at + the place"
+        }
+      ],
+      "commonErrors": [
+        "在where从句里重复介词+地点：*the city where I live in",
+        "把where当成问句用法，误写成倒装或问号：*the place where do you work?",
+        "用which代替where但不补介词：*the place which I work（应为where I work 或 which I work in）"
+      ],
+      "contrasts": [
+        {
+          "slug": "which-relative-clause",
+          "title": "which relative clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "when-relative-clause",
+          "title": "when relative clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "This is the café where we first met.",
+          "translation": "这就是我们第一次见面的那家咖啡馆。",
+          "note": "where = 在那家咖啡馆里",
+          "scene": "storytelling",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I want to visit the town where my grandparents grew up.",
+          "translation": "我想去看看我祖父母长大的那个小镇。",
+          "note": null,
+          "scene": "travel",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "{place} where {clause}",
+          "slotHints": [
+            "place=地点名词短语",
+            "clause=在该地点发生的事情（陈述句语序）"
+          ],
+          "exampleSentence": "Let’s meet at the park where the big fountain is.",
+          "exampleTranslation": "我们在有大喷泉的那个公园见面吧。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "when-relative-clause",
+      "title": "when relative clause",
+      "shortLabel": "when relative clause",
+      "pattern": "time + when + clause",
+      "family": "relative_clause",
+      "subtype": "time_relative",
+      "anchor": "when",
+      "coreExplanation": "用“time + when + clause”给某个时间/时期加补充信息，相当于“在……的时候/那时”。",
+      "usageNote": "先有时间名词（the day/year/time/period等），再用when引出从句；不是用来问时间的疑问句。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "stories",
+        "memories",
+        "history"
+      ],
+      "slotSchema": [
+        {
+          "key": "time",
+          "label": "Time phrase",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "表示时间/时期的名词短语，如 the day, the year, the time, the period"
+        },
+        {
+          "key": "whenClause",
+          "label": "When clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "when + 主语 + 动词，描述当时发生的事"
+        }
+      ],
+      "commonErrors": [
+        "把关系从句误写成疑问句：*the day when did we meet",
+        "省略先行词time，直接用when：*I remember when we met（此句可对，但不符合该结构；这里when引导宾语从句）",
+        "when从句时态混乱，和时间短语不匹配（如谈过去却用一般现在时）"
+      ],
+      "contrasts": [
+        {
+          "slug": "where-relative-clause",
+          "title": "where relative clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "why-relative-clause",
+          "title": "why relative clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I still remember the day when we first met.",
+          "translation": "我仍然记得我们第一次见面的那一天。",
+          "note": "the day是先行词；when从句补充说明是哪一天。",
+          "scene": "memories",
+          "isPrimary": true
+        },
+        {
+          "sentence": "That was a time when people wrote letters by hand.",
+          "translation": "那是一个人们用手写信的时代。",
+          "note": "time/period常用来讲历史背景。",
+          "scene": "history",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "{time} when {whenClause}",
+          "slotHints": [
+            "time: the day/the year/the time/the period",
+            "whenClause: 主语 + 动词 + 其他（过去经历常用一般过去时）"
+          ],
+          "exampleSentence": "It was the year when I moved to Beijing.",
+          "exampleTranslation": "那是我搬到北京的那一年。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "why-relative-clause",
+      "title": "why relative clause",
+      "shortLabel": "reason why...",
+      "pattern": "reason + why + clause",
+      "family": "relative_clause",
+      "subtype": "reason_relative",
+      "anchor": "why",
+      "coreExplanation": "用“reason + why + 从句”把原因名词和具体原因连接起来：the reason why + 主语 + 动词... = “……的原因是因为……”（why引导定语从句，修饰reason）。",
+      "usageNote": "口语里常简化为“the reason is (that) + 从句”。注意why后面是完整句子，不要再加because。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "explaining",
+        "analysis",
+        "writing"
+      ],
+      "slotSchema": [
+        {
+          "key": "reason_np",
+          "label": "reason (noun phrase)",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "常用：the reason / a reason"
+        },
+        {
+          "key": "why_clause",
+          "label": "why clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "完整陈述句：S + V..."
+        }
+      ],
+      "commonErrors": [
+        "把because和why一起用：the reason why ... is because ...",
+        "why后面用不完整结构：the reason why of... / why + 名词短语",
+        "缺少冠词或结构混乱：reason why I left（可，但更常见the reason why...）"
+      ],
+      "contrasts": [
+        {
+          "slug": "the-reason-is-that",
+          "title": "the reason is that + clause",
+          "note": "更口语/直接：The reason is (that) I was sick. 不强调定语从句结构。"
+        },
+        {
+          "slug": "reason-for",
+          "title": "reason for + noun/verb-ing",
+          "note": "后面接名词或动名词：the reason for leaving / for the delay；不能接完整从句。"
+        },
+        {
+          "slug": "the-reason-is-that-clause",
+          "title": "the reason is that + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "that-clause-after-fact-idea-belief-nouns",
+          "title": "that-clause after fact / idea / belief nouns",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The reason why I’m late is that the train was delayed.",
+          "translation": "我迟到的原因是火车晚点了。",
+          "note": "why引导从句修饰reason；句末用is that引出解释。",
+          "scene": "explaining",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Can you explain the reason why you changed your plan?",
+          "translation": "你能解释一下你改变计划的原因吗？",
+          "note": "reason why用于书面/分析性表达较自然。",
+          "scene": "writing",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Explain a reason",
+          "template": "The reason why {reason_np} {why_clause} is (that) ...",
+          "slotHints": [
+            "{reason_np}可用the reason",
+            "{why_clause}用完整句子，如 I did it / we failed"
+          ],
+          "exampleSentence": "The reason why we failed is (that) we didn’t prepare enough.",
+          "exampleTranslation": "我们失败的原因是准备不够。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "omitted-object-relative-clause",
+      "title": "object relative clause with omitted pronoun",
+      "shortLabel": "omitted object relative",
+      "pattern": "noun + [that / which] + clause",
+      "family": "relative_clause",
+      "subtype": "omitted_object_relative",
+      "anchor": "that",
+      "coreExplanation": "当关系代词(that/which)在定语从句里作宾语时，常可省略：noun + (that/which) + 主语 + 动词 + …（缺的宾语就是前面的noun）。更口语、更自然。",
+      "usageNote": "只能省略宾语关系代词；若关系代词作主语则不能省略。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "conversation",
+        "natural-english",
+        "editing"
+      ],
+      "slotSchema": [
+        {
+          "key": "headNoun",
+          "label": "Head noun",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "被修饰的名词/名词短语"
+        },
+        {
+          "key": "clause",
+          "label": "Relative clause (object omitted)",
+          "type": "relative_clause",
+          "required": true,
+          "hint": "从句内要有主语+谓语，但宾语位置留空（指代headNoun）"
+        }
+      ],
+      "commonErrors": [
+        "把作主语的关系代词也省略：The man ∅ called me（应为who/that called me）",
+        "省略后又在从句里加一个代词重复：the book I bought it（应删it）",
+        "用错结构把缺口放错位置：the person I spoke was nice（应为I spoke to / spoke with）"
+      ],
+      "contrasts": [
+        {
+          "slug": "that-relative-clause",
+          "title": "that relative clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "who-relative-clause",
+          "title": "Subject relative clause (cannot omit)",
+          "note": "关系代词作主语不可省略：the person who called me（不能说the person ∅ called me）。"
+        },
+        {
+          "slug": "which-relative-clause",
+          "title": "which relative clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "This is the book I told you about.",
+          "translation": "这就是我跟你提过的那本书。",
+          "note": "about后面宾语省略=which/that",
+          "scene": "conversation",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Do you remember the restaurant we went to last week?",
+          "translation": "你还记得我们上周去的那家餐厅吗？",
+          "note": "to后面宾语省略=which/that",
+          "scene": "conversation",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "{headNoun} {clause}",
+          "slotHints": [
+            "先写被修饰的名词短语",
+            "从句里让它当宾语：I saw ∅ / we talked about ∅ / I sent ∅ to you"
+          ],
+          "exampleSentence": "I like the songs you recommended.",
+          "exampleTranslation": "我喜欢你推荐的那些歌。",
+          "position": 1
+        }
+      ],
+      "difficulty": 3
+    },
+    {
+      "slug": "so-that-clause",
+      "title": "so that + clause",
+      "shortLabel": null,
+      "pattern": "main clause so that + clause",
+      "family": "purpose_comparison",
+      "subtype": "purpose_clause",
+      "anchor": "so that",
+      "coreExplanation": "“so that + 从句”表示目的：做前一件事，是为了让后面的情况发生/能做到某事。后面常搭配情态动词（can/could/will/would/may/might/should）或出现不同主语。",
+      "usageNote": "口语和书面都常用；注意与结果含义的“so + 结果从句”区分。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "purpose",
+        "instructions",
+        "planning"
+      ],
+      "slotSchema": [
+        {
+          "key": "main_clause",
+          "label": "Main clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "先说采取的行动/安排"
+        },
+        {
+          "key": "so_that_clause",
+          "label": "so that clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "目的；常用情态动词或不同主语"
+        }
+      ],
+      "commonErrors": [
+        "把“so that”误写成“so”而丢失目的含义（导致变成结果）",
+        "在“so that”后用不完整的短语而不是完整从句（缺主语/谓语）",
+        "时态/情态不搭：表达将来目的却用一般过去且无情态动词"
+      ],
+      "contrasts": [
+        {
+          "slug": "in-order-to",
+          "title": "in order to + base",
+          "note": "更偏“为了去做某事”，后面接动词原形；若需要不同主语或情态（让别人能…），用“so that + 从句”更自然。"
+        },
+        {
+          "slug": "so-result-clause",
+          "title": "so + result clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "in-order-to-base",
+          "title": "in order to + base",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Speak slowly so that everyone can follow.",
+          "translation": "说慢一点，好让大家都能跟上。",
+          "note": "目的；so that 后用 can 表示“能够”。",
+          "scene": "instructions",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I’ll send you the file now so that you can review it before the meeting.",
+          "translation": "我现在把文件发给你，这样你就能在开会前先看一遍。",
+          "note": "常见搭配：so that + you can...",
+          "scene": "planning",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Purpose with ability",
+          "template": "{main_clause} so that {person} can {verb} {object}.",
+          "slotHints": [
+            "先做的行动/安排",
+            "受益者/执行者",
+            "想实现的动作",
+            "动作的对象（可省略）"
+          ],
+          "exampleSentence": "Turn on captions so that your mom can understand the video.",
+          "exampleTranslation": "打开字幕，好让你妈妈能看懂这个视频。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "in-order-to",
+      "title": "in order to + base",
+      "shortLabel": null,
+      "pattern": "main clause in order to + base",
+      "family": "purpose_comparison",
+      "subtype": "purpose_infinitive",
+      "anchor": "in order to",
+      "coreExplanation": "“in order to + base”放在主句后，表示“为了……”，比直接用“to + base”更强调目的、语气更正式。",
+      "usageNote": "后面接动词原形；否定用“in order not to + base”。口语里常简化为“to + base”。",
+      "usageRegister": "formal",
+      "sceneTags": [
+        "purpose",
+        "formal-writing",
+        "instructions",
+        "work-email"
+      ],
+      "slotSchema": [
+        {
+          "key": "main",
+          "label": "Main clause",
+          "type": "clause",
+          "required": true,
+          "hint": "先说做了什么/要做什么"
+        },
+        {
+          "key": "purpose",
+          "label": "Purpose (base verb)",
+          "type": "to_infinitive",
+          "required": true,
+          "hint": "用“in order to + 动词原形”表达目的"
+        }
+      ],
+      "commonErrors": [
+        "把后面动词用成过去式/ing（应为动词原形）",
+        "用“for + V-ing”直接替换（表达方式不同，易不地道）",
+        "把“in order to”误写成“in order that + base”（that后应接从句）"
+      ],
+      "contrasts": [
+        {
+          "slug": "to-base",
+          "title": "to + base",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "so-that-clause",
+          "title": "so that + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Please read the safety instructions carefully in order to avoid accidents.",
+          "translation": "为了避免事故，请仔细阅读安全说明。",
+          "note": "用于说明“做A的目的在于B”，语气正式。",
+          "scene": "instructions",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I left early in order to catch the first train.",
+          "translation": "我早走是为了赶上第一班火车。",
+          "note": null,
+          "scene": "purpose",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Purpose (formal)",
+          "template": "{main} in order to {purpose}.",
+          "slotHints": [
+            "先写主句（动作/决定）",
+            "写目的：动词原形短语"
+          ],
+          "exampleSentence": "We updated the software in order to improve security.",
+          "exampleTranslation": "我们更新了软件，以提高安全性。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "too-adj-to",
+      "title": "too + adjective + to...",
+      "shortLabel": null,
+      "pattern": "too + adjective + to + base",
+      "family": "purpose_comparison",
+      "subtype": "degree_limit",
+      "anchor": "too",
+      "coreExplanation": "用来表示“程度太……以至于不能……”。常带有结果是做不到/不适合做某事的含义。",
+      "usageNote": "too后接形容词，再接to do；否定含义通常来自too本身，不需要再加not。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "describing-limits",
+        "daily-life",
+        "opinions"
+      ],
+      "slotSchema": [
+        {
+          "key": "adj",
+          "label": "adjective",
+          "type": "custom",
+          "required": true,
+          "hint": "描述程度的形容词，如 expensive/busy/tired"
+        },
+        {
+          "key": "action",
+          "label": "to + base verb",
+          "type": "to_infinitive",
+          "required": true,
+          "hint": "要做但做不到的动作，如 to buy/to go/to finish"
+        }
+      ],
+      "commonErrors": [
+        "把否定重复：too ... to not ...（多数情况下不需要not）",
+        "形容词位置错误：too to + adj + verb",
+        "用to后加动名词：too adj to doing"
+      ],
+      "contrasts": [
+        {
+          "slug": "adj-enough-to",
+          "title": "adjective + enough to...",
+          "note": "enough表示“足够……可以……”（能做到）；too表示“太……以至于不能……”（做不到）。"
+        },
+        {
+          "slug": "so-adj-that",
+          "title": "so + adjective + that...",
+          "note": "so...that后面接从句说明结果；too...to后面用不定式，更简洁。"
+        },
+        {
+          "slug": "adjective-enough-to",
+          "title": "adjective + enough to...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "so-adjective-that",
+          "title": "so + adjective + that...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "It’s too expensive to buy.",
+          "translation": "太贵了，买不起。",
+          "note": "too=贵到无法买。",
+          "scene": "daily-life",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I’m too tired to go out tonight.",
+          "translation": "我太累了，今晚不想/不能出去。",
+          "note": "常用于解释拒绝或限制。",
+          "scene": "opinions",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Too + adjective + to...",
+          "template": "{subject} be too {adj} to {action}.",
+          "slotHints": [
+            "subject可用it/this/I等",
+            "action用动词原形，前面带to"
+          ],
+          "exampleSentence": "This coffee is too hot to drink.",
+          "exampleTranslation": "这咖啡太烫了，没法喝。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "adj-enough-to",
+      "title": "adjective + enough to...",
+      "shortLabel": null,
+      "pattern": "adjective + enough to + base",
+      "family": "purpose_comparison",
+      "subtype": "degree_sufficiency",
+      "anchor": "enough",
+      "coreExplanation": "用于表示“程度足够，从而可以做某事”。结构：be/feel/look + adjective + enough to + 动词原形。",
+      "usageNote": "常和能力、距离、时间、年龄等形容词搭配；否定用 not + adjective + enough to 表示“不够……所以不能……”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "evaluating",
+        "ability",
+        "daily-life",
+        "decision"
+      ],
+      "slotSchema": [
+        {
+          "key": "adj",
+          "label": "adjective",
+          "type": "custom",
+          "required": true,
+          "hint": "表示程度/能力的形容词，如 strong/old/close/quiet"
+        },
+        {
+          "key": "action",
+          "label": "base verb",
+          "type": "custom",
+          "required": true,
+          "hint": "动词原形，如 lift/drive/understand"
+        }
+      ],
+      "commonErrors": [
+        "把 enough 放在形容词前：enough old（应为 old enough）",
+        "to 后用动名词：to lifting（应为 to lift）",
+        "与 too...to 混用导致意思相反：too tired enough to..."
+      ],
+      "contrasts": [
+        {
+          "slug": "too-adj-to",
+          "title": "too + adjective + to...",
+          "note": "too...to 表示“太……而不能……”，通常结果是做不了；adj + enough to 表示“够……可以……”。"
+        },
+        {
+          "slug": "enough-noun",
+          "title": "enough + noun",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "too-adjective-to",
+          "title": "too + adjective + to...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I’m old enough to drive.",
+          "translation": "我年龄够大，可以开车了。",
+          "note": "old enough 表示“年龄达到要求”。",
+          "scene": "daily-life",
+          "isPrimary": true
+        },
+        {
+          "sentence": "The room is quiet enough to study in.",
+          "translation": "这个房间够安静，可以在里面学习。",
+          "note": "可用 to study (in it)；in 放句末更自然。",
+          "scene": "daily-life",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "{subject} {be} {adj} enough to {action}.",
+          "slotHints": [
+            "subject=人/物",
+            "be=am/is/are/was/were",
+            "adj=形容词",
+            "action=动词原形"
+          ],
+          "exampleSentence": "She is strong enough to carry the box.",
+          "exampleTranslation": "她力气够大，能搬这个箱子。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "rather-than",
+      "title": "rather than",
+      "shortLabel": null,
+      "pattern": "A rather than B",
+      "family": "purpose_comparison",
+      "subtype": "preference_comparison",
+      "anchor": "rather than",
+      "coreExplanation": "“rather than”用来做简洁对比，表示“选择A而不是B/与其B不如A”。A和B在语法形式上尽量保持一致（名词对名词、动词对动词等）。",
+      "usageNote": "可放在句中连接两个并列选项；B不一定是完全否定，只是偏好较弱。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "preferences",
+        "argument",
+        "writing",
+        "decision-making"
+      ],
+      "slotSchema": [
+        {
+          "key": "A",
+          "label": "Preferred option (A)",
+          "type": "custom",
+          "required": true,
+          "hint": "你更想要/更常做的选项；形式尽量与B一致"
+        },
+        {
+          "key": "B",
+          "label": "Less preferred option (B)",
+          "type": "custom",
+          "required": true,
+          "hint": "你不那么想要/不那么推荐的选项；常与A平行"
+        }
+      ],
+      "commonErrors": [
+        "A和B形式不平行：如A用动词原形，B用名词/从句导致不自然",
+        "把“rather than”误当作“instead”单独使用：应连接两项（A rather than B）",
+        "在否定句中逻辑混乱：如“don’t…rather than…”导致不清楚偏好对象"
+      ],
+      "contrasts": [
+        {
+          "slug": "instead-of",
+          "title": "instead of + noun / v-ing",
+          "note": "“instead of”更像介词短语，常接名词/动名词；“rather than”更常用于并列对比，语气更像“与其…不如…”"
+        },
+        {
+          "slug": "prefer-a-to-b",
+          "title": "prefer A to B",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "instead-of-noun-v-ing",
+          "title": "instead of + noun / v-ing",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I’d call her rather than send a long email.",
+          "translation": "我宁愿给她打电话，也不想发一封很长的邮件。",
+          "note": "A和B都是动词原形（call / send），结构平行。",
+          "scene": "preferences",
+          "isPrimary": true
+        },
+        {
+          "sentence": "We need action rather than more discussion.",
+          "translation": "我们需要行动，而不是更多讨论。",
+          "note": "A和B都是名词，适合写作/论证。",
+          "scene": "argument",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Choose A, not B",
+          "template": "{A} rather than {B}",
+          "slotHints": [
+            "A：更偏好的选项（名词/动词短语等）",
+            "B：较不偏好的选项，形式尽量与A一致"
+          ],
+          "exampleSentence": "Take the train rather than drive.",
+          "exampleTranslation": "坐火车而不是开车。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "instead-of-noun-ving",
+      "title": "instead of + noun / v-ing",
+      "shortLabel": null,
+      "pattern": "instead of + noun / v-ing",
+      "family": "purpose_comparison",
+      "subtype": "replacement_phrase",
+      "anchor": "instead of",
+      "coreExplanation": "“instead of + 名词/动名词”表示“用A代替B；不做B而做A”。常放在句首或句末。",
+      "usageNote": "动词要用v-ing（doing），不是to do；作主语相同时更自然。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "choices",
+        "daily-life",
+        "suggestions",
+        "work"
+      ],
+      "slotSchema": [
+        {
+          "key": "replacement",
+          "label": "替代选项A",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "被选择/被做的东西（名词或v-ing短语）"
+        },
+        {
+          "key": "original",
+          "label": "被替代选项B",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "原本的选择/动作（名词或v-ing短语）"
+        }
+      ],
+      "commonErrors": [
+        "把v-ing写成to do：instead of to go → instead of going",
+        "A/B位置颠倒导致意思反了：instead of A, do B（应确认谁替代谁）",
+        "后面直接接完整句但缺少改写：instead of I went...（应改为instead of going...或用instead of + clause较复杂结构）"
+      ],
+      "contrasts": [
+        {
+          "slug": "rather-than",
+          "title": "rather than",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "instead",
+          "title": "instead",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Let’s take the subway instead of driving.",
+          "translation": "我们坐地铁吧，别开车了。",
+          "note": "instead of后用v-ing。",
+          "scene": "choices",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Instead of coffee, I’ll have tea.",
+          "translation": "不喝咖啡，我要喝茶。",
+          "note": "名词替换名词，常见点单/选择场景。",
+          "scene": "daily-life",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Suggest an alternative",
+          "template": "Let’s {replacement} instead of {original}.",
+          "slotHints": [
+            "replacement: 选更好的做法（v-ing或名词短语）",
+            "original: 原本打算的做法（v-ing或名词短语）"
+          ],
+          "exampleSentence": "Let’s meet online instead of traveling there.",
+          "exampleTranslation": "我们线上见吧，别专门过去了。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "prefer-a-to-b",
+      "title": "prefer A to B",
+      "shortLabel": null,
+      "pattern": "prefer A to B",
+      "family": "purpose_comparison",
+      "subtype": "preference_formula",
+      "anchor": "prefer",
+      "coreExplanation": "用来比较两者并表达偏好：prefer A to B = “比起B更喜欢A”。A和B需同类（名词对名词；动名词对动名词）。",
+      "usageNote": "表示较稳定/一般性的喜好；谈具体一次性的选择也可用，但更常见用would rather。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "preferences",
+        "conversation",
+        "comparisons"
+      ],
+      "slotSchema": [
+        {
+          "key": "A",
+          "label": "Option A",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "与B保持同一语法类型（名词/动名词）"
+        },
+        {
+          "key": "B",
+          "label": "Option B",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "用to引出对比对象，不是不定式to"
+        }
+      ],
+      "commonErrors": [
+        "把to误当作不定式：prefer to do A to do B（应为prefer doing A to doing B 或 prefer to do A rather than do B）",
+        "A和B类型不一致：prefer coffee to drinking tea（应都为名词或都为动名词）",
+        "用than代替to：prefer A than B（应为prefer A to B）"
+      ],
+      "contrasts": [
+        {
+          "slug": "rather-than",
+          "title": "rather than",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "would-rather",
+          "title": "would rather",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I prefer tea to coffee.",
+          "translation": "比起咖啡，我更喜欢茶。",
+          "note": "名词对名词。",
+          "scene": "preferences",
+          "isPrimary": true
+        },
+        {
+          "sentence": "She prefers working from home to commuting every day.",
+          "translation": "她更喜欢在家工作，而不是每天通勤。",
+          "note": "动名词对动名词。",
+          "scene": "comparisons",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "I prefer {A} to {B}.",
+          "slotHints": [
+            "A与B保持同类：名词/动名词",
+            "用to连接比较对象"
+          ],
+          "exampleSentence": "I prefer reading to watching TV.",
+          "exampleTranslation": "比起看电视，我更喜欢阅读。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "its-adj-to",
+      "title": "it's + adjective + to...",
+      "shortLabel": null,
+      "pattern": "it is + adjective + to + base",
+      "family": "functional_pattern",
+      "subtype": "evaluation_infinitive",
+      "anchor": "it is",
+      "coreExplanation": "用 it 作形式主语，对后面的动作(to do)作评价：It’s + 形容词 + to do...（做某事很/是……）。真正的动作放在句末，更自然。",
+      "usageNote": "常用形容词：important/necessary/helpful/easy/difficult/safe/wise。也可用 It’s not + adj + to... 表否定评价。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "opinions",
+        "advice",
+        "formal-writing",
+        "daily-life"
+      ],
+      "slotSchema": [
+        {
+          "key": "adj",
+          "label": "adjective",
+          "type": "custom",
+          "required": true,
+          "hint": "描述评价：important/necessary/easy/difficult等"
+        },
+        {
+          "key": "to_do",
+          "label": "to + base verb",
+          "type": "to_infinitive",
+          "required": true,
+          "hint": "要评价的动作：to + 动词原形"
+        }
+      ],
+      "commonErrors": [
+        "把动词写成过去式/三单：It’s important to learns...（应为 to learn）",
+        "误用人作主语导致不自然：I’m important to...（通常用 It’s important to...）",
+        "把 to 省略：It’s important learn...（应为 to learn）"
+      ],
+      "contrasts": [
+        {
+          "slug": "it-is-adj-that",
+          "title": "it is + adjective + that...",
+          "note": "that 后接完整从句，强调“某事实/情况”很……：It’s important that you arrive on time."
+        },
+        {
+          "slug": "too-adj-to",
+          "title": "too + adjective + to...",
+          "note": "表示“太……以至于不能……”：too tired to work（不是一般评价）。"
+        },
+        {
+          "slug": "it-is-adjective-that",
+          "title": "it is + adjective + that...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "too-adjective-to",
+          "title": "too + adjective + to...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "It’s important to back up your files.",
+          "translation": "备份你的文件很重要。",
+          "note": "对动作“备份”作评价。",
+          "scene": "advice",
+          "isPrimary": true
+        },
+        {
+          "sentence": "It’s difficult to explain this in one sentence.",
+          "translation": "用一句话解释这个很难。",
+          "note": null,
+          "scene": "formal-writing",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Evaluate an action",
+          "template": "It’s {adj} {to_do}.",
+          "slotHints": [
+            "填评价形容词（important/easy/necessary等）",
+            "填 to + 动词原形短语"
+          ],
+          "exampleSentence": "It’s necessary to wear a seat belt.",
+          "exampleTranslation": "系安全带是必要的。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "there-is-are",
+      "title": "there is / there are",
+      "shortLabel": "existence",
+      "pattern": "there is / there are + noun",
+      "family": "functional_pattern",
+      "subtype": "existence_frame",
+      "anchor": "there is",
+      "coreExplanation": "用 there is / there are 来表示“有/存在……”，常用于第一次提到某人某物或描述某处有什么。单数/不可数用 there is；复数用 there are。",
+      "usageNote": "口语里 there are 常缩成 there're；疑问句把 is/are 提前：Is there…?/Are there…?；否定：There isn't/aren't…",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "describing",
+        "daily-life",
+        "introducing"
+      ],
+      "slotSchema": [
+        {
+          "key": "be",
+          "label": "is/are",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "单数/不可数用 is；复数用 are"
+        },
+        {
+          "key": "thing",
+          "label": "noun",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "要介绍的“人/物/情况”"
+        }
+      ],
+      "commonErrors": [
+        "把 there is/are 误写成 their is/are",
+        "主谓不一致：*there are a book",
+        "用 it is 代替存在句：*it is a café near here（应为 there is）"
+      ],
+      "contrasts": [
+        {
+          "slug": "have",
+          "title": "have",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "there-is-no-need-to",
+          "title": "there is no need to...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "There is a café near here.",
+          "translation": "这附近有一家咖啡馆。",
+          "note": "首次引入信息，用 there is 更自然。",
+          "scene": "introducing",
+          "isPrimary": true
+        },
+        {
+          "sentence": "There are three meetings today.",
+          "translation": "今天有三个会议。",
+          "note": "复数名词用 there are。",
+          "scene": "daily-life",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "There {be} {thing}.",
+          "slotHints": [
+            "is/are",
+            "a/an + 单数名词 / 不可数名词 / 复数名词"
+          ],
+          "exampleSentence": "There are some questions.",
+          "exampleTranslation": "有一些问题。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "there-is-no-need-to",
+      "title": "there is no need to...",
+      "shortLabel": null,
+      "pattern": "there is no need to + base",
+      "family": "functional_pattern",
+      "subtype": "unnecessary_action",
+      "anchor": "there is no need to",
+      "coreExplanation": "用来礼貌地表示“没必要做某事/无需……”，语气较温和，常用于建议或安抚。",
+      "usageNote": "后面接动词原形；可加 for + 名词/代词 指明对象（如 for you）。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "advice",
+        "formal-writing",
+        "reassurance"
+      ],
+      "slotSchema": [
+        {
+          "key": "action",
+          "label": "action (base verb phrase)",
+          "type": "custom",
+          "required": true,
+          "hint": "动词原形开头，如 worry / rush / book a taxi"
+        }
+      ],
+      "commonErrors": [
+        "把动词写成 v-ing：there is no need to worrying（应为 worry）",
+        "漏掉 to：there is no need worry（应为 to worry）",
+        "把 need 当名词时误用：there is no need of to...（应为 no need to... 或 no need for...）"
+      ],
+      "contrasts": [
+        {
+          "slug": "you-dont-have-to",
+          "title": "you don't have to...",
+          "note": "更口语、更直接，强调“你不必”。there is no need to 更委婉、较书面。"
+        },
+        {
+          "slug": "there-is-no-point-in",
+          "title": "there is no point in...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "you-don-t-have-to",
+          "title": "you don't have to...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "There is no need to worry about the deadline; we have plenty of time.",
+          "translation": "没必要担心截止日期；我们时间很充足。",
+          "note": "用于安抚对方情绪。",
+          "scene": "reassurance",
+          "isPrimary": true
+        },
+        {
+          "sentence": "There is no need to include personal details in the report.",
+          "translation": "报告里没必要写个人信息。",
+          "note": "较正式写法，适合邮件/报告。",
+          "scene": "formal-writing",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "No need (general)",
+          "template": "There is no need to {action}.",
+          "slotHints": [
+            "action: 动词原形短语，如 bring cash / explain again / rush"
+          ],
+          "exampleSentence": "There is no need to bring cash.",
+          "exampleTranslation": "没必要带现金。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "the-reason-is-that",
+      "title": "the reason is that...",
+      "shortLabel": null,
+      "pattern": "the reason is that + clause",
+      "family": "functional_pattern",
+      "subtype": "reason_frame",
+      "anchor": "the reason is that",
+      "coreExplanation": "用来把“原因”明确引出来：先说“the reason”，再用that引导原因从句，语气清晰、偏书面。",
+      "usageNote": "that后的从句要完整（有主语+谓语）。口语中也可省略that，但正式写作建议保留。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "explaining",
+        "argument",
+        "formal-writing"
+      ],
+      "slotSchema": [
+        {
+          "key": "clause",
+          "label": "原因从句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "完整陈述句，说明原因"
+        }
+      ],
+      "commonErrors": [
+        "用because替换that：*the reason is because...（常被认为不规范）",
+        "that后用不完整成分：*the reason is that the delay（缺谓语）",
+        "把结果当原因写进that从句，导致逻辑反了"
+      ],
+      "contrasts": [
+        {
+          "slug": "thats-why",
+          "title": "that's why + result",
+          "note": "“the reason is that”强调原因；“that's why”强调结果/结论。"
+        },
+        {
+          "slug": "the-fact-that",
+          "title": "the fact that + clause",
+          "note": "“the reason is that”回答“为什么”；“the fact that”强调“事实本身”，不一定是原因。"
+        },
+        {
+          "slug": "that-s-why-result",
+          "title": "that's why + result",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "the-fact-that-clause",
+          "title": "the fact that + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The reason is that we don’t have enough data yet.",
+          "translation": "原因是我们目前还没有足够的数据。",
+          "note": "用于解释原因，语气中性偏书面。",
+          "scene": "explaining",
+          "isPrimary": true
+        },
+        {
+          "sentence": "The reason is that the server was down for maintenance.",
+          "translation": "原因是服务器在维护期间宕机了。",
+          "note": null,
+          "scene": "argument",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "State the reason clearly",
+          "template": "The reason is that {clause}.",
+          "slotHints": [
+            "用完整句子说明原因（主语+谓语）"
+          ],
+          "exampleSentence": "The reason is that I forgot to set an alarm.",
+          "exampleTranslation": "原因是我忘了设闹钟。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "how-about-ving",
+      "title": "how about + v-ing",
+      "shortLabel": "suggestion",
+      "pattern": "how about + v-ing / noun",
+      "family": "functional_pattern",
+      "subtype": "suggestion_frame",
+      "anchor": "how about",
+      "coreExplanation": "用“how about + 动名词/名词”来提出建议、给出备选方案或转移到另一个选项，语气轻松。",
+      "usageNote": "常用于口语对话；也可用于回应对方的计划：提出替代方案。",
+      "usageRegister": "informal",
+      "sceneTags": [
+        "suggestions",
+        "conversation",
+        "planning",
+        "decision-making"
+      ],
+      "slotSchema": [
+        {
+          "key": "idea",
+          "label": "建议/选项",
+          "type": "custom",
+          "required": true,
+          "hint": "用动名词(v-ing)或名词短语：going for a walk / pizza"
+        }
+      ],
+      "commonErrors": [
+        "误用不定式：how about to go（应为 how about going）",
+        "只说“how about”不补全内容，导致信息不完整",
+        "用在过于正式的邮件/报告里，语气显得随意"
+      ],
+      "contrasts": [
+        {
+          "slug": "why-dont-we",
+          "title": "why don't we + base",
+          "note": "更直接地提议一起做某事，语气更强一点。"
+        },
+        {
+          "slug": "would-you-like-to",
+          "title": "would you like to...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "why-don-t-we",
+          "title": "why don't we...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "How about getting some coffee after the meeting?",
+          "translation": "会议结束后去喝杯咖啡怎么样？",
+          "note": "how about + v-ing，用于提出轻松建议。",
+          "scene": "work",
+          "isPrimary": true
+        },
+        {
+          "sentence": "We’re out of time—how about Plan B?",
+          "translation": "我们没时间了——方案B怎么样？",
+          "note": "how about + 名词，快速抛出备选项。",
+          "scene": "planning",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Casual suggestion",
+          "template": "How about {idea}?",
+          "slotHints": [
+            "{idea} 填 v-ing 或名词短语，如: taking a taxi / lunch at noon / another time"
+          ],
+          "exampleSentence": "How about taking a taxi?",
+          "exampleTranslation": "坐出租车怎么样？",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "would-you-like-to",
+      "title": "would you like to...",
+      "shortLabel": null,
+      "pattern": "would you like to + base",
+      "family": "functional_pattern",
+      "subtype": "invitation_frame",
+      "anchor": "would you like to",
+      "coreExplanation": "“Would you like to + 动词原形”用于礼貌地邀请或提出建议/提供帮助，比“Do you want to…?”更客气。",
+      "usageNote": "常用于服务场景或正式一点的对话；回答可用“Yes, I'd love to./Sure.”或“No, thanks.”",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "invitation",
+        "politeness",
+        "conversation",
+        "service"
+      ],
+      "slotSchema": [
+        {
+          "key": "action",
+          "label": "想做的动作",
+          "type": "to_infinitive",
+          "required": true,
+          "hint": "to + 动词原形，如 to join us / to have a seat"
+        }
+      ],
+      "commonErrors": [
+        "把动词原形写成动名词：Would you like to going...?（应为 to go）",
+        "用want替换导致语气变硬：Do you want to...?（不够礼貌）",
+        "漏掉to：Would you like join us?（应为 like to join）"
+      ],
+      "contrasts": [
+        {
+          "slug": "do-you-want-to",
+          "title": "do you want to...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "how-about-v-ing",
+          "title": "how about + v-ing",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Would you like to join us for dinner?",
+          "translation": "你想和我们一起吃晚饭吗？（礼貌邀请）",
+          "note": null,
+          "scene": "invitation",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Would you like to have a seat?",
+          "translation": "您想坐一下吗？（礼貌提供）",
+          "note": "服务/接待场景常用。",
+          "scene": "service",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Polite invitation/offer",
+          "template": "Would you like to {action}?",
+          "slotHints": [
+            "{action}: to + 动词原形（to do...）"
+          ],
+          "exampleSentence": "Would you like to take a look?",
+          "exampleTranslation": "您想看一下吗？",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "make-let-help-do",
+      "title": "make / let / help + object + do",
+      "shortLabel": "make/let/help 使役结构",
+      "pattern": "make / let / help + object + base",
+      "family": "functional_pattern",
+      "subtype": "causative_frame",
+      "anchor": "make",
+      "coreExplanation": "用于表达“使/让/帮”某人做某事：make 表示强迫或要求；let 表示允许；help 表示帮助。三者后面常用“宾语 + 动词原形”。",
+      "usageNote": "help 后可用动词原形或 to do（更完整/更正式一点），但本卡片聚焦“宾语+原形”。被动语态中 make 通常变为 be made to do。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "actions",
+        "relationships",
+        "daily-life",
+        "daily life",
+        "work",
+        "school"
+      ],
+      "slotSchema": [
+        {
+          "key": "verb",
+          "label": "Causative verb",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "make / let / help"
+        },
+        {
+          "key": "object",
+          "label": "Object (person)",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "me / him / my mom / the team"
+        },
+        {
+          "key": "baseVerb",
+          "label": "Base verb",
+          "type": "custom",
+          "required": true,
+          "hint": "动词原形：do / go / clean / finish"
+        }
+      ],
+      "commonErrors": [
+        "把动词写成 to do：make/let 后一般不用 to",
+        "把动词加 -s/-ed：这里要用动词原形",
+        "把“让/使”都用 let：表达“逼/要求”更常用 make"
+      ],
+      "contrasts": [
+        {
+          "slug": "ask-sb-to-do",
+          "title": "ask someone to...",
+          "note": "ask sb to do 表示请求/请某人做；语气更礼貌，不强调强制或允许。"
+        },
+        {
+          "slug": "tell-sb-to-do",
+          "title": "tell someone to...",
+          "note": "tell sb to do 表示命令/通知某人做；更像“说/告诉他去做”，不强调“使他做到”。"
+        },
+        {
+          "slug": "ask-someone-to",
+          "title": "ask someone to...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "tell-someone-to",
+          "title": "tell someone to...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "My boss made me stay late.",
+          "translation": "老板让我加班到很晚。",
+          "note": "make 表示要求/强制。",
+          "scene": "work",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Can you help me carry this?",
+          "translation": "你能帮我搬一下这个吗？",
+          "note": "help + 宾语 + 原形，口语常见。",
+          "scene": "daily life",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "{verb} {object} {baseVerb}.",
+          "slotHints": [
+            "verb=make/let/help",
+            "object=人",
+            "baseVerb=动词原形"
+          ],
+          "exampleSentence": "Please let me explain.",
+          "exampleTranslation": "请让我解释一下。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "have-trouble-doing",
+      "title": "have trouble + v-ing",
+      "shortLabel": "difficulty with an action",
+      "pattern": "have trouble + v-ing",
+      "family": "functional_pattern",
+      "subtype": "difficulty_frame",
+      "anchor": "have trouble",
+      "coreExplanation": "用“have trouble + v-ing”表示做某事有困难/不顺利，强调过程中的阻碍；trouble后接动名词。",
+      "usageNote": "更自然的说法常用have trouble/difficulty (in) doing；若指某次具体困难也可用had trouble。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "problems",
+        "daily-life",
+        "self-report",
+        "work"
+      ],
+      "slotSchema": [
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "人/物作主语，如 I / she / my phone"
+        },
+        {
+          "key": "activity",
+          "label": "Activity",
+          "type": "verb_ing",
+          "required": true,
+          "hint": "动名词，如 sleeping / understanding / logging in"
+        },
+        {
+          "key": "context",
+          "label": "Context",
+          "type": "prepositional_phrase",
+          "required": false,
+          "hint": "可选：加in/with/when等短语说明情境"
+        }
+      ],
+      "commonErrors": [
+        "trouble后用to do：have trouble to understand（应为understanding）",
+        "把trouble当可数：have a trouble（应为have trouble / have a problem）",
+        "漏掉动名词的宾语：have trouble finding（不说清楚finding what）"
+      ],
+      "contrasts": [
+        {
+          "slug": "cant-base",
+          "title": "can't + base",
+          "note": "can't更像“做不到/不能”，语气更绝对；have trouble表示“能做但很难/不顺”。"
+        },
+        {
+          "slug": "be-good-at-ving",
+          "title": "be good at + v-ing",
+          "note": "be good at强调擅长；have trouble强调不擅长或遇到障碍。"
+        },
+        {
+          "slug": "can-t-base",
+          "title": "can't + base",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "be-good-at-v-ing",
+          "title": "be good at + v-ing",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I have trouble falling asleep at night.",
+          "translation": "我晚上很难入睡。",
+          "note": "fall asleep用动名词falling。",
+          "scene": "daily-life",
+          "isPrimary": true
+        },
+        {
+          "sentence": "She had trouble understanding the instructions.",
+          "translation": "她理解说明书时遇到了困难。",
+          "note": "过去具体情境用had trouble。",
+          "scene": "work",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "{subject} have trouble {activity} {context}.",
+          "slotHints": [
+            "subject=人/物",
+            "activity=动名词短语",
+            "context=可选的情境补充，如 at night / with + 名词 / when + 从句"
+          ],
+          "exampleSentence": "We have trouble logging in on this Wi‑Fi.",
+          "exampleTranslation": "我们连这个Wi‑Fi时登录很困难。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "not-only-but-also",
+      "title": "not only... but also...",
+      "shortLabel": null,
+      "pattern": "not only A but also B",
+      "family": "emphasis_pattern",
+      "subtype": "addition_emphasis",
+      "anchor": "not only",
+      "coreExplanation": "用来强调“除了A之外还有B”，结构对称，语气更有力度，常用于写作和论证。",
+      "usageNote": "可用于名词、动词、形容词、句子等并列；正式写作中常见。注意：当not only放句首时，后面常用倒装（Not only did I..., but I also...）。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "argument",
+        "writing",
+        "emphasis",
+        "presentation"
+      ],
+      "slotSchema": [
+        {
+          "key": "A",
+          "label": "A（第一点）",
+          "type": "custom",
+          "required": true,
+          "hint": "与B保持同类：名词对名词/动词对动词/句子对句子"
+        },
+        {
+          "key": "B",
+          "label": "B（第二点）",
+          "type": "custom",
+          "required": true,
+          "hint": "更想强调的补充点；可加also加强"
+        },
+        {
+          "key": "context",
+          "label": "主语/语境（可选）",
+          "type": "custom",
+          "required": false,
+          "hint": "需要时补齐主语或谓语，使句子完整"
+        }
+      ],
+      "commonErrors": [
+        "A和B不平行（例如A是名词，B是从句），导致结构不对称",
+        "not only放句首却不倒装（尤其是带助动词时）",
+        "重复使用also太多或位置混乱（常用：but also + B）"
+      ],
+      "contrasts": [
+        {
+          "slug": "both-a-and-b",
+          "title": "both A and B",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "also",
+          "title": "also",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Not only is this plan cheaper, but it’s also faster.",
+          "translation": "这个方案不仅更便宜，而且也更快。",
+          "note": "形容词并列（cheaper/faster），语气强调；not only句首触发倒装is this plan。",
+          "scene": "argument",
+          "isPrimary": true
+        },
+        {
+          "sentence": "She not only speaks English but also writes it well.",
+          "translation": "她不仅会说英语，而且写得也很好。",
+          "note": "动词短语并列（speaks/writes）；not only不在句首，不需要倒装。",
+          "scene": "writing",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Balanced emphasis",
+          "template": "Not only {A}, but also {B}.",
+          "slotHints": [
+            "A放在not only后，可为句子/短语；若A为完整分句且not only在句首，注意倒装",
+            "B与A保持平行结构，可在but后加also"
+          ],
+          "exampleSentence": "Not only did we finish on time, but we also improved the quality.",
+          "exampleTranslation": "我们不仅按时完成了，而且还提升了质量。",
+          "position": 1
+        }
+      ],
+      "difficulty": 3
+    },
+    {
+      "slug": "the-more-the-more",
+      "title": "the more..., the more...",
+      "shortLabel": null,
+      "pattern": "the more X, the more Y",
+      "family": "emphasis_pattern",
+      "subtype": "correlative_comparison",
+      "anchor": "the more",
+      "coreExplanation": "用来表达“一个因素变化得越多/越强，另一个结果也随之越多/越强”的相关递进关系。两个分句通常都用比较级。",
+      "usageNote": "常用逗号分开两部分；两边结构尽量对称。可用 more/less/older/cheaper 等比较级。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "analysis",
+        "trends",
+        "cause-and-effect",
+        "work"
+      ],
+      "slotSchema": [
+        {
+          "key": "X",
+          "label": "X（变化因素）",
+          "type": "custom",
+          "required": true,
+          "hint": "比较级结构，如: more you practice / harder it gets / older I get"
+        },
+        {
+          "key": "Y",
+          "label": "Y（随之变化的结果）",
+          "type": "custom",
+          "required": true,
+          "hint": "比较级结构，如: better you become / more I realize / less I sleep"
+        }
+      ],
+      "commonErrors": [
+        "把比较级写成原级：the more you practice, the good you are（应为 the better）",
+        "两边结构不对称或缺主语：the more practice, the better you become（更自然：the more you practice...）",
+        "误用 because/so 把它当因果连词：Because the more..., so the more...（不需要）"
+      ],
+      "contrasts": [
+        {
+          "slug": "as-as",
+          "title": "as...as...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "comparative-sentences",
+          "title": "comparative sentences",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The more you practice, the better you get.",
+          "translation": "你练得越多，你就越熟练。",
+          "note": "两边都用比较级：more / better。",
+          "scene": "study",
+          "isPrimary": true
+        },
+        {
+          "sentence": "The harder I work, the less time I have for hobbies.",
+          "translation": "我工作越努力，留给爱好的时间就越少。",
+          "note": "第二分句可以用 less 表示“越……越少”。",
+          "scene": "work",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "The more {X}, the more {Y}.",
+          "slotHints": [
+            "X：包含比较级的分句（如 more/less/older/faster + 主语 + 动词）",
+            "Y：包含比较级的分句（如 more/less/better/worse + 主语 + 动词）"
+          ],
+          "exampleSentence": "The more I read, the more I understand.",
+          "exampleTranslation": "我读得越多，就理解得越多。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "it-is-that-emphasis",
+      "title": "it is / was ... that ...",
+      "shortLabel": null,
+      "pattern": "it is / was + focus + that + clause",
+      "family": "emphasis_pattern",
+      "subtype": "cleft_emphasis",
+      "anchor": "it is",
+      "coreExplanation": "用分裂句把句子某一部分提到前面，突出“真正要强调的是focus”。原句信息不变，只是把焦点说得更明确。",
+      "usageNote": "常用于纠正、对比或正式表达；that后面必须是完整从句。focus可为人/物/时间/地点/原因等。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "emphasis",
+        "correction",
+        "formal-speaking",
+        "presentations"
+      ],
+      "slotSchema": [
+        {
+          "key": "focus",
+          "label": "Focus (强调部分)",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "可为人/物/时间/地点等；也可用介词短语如 on Friday / in Paris"
+        },
+        {
+          "key": "clause",
+          "label": "That-clause (其余信息)",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "用完整陈述句结构；focus在原句中对应的位置被“挖空”"
+        }
+      ],
+      "commonErrors": [
+        "把that后面写成不完整句（缺主语或谓语）",
+        "误用because：应说 It is ... that ...，不是 It is ... because ...（除非强调原因且focus为the reason）",
+        "focus与that从句重复（同一成分出现两次）"
+      ],
+      "contrasts": [
+        {
+          "slug": "the-reason-is-that",
+          "title": "the reason is that...",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "think-that-clause",
+          "title": "I think / say / know that...",
+          "note": "这是表达观点/陈述内容的that从句，不是强调结构；it is...that...是在做“焦点突出/纠正”。"
+        },
+        {
+          "slug": "that-clause-after-think-say-know",
+          "title": "that-clause after think / say / know",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "It was Sarah that solved the problem, not me.",
+          "translation": "解决这个问题的是Sarah，不是我。",
+          "note": "用was对应过去；后面加not me做纠正对比更自然。",
+          "scene": "correction",
+          "isPrimary": true
+        },
+        {
+          "sentence": "It’s on Friday that we’re meeting, not Thursday.",
+          "translation": "我们是周五见面，不是周四。",
+          "note": "强调时间时focus可用介词短语。",
+          "scene": "scheduling",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Emphasize the focus",
+          "template": "It is/was {focus} that {clause}.",
+          "slotHints": [
+            "focus放你要强调的信息（人/事/时间/地点等）",
+            "that后用完整从句，把其余信息说完"
+          ],
+          "exampleSentence": "It is this detail that matters most.",
+          "exampleTranslation": "最重要的是这个细节。",
+          "position": 1
+        }
+      ],
+      "difficulty": 3
+    }
+  ]
+}

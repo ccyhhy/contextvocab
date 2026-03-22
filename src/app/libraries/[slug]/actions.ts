@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { requireActionSession } from '@/lib/supabase/user'
 import { getTodayDateString } from '@/lib/app-date'
+import { normalizeStudyContentType, type StudyContentType } from '@/lib/study-content'
 
 const LIBRARY_WORD_PAGE_SIZE = 100
 const ADD_WORD_SEARCH_LIMIT = 12
@@ -20,6 +21,7 @@ export interface LibraryDetail {
   name: string
   description: string | null
   sourceType: 'official' | 'custom'
+  contentType: StudyContentType
   isEditable: boolean
   wordCount: number
   activeCount: number
@@ -73,6 +75,7 @@ interface LibraryRow {
   name: string
   description?: string | null
   source_type?: 'official' | 'custom' | null
+  content_type?: StudyContentType | null
   created_by?: string | null
 }
 
@@ -175,7 +178,7 @@ async function getReadableLibraryBySlug(
 ): Promise<LibraryRow | null> {
   const { data, error } = await supabase
     .from('libraries')
-    .select('id, slug, name, description, source_type, created_by')
+    .select('id, slug, name, description, source_type, content_type, created_by')
     .eq('slug', normalizeLibrarySlug(librarySlug))
     .maybeSingle()
 
@@ -194,7 +197,7 @@ async function getEditableLibraryBySlug(
 ): Promise<LibraryRow | null> {
   const { data, error } = await supabase
     .from('libraries')
-    .select('id, slug, name, description, source_type, created_by')
+    .select('id, slug, name, description, source_type, content_type, created_by')
     .eq('slug', normalizeLibrarySlug(librarySlug))
     .eq('created_by', userId)
     .eq('source_type', 'custom')
@@ -337,6 +340,7 @@ async function buildLibraryDetail(
       name: library.name,
       description: getLibraryDescription(library),
       sourceType: library.source_type === 'custom' ? 'custom' : 'official',
+      contentType: normalizeStudyContentType(library.content_type),
       isEditable: library.source_type === 'custom' && library.created_by === userId,
       wordCount: 0,
       activeCount: 0,
@@ -367,6 +371,7 @@ async function buildLibraryDetail(
     name: library.name,
     description: getLibraryDescription(library),
     sourceType: library.source_type === 'custom' ? 'custom' : 'official',
+    contentType: normalizeStudyContentType(library.content_type),
     isEditable: library.source_type === 'custom' && library.created_by === userId,
     wordCount,
     activeCount,

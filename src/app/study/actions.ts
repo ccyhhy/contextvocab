@@ -12,6 +12,7 @@ import {
   getOpenAiApiUrl,
   normalizeOpenAiApiType,
 } from '@/lib/openai-api'
+import type { StudyContentType } from '@/lib/study-content'
 import { isLearnerFriendlyExampleSentence } from '@/lib/example-safety'
 import { type ReviewBucket, type SRSData } from '@/lib/srs'
 import { type StudyPriorityReason } from '@/lib/study-scheduler'
@@ -127,6 +128,7 @@ export interface StudyLibrary {
   name: string
   description: string | null
   sourceType: 'official' | 'custom'
+  contentType: StudyContentType
   wordCount: number
   activeCount: number
   dueCount: number
@@ -273,6 +275,7 @@ interface LibraryRow {
   name: string
   description?: string | null
   source_type?: 'official' | 'custom' | null
+  content_type?: StudyContentType | null
 }
 
 interface LibraryWordRow {
@@ -1421,7 +1424,7 @@ async function getLibraryBySlug(supabase: SupabaseClient, librarySlug: string) {
 
   const { data, error } = await supabase
     .from('libraries')
-    .select('id, slug, name, description, source_type')
+    .select('id, slug, name, description, source_type, content_type')
     .eq('slug', normalizedSlug)
     .maybeSingle()
 

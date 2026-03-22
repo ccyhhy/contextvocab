@@ -1,0 +1,56 @@
+{
+  "library": {
+    "slug": "basic-scene-grammar",
+    "name": "Basic Scene Grammar",
+    "description": "Starter grammar library for high-frequency structures and scene-based sentence building.",
+    "sourceType": "official",
+    "language": "en",
+    "isPublic": true
+  },
+  "items": [
+    {
+      "slug": "because-clause",
+      "title": "because + clause",
+      "pattern": "because + clause",
+      "family": "reason",
+      "subtype": "cause_clause",
+      "anchor": "because",
+      "brief": "Use it to state a direct reason clearly.",
+      "sceneHints": ["reasoning", "conversation", "writing"],
+      "contrastHints": ["since + clause", "as + clause", "because of + noun"]
+    },
+    {
+      "slug": "although-clause",
+      "title": "although + clause",
+      "pattern": "although + clause",
+      "family": "concession",
+      "subtype": "concession_clause",
+      "anchor": "although",
+      "brief": "Use it to show concession and highlight contrast between two ideas.",
+      "sceneHints": ["contrast", "formal-writing", "reasoning"],
+      "contrastHints": ["though + clause", "despite + noun"]
+    },
+    {
+      "slug": "if-clause",
+      "title": "if + clause",
+      "pattern": "if + clause, main clause",
+      "family": "condition",
+      "subtype": "real_condition",
+      "anchor": "if",
+      "brief": "Use it for real conditions, plans, and common assumptions.",
+      "sceneHints": ["planning", "conversation", "instruction"],
+      "contrastHints": ["unless + clause", "as long as + clause"]
+    },
+    {
+      "slug": "who-relative-clause",
+      "title": "who relative clause",
+      "pattern": "noun + who + clause",
+      "family": "relative_clause",
+      "subtype": "person_subject",
+      "anchor": "who",
+      "brief": "Use it to identify or describe a person with extra information.",
+      "sceneHints": ["describing-people", "storytelling", "writing"],
+      "contrastHints": ["that relative clause", "which relative clause"]
+    }
+  ]
+}

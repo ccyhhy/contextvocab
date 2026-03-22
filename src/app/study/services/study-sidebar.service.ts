@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { normalizeStudyContentType } from "@/lib/study-content"
 import type { StudyEnrichmentProgress, StudyLibrary } from "../actions"
 
 const SUPABASE_PAGE_SIZE = 1000
@@ -22,6 +23,7 @@ interface LibrarySummaryRow {
   name: string
   description?: string | null
   source_type?: string | null
+  content_type?: string | null
 }
 
 interface UserLibraryPlanRow {
@@ -111,7 +113,10 @@ function isBaseGenerationMethod(method?: string | null) {
 }
 
 function createStudyLibraryPlaceholder(
-  library: Pick<LibrarySummaryRow, "id" | "slug" | "name" | "description" | "source_type">
+  library: Pick<
+    LibrarySummaryRow,
+    "id" | "slug" | "name" | "description" | "source_type" | "content_type"
+  >
 ): StudyLibrary {
   return {
     id: library.id,
@@ -119,6 +124,7 @@ function createStudyLibraryPlaceholder(
     name: library.name,
     description: library.description ?? null,
     sourceType: library.source_type === "custom" ? "custom" : "official",
+    contentType: normalizeStudyContentType(library.content_type),
     wordCount: 0,
     activeCount: 0,
     dueCount: 0,
@@ -138,6 +144,7 @@ function getLegacyStudyLibraryOptions(legacyLibraryOptions: readonly LegacyLibra
         name: option.name,
         description: null,
         source_type: "official",
+        content_type: "word",
       })
     )
 }
@@ -272,6 +279,27 @@ async function buildLibrarySummary(
     .eq("user_id", userId)
     .eq("library_id", library.id)
     .maybeSingle()
+  const contentType = normalizeStudyContentType(library.content_type)
+
+  if (contentType !== "word") {
+    const { data: plan } = await planPromise
+    const planRow = (plan as UserLibraryPlanRow | null) ?? null
+
+    return {
+      id: library.id,
+      slug: library.slug,
+      name: library.name,
+      description: library.description ?? null,
+      sourceType: library.source_type === "custom" ? "custom" : "official",
+      contentType,
+      wordCount: 0,
+      activeCount: 0,
+      dueCount: 0,
+      remainingCount: 0,
+      planStatus: planRow?.status ?? "not_started",
+      dailyNewLimit: planRow?.daily_new_limit ?? null,
+    }
+  }
 
   const [libraryWordIds, { data: plan }] = await Promise.all([
     deps.getLibraryWordIds(supabase, library.id),
@@ -287,6 +315,7 @@ async function buildLibrarySummary(
       name: library.name,
       description: library.description ?? null,
       sourceType: library.source_type === "custom" ? "custom" : "official",
+      contentType,
       wordCount: 0,
       activeCount: 0,
       dueCount: 0,
@@ -315,6 +344,7 @@ async function buildLibrarySummary(
     name: library.name,
     description: library.description ?? null,
     sourceType: library.source_type === "custom" ? "custom" : "official",
+    contentType,
     wordCount,
     activeCount,
     dueCount,
@@ -350,7 +380,7 @@ export async function loadStudyLibraries({
   const [{ data, error }, startedWordIds, dueWordIds] = await Promise.all([
     supabase
       .from("libraries")
-      .select("id, slug, name, description, source_type")
+      .select("id, slug, name, description, source_type, content_type")
       .order("name", { ascending: true }),
     deps.getStartedWordIds(supabase, userId),
     deps.getDueWordIds(supabase, userId, today),
@@ -399,7 +429,7 @@ export async function loadStudyLibraryOptions({
 }): Promise<StudyLibrary[]> {
   const { data, error } = await supabase
     .from("libraries")
-    .select("id, slug, name, description, source_type")
+    .select("id, slug, name, description, source_type, content_type")
     .order("name", { ascending: true })
 
   if (error || !data) {
@@ -483,6 +513,18 @@ export async function loadStudyEnrichmentProgress({
   ]
 
   for (const library of libraries) {
+    if (library.contentType !== "word") {
+      progressItems.push({
+        slug: library.slug,
+        name: library.name,
+        totalWords: 0,
+        coveredWords: 0,
+        refinedWords: 0,
+        exampleWords: 0,
+      })
+      continue
+    }
+
     const officialTag = OFFICIAL_LIBRARY_TAG_MAP[library.slug]
     const libraryWordIds = officialTag
       ? await getWordIdsByOfficialTag(supabase, officialTag)

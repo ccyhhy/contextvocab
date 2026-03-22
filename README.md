@@ -67,8 +67,15 @@ Run [schema.sql](e:/codework/words/supabase/schema.sql) in the Supabase SQL edit
 This creates:
 
 - `words`
+- `grammar_items`
+- `grammar_item_examples`
+- `grammar_item_contrasts`
+- `grammar_item_templates`
 - `user_words`
+- `user_grammar_items`
 - `sentences`
+- `grammar_attempts`
+- `libraries.content_type`
 - `pick_unstudied_word` RPC
 
 ### 4. Import vocabulary data
@@ -105,10 +112,39 @@ npm run build
 npm run start
 npm run lint
 npm run enrich:words
+npm run generate:grammar
+npm run import:grammar
 npm run import:enriched
 npm run import:words
 npm run import:cet6
 ```
+
+## Grammar Library Pipeline
+
+The project now includes a grammar-library pipeline for building structure cards such as
+`because + clause`, `although + clause`, and relative-clause patterns.
+
+Typical workflow:
+
+1. Prepare a seed file based on [grammar-seed.sample.json](e:/codework/words/data/grammar/grammar-seed.sample.json).
+2. Generate cards with AI:
+
+```bash
+npm run generate:grammar -- --input data/grammar/grammar-seed.sample.json --output data/grammar/generated/basic-scene-grammar.json
+```
+
+3. Review the generated JSON.
+4. Import it into Supabase:
+
+```bash
+npm run import:grammar -- --input data/grammar/generated/basic-scene-grammar.json
+```
+
+Notes:
+
+- Grammar generation reuses the existing server-side AI config and falls back through `OPENAI_ENRICH_REFINE_* -> OPENAI_ENRICH_* -> OPENAI_*`.
+- The generated library is stored as a `grammar` library in `libraries.content_type`.
+- The current UI still treats grammar support as a structural foundation; study-page integration will come next.
 
 ## Enrichment Pipeline
 

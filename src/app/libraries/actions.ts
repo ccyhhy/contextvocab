@@ -75,6 +75,7 @@ async function createLibraryWithWords(input: {
       name,
       description,
       source_type: 'custom',
+      content_type: 'word',
       language: 'en',
       is_public: false,
       created_by: user.id,
