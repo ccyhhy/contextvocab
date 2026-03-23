@@ -2,7 +2,7 @@
 
 import { BookOpen, Heart, Lightbulb, Volume2 } from "lucide-react"
 import type { StudyBatchWordItem } from "../actions"
-import { getPriorityLabel, getSceneTagLabel, getUsageRegisterLabel, shouldHighlightPriority } from "./study-ui"
+import { getPriorityLabel, getSceneTagLabel, getUsageRegisterLabel, shouldHighlightPriority, getPriorityColors } from "./study-ui"
 
 export function StudyWordPanel({
   currentWord,
@@ -54,7 +54,7 @@ export function StudyWordPanel({
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex min-h-8 items-center gap-2">
           {shouldHighlightPriority(currentWord.priorityReason) ? (
-            <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300">
+            <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${getPriorityColors(currentWord.priorityReason)}`}>
               {getPriorityLabel(currentWord.priorityReason)}
             </span>
           ) : null}
@@ -64,13 +64,13 @@ export function StudyWordPanel({
           type="button"
           onClick={onToggleFavorite}
           disabled={favoritePending || isSubmitting}
-          className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${
+          className={`group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-all duration-300 hover:scale-105 active:scale-95 ${
             isFavorite
-              ? "border-rose-500/30 bg-rose-500/12 text-rose-300"
-              : "border-white/10 text-zinc-400"
+              ? "border-rose-500/40 bg-rose-500/20 text-rose-200 shadow-lg shadow-rose-500/20"
+              : "border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white"
           }`}
         >
-          <Heart className={`h-3.5 w-3.5 ${isFavorite ? "fill-current" : ""}`} />
+          <Heart className={`h-4 w-4 transition-transform group-hover:scale-110 ${isFavorite ? "fill-current text-rose-400" : ""}`} />
           {isFavorite ? "已收藏" : "收藏"}
         </button>
       </div>
@@ -88,66 +88,66 @@ export function StudyWordPanel({
             </button>
           </div>
           {currentWord.words.phonetic ? (
-            <p className="mt-2 text-base font-medium tracking-[0.08em] text-blue-200/80">
+            <p className="mt-3 text-lg font-medium tracking-[0.08em] text-blue-300/80">
               {currentWord.words.phonetic}
             </p>
           ) : null}
         </div>
       </div>
 
-      <div className="rounded-3xl border border-blue-500/10 bg-blue-500/[0.02] p-6 text-zinc-200">
+      <div className="rounded-3xl border border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-blue-500/5 p-6 md:p-8 shadow-lg shadow-blue-500/5 text-blue-50">
         <div className="flex items-start gap-4">
-          <BookOpen className="mt-1 h-6 w-6 shrink-0 text-blue-400/80" />
+          <BookOpen className="mt-1 h-7 w-7 shrink-0 text-blue-400" />
           <div className="space-y-2">
-            <p>{primaryDefinition}</p>
-            {secondaryDefinition ? <p className="text-sm leading-7 text-zinc-500">{secondaryDefinition}</p> : null}
+            <p className="text-[15px] sm:text-base leading-relaxed">{primaryDefinition}</p>
+            {secondaryDefinition ? <p className="text-sm border-t border-blue-500/10 pt-2 leading-7 text-blue-200/60 mt-2">{secondaryDefinition}</p> : null}
           </div>
         </div>
       </div>
 
       {(wordProfile || previewExamples.length > 0) && (
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="mt-5 grid gap-4 md:grid-cols-2 md:gap-5">
           {(wordProfile?.semanticFeel || wordProfile?.usageNote) && (
-            <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-5 md:col-span-2">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                <Lightbulb className="h-3.5 w-3.5 text-amber-300/70" />
+            <div className="rounded-3xl border border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-transparent p-6 md:p-8 shadow-lg shadow-amber-500/5 md:col-span-2">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-amber-500/80">
+                <Lightbulb className="h-4 w-4 text-amber-400" />
                 使用画像
               </div>
               {wordProfile?.semanticFeel ? (
-                <p className="mt-3 text-sm leading-7 text-zinc-200">{wordProfile.semanticFeel}</p>
+                <p className="mt-4 text-[15px] leading-8 text-amber-50/90">{wordProfile.semanticFeel}</p>
               ) : null}
               {wordProfile?.usageNote ? (
-                <p className="mt-3 text-sm leading-7 text-zinc-400">{wordProfile.usageNote}</p>
+                <p className="mt-3 text-sm leading-7 text-amber-200/60">{wordProfile.usageNote}</p>
               ) : null}
             </div>
           )}
 
           {(sceneTags.length > 0 || collocations.length > 0 || usageRegisterLabel) && (
-            <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-5">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">场景与搭配</p>
+            <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-sm">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-500">场景与搭配</p>
               {sceneTags.length > 0 ? (
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap gap-2.5">
                   {sceneTags.map((tag) => (
                     <span
                       key={`${currentWord.word_id}-scene-${tag}`}
-                      className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs text-blue-100"
+                      className="rounded-full border border-blue-400/30 bg-blue-500/20 px-3 py-1.5 text-xs font-semibold text-blue-200 shadow-sm"
                     >
                       {getSceneTagLabel(tag)}
                     </span>
                   ))}
                   {usageRegisterLabel ? (
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
+                    <span className="rounded-full border border-zinc-500/30 bg-zinc-500/20 px-3 py-1.5 text-xs font-medium text-zinc-300">
                       {usageRegisterLabel}
                     </span>
                   ) : null}
                 </div>
               ) : null}
               {collocations.length > 0 ? (
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-5 flex flex-wrap gap-2.5">
                   {collocations.map((item) => (
                     <span
                       key={`${currentWord.word_id}-collocation-${item}`}
-                      className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-200"
+                      className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-zinc-200 shadow-sm"
                     >
                       {item}
                     </span>
@@ -158,22 +158,22 @@ export function StudyWordPanel({
           )}
 
           {previewExamples.length > 0 && (
-            <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-5">
+            <div className="rounded-3xl border border-indigo-500/15 bg-gradient-to-b from-indigo-500/5 to-transparent p-6 shadow-xl backdrop-blur-sm">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">可仿写例句</p>
-                <span className="text-[11px] text-zinc-500">点击可直接填入</span>
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-indigo-400">可仿写例句</p>
+                <span className="text-[10px] text-indigo-400/60 uppercase tracking-wider">点击可直接填入</span>
               </div>
-              <div className="mt-3 space-y-3">
+              <div className="mt-4 space-y-3">
                 {previewExamples.map((item) => (
                   <button
                     key={`${currentWord.word_id}-preview-${item.sentence}`}
                     type="button"
                     onClick={() => onApplySentenceHelp(item.sentence)}
-                    className="block w-full rounded-2xl border border-white/5 bg-white/[0.02] px-4 py-4 text-left transition-all duration-300 hover:scale-[1.015] hover:-translate-y-0.5 hover:bg-white/5 hover:border-white/10 hover:shadow-xl hover:shadow-black/20"
+                    className="block w-full rounded-2xl border border-indigo-500/10 bg-indigo-500/[0.04] px-5 py-4 text-left transition-all duration-300 hover:scale-[1.015] hover:-translate-y-0.5 hover:bg-indigo-500/10 hover:border-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/10"
                   >
-                    <div className="text-sm leading-7 text-zinc-100">{item.sentence}</div>
+                    <div className="text-[15px] leading-7 text-indigo-50">{item.sentence}</div>
                     {item.translation ? (
-                      <div className="mt-1 text-xs leading-6 text-zinc-500">{item.translation}</div>
+                      <div className="mt-1.5 text-xs leading-6 text-indigo-200/60">{item.translation}</div>
                     ) : null}
                   </button>
                 ))}

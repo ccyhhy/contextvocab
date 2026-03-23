@@ -20,6 +20,21 @@ export function getPriorityLabel(reason: StudyBatchItem["priorityReason"]) {
   }
 }
 
+export function getPriorityColors(reason: StudyBatchItem["priorityReason"]) {
+  switch (reason) {
+    case "leech_due":
+      return "border-rose-500/40 bg-rose-500/20 text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.15)]"
+    case "overdue":
+      return "border-orange-500/40 bg-orange-500/20 text-orange-300 shadow-[0_0_15px_rgba(249,115,22,0.15)]"
+    case "weak_due":
+      return "border-amber-500/40 bg-amber-500/20 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+    case "due":
+    case "new":
+    default:
+      return "border-blue-500/40 bg-blue-500/20 text-blue-300 shadow-[0_0_15px_rgba(59,130,246,0.15)]"
+  }
+}
+
 export function getStudyViewLabel(view: StudyView) {
   switch (view) {
     case "favorites":
