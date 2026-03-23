@@ -3186,6 +3186,7 @@ export async function getNextWord(
 export async function getHistorySentenceReviewTarget(
   sentenceId: string
 ): Promise<HistoryReviewTarget> {
+  const startedAt = Date.now()
   const normalizedSentenceId = sanitizeText(sentenceId).trim()
   if (!normalizedSentenceId) {
     return { batchItem: null, review: null }
@@ -3203,46 +3204,47 @@ export async function getHistorySentenceReviewTarget(
 
   if (error) {
     console.error('Failed to load history sentence review target:', error)
+    logStudyPerformance('getHistorySentenceReviewTarget', startedAt, {
+      found: false,
+      reason: 'query_error',
+    })
     return { batchItem: null, review: null }
   }
 
   const sentenceRow = data as HistorySentenceReviewRow | null
   if (!sentenceRow || typeof sentenceRow.word_id !== 'string') {
+    logStudyPerformance('getHistorySentenceReviewTarget', startedAt, {
+      found: false,
+      reason: 'missing_sentence',
+    })
     return { batchItem: null, review: null }
   }
   const joinedWord = Array.isArray(sentenceRow.words) ? sentenceRow.words[0] : sentenceRow.words
 
-  const { data: userWordData, error: userWordError } = await supabase
-    .from('user_words')
-    .select('*, words(*)')
-    .eq('user_id', user.id)
-    .eq('word_id', sentenceRow.word_id)
-    .maybeSingle()
-
-  if (userWordError) {
-    console.error('Failed to load user word for history review:', userWordError)
-  }
-
   const baseBatchItem =
-    normalizeStudyBatchItem(userWordData, {
-      isNew: false,
-      priorityReason: 'due',
-    }) ??
     normalizeNewStudyBatchItem(joinedWord, {
       isNew: false,
       priorityReason: 'due',
     })
 
   if (!baseBatchItem) {
+    logStudyPerformance('getHistorySentenceReviewTarget', startedAt, {
+      found: false,
+      reason: 'missing_batch_item',
+    })
     return { batchItem: null, review: null }
   }
 
   const [hydratedBatchItem] = await hydrateStudyBatchWordDetails(supabase, [baseBatchItem])
   if (!hydratedBatchItem) {
+    logStudyPerformance('getHistorySentenceReviewTarget', startedAt, {
+      found: false,
+      reason: 'missing_hydrated_item',
+    })
     return { batchItem: null, review: null }
   }
 
-  return {
+  const target: HistoryReviewTarget = {
     batchItem: hydratedBatchItem,
     review: {
       historyId: sentenceRow.id,
@@ -3255,6 +3257,13 @@ export async function getHistorySentenceReviewTarget(
       createdAt: sentenceRow.created_at,
     },
   }
+
+  logStudyPerformance('getHistorySentenceReviewTarget', startedAt, {
+    found: true,
+    wordId: sentenceRow.word_id,
+  })
+
+  return target
 }
 
 export async function getHistoryGrammarReviewTarget(

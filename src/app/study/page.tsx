@@ -57,6 +57,7 @@ async function renderStudyPage(
   const reviewGrammarAttemptId =
     resolvedSearchParams?.reviewGrammarAttemptId?.trim() || ''
   const isReviewRoute = Boolean(reviewSentenceId || reviewGrammarAttemptId)
+  const shouldDeferLibraryOptions = Boolean(reviewSentenceId) && !reviewGrammarAttemptId
 
   const [historyReviewTarget, initialFavoriteWordIds, libraries, initialBatchForRegularEntry] =
     await Promise.all([
@@ -66,7 +67,7 @@ async function renderStudyPage(
           ? getHistoryGrammarReviewTarget(reviewGrammarAttemptId)
           : Promise.resolve(null),
       getFavoriteWordIds(),
-      getStudyLibraryOptions(),
+      shouldDeferLibraryOptions ? Promise.resolve([]) : getStudyLibraryOptions(),
       isReviewRoute
         ? Promise.resolve([])
         : getStudyBatch({
@@ -84,6 +85,7 @@ async function renderStudyPage(
     librarySlug: initialLibrarySlug,
     reviewRoute: isReviewRoute,
     hasReviewTarget: reviewBatchItem !== null,
+    deferredLibraryOptions: shouldDeferLibraryOptions,
     initialBatch: initialBatch.length,
     libraries: libraries.length,
     favorites: initialFavoriteWordIds.length,
