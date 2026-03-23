@@ -60,12 +60,11 @@ export default function StudyClient({
   const sentenceInputRef = useRef<HTMLTextAreaElement | null>(null)
   const { speechConfig, availableVoices, updateSpeechConfig, playAudio, saveSpeechConfig } =
     useSpeechSynthesis()
-  const { availableLibraries, availableEnrichmentProgress, studySidebarState } = useStudySidebarData(
-    {
+  const { availableLibraries, availableEnrichmentProgress, studySidebarState } =
+    useStudySidebarData({
       initialLibraries: libraries,
       initialEnrichmentProgress: enrichmentProgress,
-    }
-  )
+    })
   const {
     currentItem,
     queuedItems,
@@ -89,6 +88,7 @@ export default function StudyClient({
   const selectedLibraryContentType = selectedLibrary?.contentType ?? null
   const currentWord = isStudyBatchWordItem(currentItem) ? currentItem : null
   const currentGrammar = isStudyBatchGrammarItem(currentItem) ? currentItem : null
+  const isGrammarWorkspace = selectedLibraryContentType === "grammar"
 
   const { sentenceHelpItems, sentenceHelpState, sentenceHelpSourceLabel } = useSentenceHelp({
     currentWord,
@@ -223,6 +223,7 @@ export default function StudyClient({
         availableLibraries={availableLibraries}
         librarySlug={librarySlug}
         studyView={studyView}
+        loading={loadingNext}
         selectedLibraryContentType={selectedLibraryContentType}
         onLibraryChange={handleLibraryChange}
         onStudyViewChange={handleStudyModeChange}
@@ -238,7 +239,11 @@ export default function StudyClient({
   const isFavorite = currentWord ? favoriteWordIds.includes(currentWord.word_id) : false
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+    <div
+      className={`mx-auto flex w-full flex-col gap-6 ${
+        isGrammarWorkspace ? "max-w-[1440px]" : "max-w-2xl"
+      }`}
+    >
       <StudySpeechSettingsDialog
         open={showSettings}
         speechConfig={speechConfig}
@@ -311,7 +316,7 @@ export default function StudyClient({
           />
 
           {status !== "result" && (
-          <StudySentenceComposer
+            <StudySentenceComposer
               targetLabel={currentWord.words.word}
               sentence={sentence}
               inputRef={sentenceInputRef}
@@ -352,52 +357,58 @@ export default function StudyClient({
           />
         </>
       ) : currentGrammar ? (
-        <>
-          <StudyGrammarPanel currentGrammar={currentGrammar} loadingNext={loadingNext} />
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.95fr)]">
+          <div className="min-w-0">
+            <StudyGrammarPanel currentGrammar={currentGrammar} loadingNext={loadingNext} />
+          </div>
 
-          {status !== "result" && (
-            <StudySentenceComposer
-              targetLabel={currentGrammar.grammar.title}
-              sentence={sentence}
-              inputRef={sentenceInputRef}
-              showSentenceHelp={showGrammarHints}
-              isSubmitting={status === "submitting"}
-              isPracticeMode={submissionMode === "practice"}
-              placeholderText={`请写一个明确使用 "${currentGrammar.grammar.pattern}" 的句子。`}
-              submitLabel={submissionMode === "practice" ? "提交重写" : "提交句法练习"}
-              skipLabel="下一张卡片"
-              onSentenceChange={setSentence}
-              onSubmit={() => void submitCurrentSentence(submissionMode)}
-              onToggleHelp={() => setShowGrammarHints((current) => !current)}
-              onSkip={() => void handleNext(librarySlug, true)}
+          <div className="min-w-0 space-y-4 xl:sticky xl:top-24">
+            {status !== "result" ? (
+              <div className="glass-panel rounded-3xl p-5">
+                <StudySentenceComposer
+                  targetLabel={currentGrammar.grammar.title}
+                  sentence={sentence}
+                  inputRef={sentenceInputRef}
+                  showSentenceHelp={showGrammarHints}
+                  isSubmitting={status === "submitting"}
+                  isPracticeMode={submissionMode === "practice"}
+                  placeholderText={`请写一个明确使用 "${currentGrammar.grammar.pattern}" 的句子...`}
+                  submitLabel={submissionMode === "practice" ? "提交重写" : "提交句法练习"}
+                  skipLabel="下一张卡片"
+                  onSentenceChange={setSentence}
+                  onSubmit={() => void submitCurrentSentence(submissionMode)}
+                  onToggleHelp={() => setShowGrammarHints((current) => !current)}
+                  onSkip={() => void handleNext(librarySlug, true)}
+                />
+              </div>
+            ) : null}
+
+            <StudyGrammarHelpPanel
+              visible={showGrammarHints && status !== "result"}
+              templates={currentGrammar.grammar.templates}
+              examples={currentGrammar.grammar.examples}
+              onClose={() => setShowGrammarHints(false)}
+              onApply={applySentenceHelp}
             />
-          )}
 
-          <StudyGrammarHelpPanel
-            visible={showGrammarHints && status !== "result"}
-            templates={currentGrammar.grammar.templates}
-            examples={currentGrammar.grammar.examples}
-            onClose={() => setShowGrammarHints(false)}
-            onApply={applySentenceHelp}
-          />
+            <StudyStreamingPreview
+              visible={status === "submitting"}
+              streamPhase={streamPhase}
+              streamProgressChars={streamProgressChars}
+              streamSections={streamSections}
+            />
 
-          <StudyStreamingPreview
-            visible={status === "submitting"}
-            streamPhase={streamPhase}
-            streamProgressChars={streamProgressChars}
-            streamSections={streamSections}
-          />
-
-          <StudyEvaluationResult
-            visible={status === "result"}
-            result={result}
-            sentence={sentence}
-            mounted={mounted}
-            onRewrite={handleRewrite}
-            onNext={() => void handleNext(librarySlug)}
-            onPlayAudio={playAudio}
-          />
-        </>
+            <StudyEvaluationResult
+              visible={status === "result"}
+              result={result}
+              sentence={sentence}
+              mounted={mounted}
+              onRewrite={handleRewrite}
+              onNext={() => void handleNext(librarySlug)}
+              onPlayAudio={playAudio}
+            />
+          </div>
+        </div>
       ) : null}
     </div>
   )

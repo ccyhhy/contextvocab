@@ -8,6 +8,7 @@ export function StudyEmptyState({
   availableLibraries,
   librarySlug,
   studyView,
+  loading = false,
   selectedLibraryContentType,
   onLibraryChange,
   onStudyViewChange,
@@ -16,12 +17,20 @@ export function StudyEmptyState({
   availableLibraries: StudyLibrary[]
   librarySlug: string
   studyView: StudyView
+  loading?: boolean
   selectedLibraryContentType?: StudyContentType | null
   onLibraryChange: (event: ChangeEvent<HTMLSelectElement>) => void | Promise<void>
   onStudyViewChange: (event: ChangeEvent<HTMLSelectElement>) => void | Promise<void>
   onRefresh: () => void | Promise<void>
 }) {
   const isGrammarLibrary = selectedLibraryContentType === "grammar"
+  const message = loading
+    ? isGrammarLibrary
+      ? "正在加载当前筛选下的句法卡片..."
+      : "正在加载当前筛选下的学习内容..."
+    : isGrammarLibrary
+      ? "当前筛选下还没有可学习的句法卡片。"
+      : "当前筛选下还没有可学习的单词。"
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
@@ -67,11 +76,7 @@ export function StudyEmptyState({
         </button>
       </div>
 
-      <div className="glass-panel rounded-3xl p-10 text-center text-zinc-300">
-        {isGrammarLibrary
-          ? "当前筛选下还没有可学习的句法卡片。"
-          : "当前筛选下还没有可学习的单词。"}
-      </div>
+      <div className="glass-panel rounded-3xl p-10 text-center text-zinc-300">{message}</div>
     </div>
   )
 }
