@@ -274,6 +274,85 @@ async function getStartedGrammarIds(supabase: SupabaseClient, userId: string) {
   return startedIds
 }
 
+async function collectSidebarWordIds(
+  supabase: SupabaseClient,
+  params: {
+    table: "user_words" | "sentences" | "user_library_words"
+    userId: string
+    today?: string
+    studiedOnly?: boolean
+  }
+) {
+  const ids = new Set<string>()
+
+  for (let from = 0; ; from += SUPABASE_PAGE_SIZE) {
+    const to = from + SUPABASE_PAGE_SIZE - 1
+    let query = supabase
+      .from(params.table)
+      .select("word_id")
+      .eq("user_id", params.userId)
+      .range(from, to)
+
+    if (params.table === "user_words") {
+      if (params.today) {
+        query = query.lte("next_review_date", params.today)
+      }
+
+      if (params.studiedOnly) {
+        query = query.or("repetitions.gt.0,last_reviewed_at.not.is.null,last_score.not.is.null")
+      }
+    }
+
+    const { data, error } = await query
+    if (error) {
+      console.error(`Failed to load sidebar word ids from ${params.table}:`, error)
+      break
+    }
+
+    const rows = (data ?? []) as WordIdOnlyRow[]
+    for (const row of rows) {
+      if (typeof row.word_id === "string") {
+        ids.add(row.word_id)
+      }
+    }
+
+    if (rows.length < SUPABASE_PAGE_SIZE) {
+      break
+    }
+  }
+
+  return ids
+}
+
+async function getStartedWordIdsForSidebar(supabase: SupabaseClient, userId: string) {
+  const [reviewedWordIds, sentenceWordIds, libraryWordIds] = await Promise.all([
+    collectSidebarWordIds(supabase, {
+      table: "user_words",
+      userId,
+      studiedOnly: true,
+    }),
+    collectSidebarWordIds(supabase, {
+      table: "sentences",
+      userId,
+    }),
+    collectSidebarWordIds(supabase, {
+      table: "user_library_words",
+      userId,
+    }),
+  ])
+
+  return new Set<string>([...reviewedWordIds, ...sentenceWordIds, ...libraryWordIds])
+}
+
+async function getDueWordIdsForSidebar(supabase: SupabaseClient, userId: string, today: string) {
+  return collectSidebarWordIds(supabase, {
+    table: "user_words",
+    userId,
+    today,
+    studiedOnly: true,
+  })
+}
+
 async function getDueGrammarIds(supabase: SupabaseClient, userId: string, today: string) {
   const dueIds = new Set<string>()
 
@@ -523,15 +602,15 @@ export async function loadStudyLibraries({
   const startedAt = Date.now()
   const [{ data, error }, startedWordIds, dueWordIds, startedGrammarIds, dueGrammarIds] =
     await Promise.all([
-    supabase
-      .from("libraries")
-      .select("id, slug, name, description, source_type, content_type")
-      .order("name", { ascending: true }),
-    deps.getStartedWordIds(supabase, userId),
-    deps.getDueWordIds(supabase, userId, today),
-    getStartedGrammarIds(supabase, userId),
-    getDueGrammarIds(supabase, userId, today),
-  ])
+      supabase
+        .from("libraries")
+        .select("id, slug, name, description, source_type, content_type")
+        .order("name", { ascending: true }),
+      getStartedWordIdsForSidebar(supabase, userId),
+      getDueWordIdsForSidebar(supabase, userId, today),
+      getStartedGrammarIds(supabase, userId),
+      getDueGrammarIds(supabase, userId, today),
+    ])
 
   if (error || !data) {
     if (error && !deps.isMissingLibrariesTableError(error)) {
