@@ -252,7 +252,7 @@ export default function StudyClient({
   return (
     <div
       className={`mx-auto flex w-full flex-col gap-6 ${
-        isGrammarWorkspace ? "max-w-[1440px]" : "max-w-2xl"
+        isGrammarWorkspace ? "max-w-[1600px]" : "max-w-2xl"
       }`}
     >
       <StudySpeechSettingsDialog
@@ -375,12 +375,12 @@ export default function StudyClient({
           />
         </>
       ) : currentGrammar ? (
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.95fr)]">
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.95fr)]">
           <div className="min-w-0">
             <StudyGrammarPanel currentGrammar={currentGrammar} loadingNext={loadingNext} />
           </div>
 
-          <div className="min-w-0 space-y-4 xl:sticky xl:top-24">
+          <div className="min-w-0 space-y-4 lg:sticky lg:top-24">
             {historyReviewContext?.targetKind === "grammar" ? (
               <StudyHistoryReviewPanel
                 review={historyReviewContext}
