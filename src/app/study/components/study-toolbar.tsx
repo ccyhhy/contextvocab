@@ -55,23 +55,33 @@ export function StudyToolbar({
           ))}
         </select>
 
+        <select
+          value={studyView}
+          onChange={onStudyViewChange}
+          disabled={disabled}
+          className="cursor-pointer rounded-xl border border-white/10 bg-black/60 px-4 py-2 text-sm font-medium text-zinc-200 outline-none transition-all hover:bg-black/80 focus:border-white/20 focus:ring-2 focus:ring-white/10"
+        >
+          {isGrammarLibrary ? (
+            <>
+              <option value="all">全部句法卡</option>
+              <option value="weak">薄弱项</option>
+              <option value="recent_failures">最近失败</option>
+            </>
+          ) : (
+            <>
+              <option value="all">全部单词</option>
+              <option value="favorites">收藏</option>
+              <option value="weak">薄弱项</option>
+              <option value="recent_failures">最近失败</option>
+            </>
+          )}
+        </select>
+
         {isGrammarLibrary ? (
-          <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-medium tracking-wide text-blue-200">
+          <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-3 py-2 text-sm font-medium tracking-wide text-blue-200">
             句法模式
           </div>
-        ) : (
-          <select
-            value={studyView}
-            onChange={onStudyViewChange}
-            disabled={disabled}
-            className="cursor-pointer rounded-xl border border-white/10 bg-black/60 px-4 py-2 text-sm font-medium text-zinc-200 outline-none transition-all hover:bg-black/80 focus:border-white/20 focus:ring-2 focus:ring-white/10"
-          >
-            <option value="all">全部单词</option>
-            <option value="favorites">收藏</option>
-            <option value="weak">薄弱项</option>
-            <option value="recent_failures">最近失败</option>
-          </select>
-        )}
+        ) : null}
 
         <button
           type="button"

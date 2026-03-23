@@ -282,25 +282,29 @@ export async function loadDueStudyItems({
   const categories: DueStudyCategory[] = ['leech_due', 'overdue', 'weak_due', 'due']
   const items: StudyBatchWordItem[] = []
 
-  for (const category of categories) {
-    const rows = await loadDueRowsByCategory({
-      supabase,
-      userId,
-      tag,
-      today,
-      skippedWordIds,
-      preferredWordIds,
-      studyView,
-      libraryWordIds,
-      category,
-      limit: targetSize,
-      deps,
-    })
+  const rowsByCategory = await Promise.all(
+    categories.map((category) =>
+      loadDueRowsByCategory({
+        supabase,
+        userId,
+        tag,
+        today,
+        skippedWordIds,
+        preferredWordIds,
+        studyView,
+        libraryWordIds,
+        category,
+        limit: targetSize,
+        deps,
+      })
+    )
+  )
 
+  for (const rows of rowsByCategory) {
     for (const row of rows) {
       const item = deps.normalizeStudyBatchItem(row, {
         isNew: false,
-        priorityReason: category,
+        priorityReason: getStudyPriorityReason(row, today),
       })
 
       if (!item) {

@@ -433,6 +433,18 @@ AS $$
     ON uw.word_id = w.id
    AND uw.user_id = p_user_id
   WHERE uw.id IS NULL
+    AND NOT EXISTS (
+      SELECT 1
+      FROM public.sentences s
+      WHERE s.user_id = p_user_id
+        AND s.word_id = w.id
+    )
+    AND NOT EXISTS (
+      SELECT 1
+      FROM public.user_library_words ulw
+      WHERE ulw.user_id = p_user_id
+        AND ulw.word_id = w.id
+    )
     AND (
       p_tag IS NULL
       OR p_tag = 'All'

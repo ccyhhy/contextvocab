@@ -23,16 +23,6 @@ interface StudyBatchServiceDeps {
     userId: string,
     libraryId: string
   ) => Promise<void>
-  getDueWordCount: (
-    supabase: SupabaseClient,
-    userId: string,
-    tag: string,
-    today: string,
-    skippedWordIds: string[],
-    preferredWordIds: string[],
-    studyView: StudyView,
-    libraryWordIds?: string[]
-  ) => Promise<number>
   getDueStudyItems: (
     supabase: SupabaseClient,
     userId: string,
@@ -192,29 +182,18 @@ export async function loadStudyBatch({
     return []
   }
 
-  const [dueCount, dueItems] = await Promise.all([
-    deps.getDueWordCount(
-      supabase,
-      userId,
-      tagFilter,
-      today,
-      skippedWordIds,
-      preferredWordIds,
-      resolvedStudyView,
-      libraryWordIds
-    ),
-    deps.getDueStudyItems(
-      supabase,
-      userId,
-      tagFilter,
-      today,
-      skippedWordIds,
-      preferredWordIds,
-      batchSize,
-      resolvedStudyView,
-      libraryWordIds
-    ),
-  ])
+  const dueItems = await deps.getDueStudyItems(
+    supabase,
+    userId,
+    tagFilter,
+    today,
+    skippedWordIds,
+    preferredWordIds,
+    batchSize,
+    resolvedStudyView,
+    libraryWordIds
+  )
+  const dueCount = dueItems.length
 
   const newItems = deps.isReviewOnlyView(resolvedStudyView)
     ? []

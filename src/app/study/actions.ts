@@ -33,7 +33,6 @@ import {
   loadNewStudyItems,
   loadStudyBatch,
   loadDueStudyItems,
-  loadDueWordCount,
   rewriteStudySentence,
   loadStudyEnrichmentProgress,
   loadStudyLibraries,
@@ -398,6 +397,10 @@ interface HistoryGrammarAttemptReviewRow {
   grammar_items?: GrammarItemRow | GrammarItemRow[] | null
 }
 
+interface UserGrammarBatchRow extends UserGrammarItemRecord {
+  grammar_items?: GrammarItemRow | GrammarItemRow[] | null
+}
+
 interface LibraryGrammarMembershipRow {
   library_id?: string | null
   position?: number | null
@@ -438,6 +441,7 @@ const DEFAULT_STUDY_BATCH_SIZE = 5
 const SUPABASE_PAGE_SIZE = 1000
 const STUDY_LIBRARY_MEMBERSHIP_CACHE_TTL_MS = 60 * 60 * 1000
 const STUDY_LIBRARY_OPTIONS_CACHE_TTL_MS = 60 * 1000
+const STUDY_SIDEBAR_DATA_CACHE_TTL_MS = 30 * 1000
 const STUDY_PERFORMANCE_LOG_THRESHOLD_MS = 150
 const SENTENCE_HELP_MAX_OUTPUT_TOKENS = 360
 const EVALUATION_MAX_OUTPUT_TOKENS = 2000
@@ -453,7 +457,15 @@ interface TimedCacheEntry<T> {
 }
 
 const libraryWordIdsCache = new Map<string, TimedCacheEntry<string[]>>()
+const libraryGrammarItemIdsCache = new Map<string, TimedCacheEntry<string[]>>()
 const studyLibraryOptionsCache = new Map<string, TimedCacheEntry<StudyLibrary[]>>()
+const studySidebarDataCache = new Map<
+  string,
+  TimedCacheEntry<{
+    libraries: StudyLibrary[]
+    enrichmentProgress: StudyEnrichmentProgress[]
+  }>
+>()
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value))
@@ -1833,6 +1845,53 @@ async function getLibraryWordIds(supabase: SupabaseClient, libraryId: string) {
   )
 }
 
+async function getLibraryGrammarItemIds(supabase: SupabaseClient, libraryId: string) {
+  const cached = getActiveTimedCacheValue(libraryGrammarItemIdsCache.get(libraryId))
+  if (cached) {
+    return cached
+  }
+
+  const collectedItemIds: string[] = []
+  let from = 0
+
+  while (true) {
+    const to = from + SUPABASE_PAGE_SIZE - 1
+    const { data, error } = await supabase
+      .from('library_grammar_items')
+      .select('grammar_item_id')
+      .eq('library_id', libraryId)
+      .order('position', { ascending: true, nullsFirst: false })
+      .range(from, to)
+
+    if (error) {
+      if (!isMissingLibrariesTableError(error)) {
+        console.error('Failed to load library grammar items:', error)
+      }
+      return [] as string[]
+    }
+
+    const rows = (data ?? []) as Array<{ grammar_item_id?: string | null }>
+    collectedItemIds.push(
+      ...rows
+        .map((row) => row.grammar_item_id)
+        .filter((grammarItemId): grammarItemId is string => typeof grammarItemId === 'string')
+    )
+
+    if (rows.length < SUPABASE_PAGE_SIZE) {
+      break
+    }
+
+    from += SUPABASE_PAGE_SIZE
+  }
+
+  return setTimedCacheValue(
+    libraryGrammarItemIdsCache,
+    libraryId,
+    collectedItemIds,
+    STUDY_LIBRARY_MEMBERSHIP_CACHE_TTL_MS
+  )
+}
+
 function isUserGrammarItemRecord(value: unknown): value is UserGrammarItemRecord {
   if (typeof value !== 'object' || value === null) {
     return false
@@ -2286,33 +2345,6 @@ async function attachGrammarItemToUser(
   return existing
 }
 
-async function getDueWordCount(
-  supabase: SupabaseClient,
-  userId: string,
-  tag: string,
-  today: string,
-  skippedWordIds: string[],
-  preferredWordIds: string[],
-  studyView: StudyView,
-  libraryWordIds: string[] = []
-) {
-  return loadDueWordCount({
-    supabase,
-    userId,
-    tag,
-    today,
-    skippedWordIds,
-    preferredWordIds,
-    studyView,
-    libraryWordIds,
-    deps: {
-      getRecentFailureSince,
-      toPostgrestInList,
-      logStudyPerformance,
-    },
-  })
-}
-
 async function getDueStudyItems(
   supabase: SupabaseClient,
   userId: string,
@@ -2544,74 +2576,303 @@ async function loadGrammarStudySupportData(
   }
 }
 
+function getGrammarPriorityReason(
+  item: Pick<UserGrammarItemRecord, 'next_review_date' | 'last_score' | 'consecutive_failures'>,
+  today: string
+): StudyPriorityReason {
+  const nextReviewDate = sanitizeText(item.next_review_date)
+  const consecutiveFailures = item.consecutive_failures ?? 0
+  const lastScore = item.last_score ?? 100
+
+  if (nextReviewDate && nextReviewDate < today) {
+    return consecutiveFailures >= 3 ? 'leech_due' : 'overdue'
+  }
+
+  if (lastScore < 75 || consecutiveFailures >= 2) {
+    return 'weak_due'
+  }
+
+  if (nextReviewDate && nextReviewDate <= today) {
+    return 'due'
+  }
+
+  return 'new'
+}
+
+async function getStartedGrammarItemIdsForLibrary(
+  supabase: SupabaseClient,
+  userId: string,
+  libraryGrammarItemIds: string[]
+) {
+  const startedIds = new Set<string>()
+  if (libraryGrammarItemIds.length === 0) {
+    return startedIds
+  }
+
+  const [userGrammarRows, grammarAttemptRows, libraryProgressRows] = await Promise.all([
+    supabase
+      .from('user_grammar_items')
+      .select('grammar_item_id')
+      .eq('user_id', userId)
+      .in('grammar_item_id', libraryGrammarItemIds),
+    supabase
+      .from('grammar_attempts')
+      .select('grammar_item_id')
+      .eq('user_id', userId)
+      .in('grammar_item_id', libraryGrammarItemIds),
+    supabase
+      .from('user_library_grammar_items')
+      .select('grammar_item_id')
+      .eq('user_id', userId)
+      .in('grammar_item_id', libraryGrammarItemIds),
+  ])
+
+  for (const response of [userGrammarRows, grammarAttemptRows, libraryProgressRows]) {
+    if (response.error) {
+      console.error('Failed to load started grammar item ids:', response.error)
+      continue
+    }
+
+    const rows = (response.data ?? []) as Array<{ grammar_item_id?: string | null }>
+    for (const row of rows) {
+      if (typeof row.grammar_item_id === 'string') {
+        startedIds.add(row.grammar_item_id)
+      }
+    }
+  }
+
+  return startedIds
+}
+
+async function loadGrammarReviewRows({
+  supabase,
+  userId,
+  libraryGrammarItemIds,
+  skippedItemIds,
+  studyView,
+  today,
+  limit,
+}: {
+  supabase: SupabaseClient
+  userId: string
+  libraryGrammarItemIds: string[]
+  skippedItemIds: string[]
+  studyView: StudyView
+  today: string
+  limit: number
+}) {
+  if (libraryGrammarItemIds.length === 0) {
+    return [] as UserGrammarBatchRow[]
+  }
+
+  let query = supabase
+    .from('user_grammar_items')
+    .select(
+      'id, grammar_item_id, repetitions, interval, ease_factor, next_review_date, last_score, last_reviewed_at, consecutive_failures, lapse_count, is_favorite, grammar_items!inner(id, slug, title, short_label, pattern, family, subtype, anchor, core_explanation, usage_note, usage_register, scene_tags, slot_schema, common_errors)'
+    )
+    .eq('user_id', userId)
+    .in('grammar_item_id', libraryGrammarItemIds)
+
+  if (skippedItemIds.length > 0) {
+    query = query.not('grammar_item_id', 'in', toPostgrestInList(skippedItemIds))
+  }
+
+  switch (studyView) {
+    case 'favorites':
+      query = query
+        .eq('is_favorite', true)
+        .order('last_reviewed_at', { ascending: true, nullsFirst: true })
+        .order('created_at', { ascending: true, nullsFirst: true })
+      break
+    case 'weak':
+      query = query
+        .or('last_score.lt.75,consecutive_failures.gte.2')
+        .order('last_score', { ascending: true, nullsFirst: false })
+        .order('consecutive_failures', { ascending: false, nullsFirst: false })
+        .order('last_reviewed_at', { ascending: true, nullsFirst: true })
+      break
+    case 'recent_failures':
+      query = query
+        .or('last_score.lt.60,consecutive_failures.gte.1')
+        .gte('last_reviewed_at', getRecentFailureSince())
+        .order('last_reviewed_at', { ascending: false, nullsFirst: false })
+        .order('last_score', { ascending: true, nullsFirst: false })
+      break
+    case 'all':
+    default:
+      query = query
+        .lte('next_review_date', today)
+        .order('next_review_date', { ascending: true })
+        .order('consecutive_failures', { ascending: false, nullsFirst: false })
+        .order('last_reviewed_at', { ascending: true, nullsFirst: true })
+      break
+  }
+
+  const { data, error } = await query.limit(limit)
+  if (error) {
+    console.error('Failed to load grammar review rows:', error)
+    return [] as UserGrammarBatchRow[]
+  }
+
+  return (data ?? []) as UserGrammarBatchRow[]
+}
+
 async function loadGrammarStudyBatch({
   supabase,
   userId,
   library,
   skippedItemIds,
   batchSize,
+  studyView,
+  today,
 }: {
   supabase: SupabaseClient
   userId: string
   library: LibraryRow
   skippedItemIds: string[]
   batchSize: number
+  studyView: StudyView
+  today: string
 }): Promise<StudyBatchGrammarItem[]> {
-  const query = supabase
-    .from('library_grammar_items')
-    .select(
-      'grammar_item_id, position, grammar_items!inner(id, slug, title, short_label, pattern, family, subtype, anchor, core_explanation, usage_note, usage_register, scene_tags, slot_schema, common_errors)'
-    )
-    .eq('library_id', library.id)
-    .order('position', { ascending: true, nullsFirst: false })
-    .limit(batchSize)
-
-  if (skippedItemIds.length > 0) {
-    query.not('grammar_item_id', 'in', toPostgrestInList(skippedItemIds))
-  }
-
-  const { data, error } = await query
-
-  if (error) {
-    console.error('Failed to load grammar study batch:', error)
+  const libraryGrammarItemIds = await getLibraryGrammarItemIds(supabase, library.id)
+  if (libraryGrammarItemIds.length === 0) {
     return []
   }
 
-  const grammarRows = ((data ?? []) as LibraryGrammarItemRow[])
+  const targetSize = Math.max(batchSize * 4, 24)
+  const reviewRows = await loadGrammarReviewRows({
+    supabase,
+    userId,
+    libraryGrammarItemIds,
+    skippedItemIds,
+    studyView,
+    today,
+    limit: targetSize,
+  })
+
+  const normalizedReviewRows = reviewRows
     .map((row) => {
       const grammar = normalizeGrammarItemRow(row.grammar_items)
-      const grammarItemId =
-        typeof row.grammar_item_id === 'string' ? row.grammar_item_id : grammar?.id ?? null
-      if (!grammar || !grammarItemId) {
+      if (!grammar) {
         return null
       }
 
       return {
-        grammarItemId,
+        userGrammarItemId: row.id,
+        grammarItemId: row.grammar_item_id,
         grammar,
+        priorityReason: getGrammarPriorityReason(row, today),
       }
     })
     .filter(
-      (row): row is { grammarItemId: string; grammar: GrammarItemRow } => row !== null
+      (
+        row
+      ): row is {
+        userGrammarItemId: string
+        grammarItemId: string
+        grammar: GrammarItemRow
+        priorityReason: StudyPriorityReason
+      } => row !== null
     )
 
-  if (grammarRows.length === 0) {
+  const reviewQueue =
+    studyView === 'all'
+      ? normalizedReviewRows.filter((row) => row.priorityReason !== 'new')
+      : normalizedReviewRows
+
+  const selectedReviewRows = reviewQueue.slice(0, batchSize)
+  const excludedItemIds = new Set([
+    ...skippedItemIds,
+    ...selectedReviewRows.map((row) => row.grammarItemId),
+  ])
+
+  let newRows: Array<{
+    grammarItemId: string
+    grammar: GrammarItemRow
+  }> = []
+
+  if (studyView === 'all' && selectedReviewRows.length < batchSize) {
+    const startedGrammarItemIds = await getStartedGrammarItemIdsForLibrary(
+      supabase,
+      userId,
+      libraryGrammarItemIds
+    )
+    const candidateNewIds = libraryGrammarItemIds.filter(
+      (grammarItemId: string) =>
+        !startedGrammarItemIds.has(grammarItemId) && !excludedItemIds.has(grammarItemId)
+    )
+
+    if (candidateNewIds.length > 0) {
+      const newQuery = supabase
+        .from('library_grammar_items')
+        .select(
+          'grammar_item_id, position, grammar_items!inner(id, slug, title, short_label, pattern, family, subtype, anchor, core_explanation, usage_note, usage_register, scene_tags, slot_schema, common_errors)'
+        )
+        .eq('library_id', library.id)
+        .in('grammar_item_id', candidateNewIds)
+        .order('position', { ascending: true, nullsFirst: false })
+        .limit(batchSize - selectedReviewRows.length)
+
+      const { data, error } = await newQuery
+      if (error) {
+        console.error('Failed to load new grammar study rows:', error)
+      } else {
+        newRows = ((data ?? []) as LibraryGrammarItemRow[])
+          .map((row) => {
+            const grammar = normalizeGrammarItemRow(row.grammar_items)
+            const grammarItemId =
+              typeof row.grammar_item_id === 'string'
+                ? row.grammar_item_id
+                : grammar?.id ?? null
+            if (!grammar || !grammarItemId) {
+              return null
+            }
+
+            return {
+              grammarItemId,
+              grammar,
+            }
+          })
+          .filter(
+            (row): row is { grammarItemId: string; grammar: GrammarItemRow } => row !== null
+          )
+      }
+    }
+  }
+
+  const combinedRows = [
+    ...selectedReviewRows.map((row) => ({
+      kind: 'review' as const,
+      userGrammarItemId: row.userGrammarItemId,
+      grammarItemId: row.grammarItemId,
+      grammar: row.grammar,
+      priorityReason: row.priorityReason,
+    })),
+    ...newRows.map((row) => ({
+      kind: 'new' as const,
+      userGrammarItemId: null,
+      grammarItemId: row.grammarItemId,
+      grammar: row.grammar,
+      priorityReason: 'new' as StudyPriorityReason,
+    })),
+  ]
+
+  if (combinedRows.length === 0) {
     return []
   }
 
-  const grammarItemIds = grammarRows.map((row) => row.grammarItemId)
+  const grammarItemIds = combinedRows.map((row) => row.grammarItemId)
   const { examplesByItemId, templatesByItemId, contrastsByItemId } =
     await loadGrammarStudySupportData(supabase, grammarItemIds)
 
   void ensureUserLibraryPlan(supabase, userId, library.id).catch((error) => {
     console.error('Failed to ensure user library plan during grammar batch load:', error)
   })
-  await touchUserLibraryGrammarItems(supabase, userId, library.id, grammarItemIds)
 
-  return grammarRows.map((row) => ({
+  return combinedRows.map((row) => ({
     kind: 'grammar',
     id: row.grammarItemId,
-    userGrammarItemId: null,
+    userGrammarItemId: row.userGrammarItemId,
     grammar_item_id: row.grammarItemId,
     grammar: buildGrammarStudyInfo(
       row.grammar,
@@ -2619,8 +2880,8 @@ async function loadGrammarStudyBatch({
       templatesByItemId.get(row.grammarItemId) ?? [],
       contrastsByItemId.get(row.grammarItemId) ?? []
     ),
-    isNew: false,
-    priorityReason: 'new',
+    isNew: row.kind === 'new',
+    priorityReason: row.priorityReason,
   }))
 }
 
@@ -2686,7 +2947,13 @@ export async function getStudySidebarData(): Promise<{
   enrichmentProgress: StudyEnrichmentProgress[]
 }> {
   const { supabase, user } = await requireActionSession()
-  return loadStudySidebarData({
+  const cacheKey = `${user.id}:${getTodayDateString()}`
+  const cached = getActiveTimedCacheValue(studySidebarDataCache.get(cacheKey))
+  if (cached) {
+    return cached
+  }
+
+  const sidebarData = await loadStudySidebarData({
     supabase,
     userId: user.id,
     today: getTodayDateString(),
@@ -2700,6 +2967,13 @@ export async function getStudySidebarData(): Promise<{
       logStudyPerformance,
     },
   })
+
+  return setTimedCacheValue(
+    studySidebarDataCache,
+    cacheKey,
+    sidebarData,
+    STUDY_SIDEBAR_DATA_CACHE_TTL_MS
+  )
 }
 
 export async function generateSentenceHelp(
@@ -3140,6 +3414,8 @@ export async function getStudyBatch(params: GetStudyBatchParams = {}) {
       library,
       skippedItemIds: params.skippedWordIds ?? [],
       batchSize: clamp(params.batchSize ?? DEFAULT_STUDY_BATCH_SIZE, 1, 20),
+      studyView: resolveStudyView(params),
+      today: getTodayDateString(),
     })
   }
 
@@ -3159,7 +3435,6 @@ export async function getStudyBatch(params: GetStudyBatchParams = {}) {
       getLibraryBySlug,
       getLibraryWordIds,
       ensureUserLibraryPlan,
-      getDueWordCount,
       getDueStudyItems,
       getNewStudyItems,
       hydrateStudyBatchWordDetails,

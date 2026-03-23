@@ -27,46 +27,6 @@ function isWordCandidate(value: unknown): value is WordCandidate {
   return typeof (value as { id?: unknown } | null)?.id === 'string'
 }
 
-async function isWordStartedOutsideUserWords(
-  supabase: SupabaseClient,
-  userId: string,
-  wordId: string
-) {
-  const [
-    { data: sentenceRow, error: sentenceError },
-    { data: libraryWordRow, error: libraryWordError },
-  ] = await Promise.all([
-    supabase
-      .from('sentences')
-      .select('word_id')
-      .eq('user_id', userId)
-      .eq('word_id', wordId)
-      .maybeSingle(),
-    supabase
-      .from('user_library_words')
-      .select('word_id')
-      .eq('user_id', userId)
-      .eq('word_id', wordId)
-      .maybeSingle(),
-  ])
-
-  if (sentenceError) {
-    console.error('Failed to check sentence history for unseen-word RPC candidate:', sentenceError)
-  }
-
-  if (libraryWordError) {
-    console.error(
-      'Failed to check user_library_words for unseen-word RPC candidate:',
-      libraryWordError
-    )
-  }
-
-  return (
-    typeof (sentenceRow as { word_id?: string | null } | null)?.word_id === 'string' ||
-    typeof (libraryWordRow as { word_id?: string | null } | null)?.word_id === 'string'
-  )
-}
-
 async function pickUnseenWordViaRpc(
   tag: string,
   skippedWordIds: string[],
@@ -92,18 +52,7 @@ async function pickUnseenWordViaRpc(
     if (!isWordCandidate(candidate)) {
       return null
     }
-
-    const startedOutsideUserWords = await isWordStartedOutsideUserWords(
-      supabase,
-      userId,
-      candidate.id
-    )
-
-    if (!startedOutsideUserWords) {
-      return candidate
-    }
-
-    excludedWordIds.push(candidate.id)
+    return candidate
   }
 
   return null

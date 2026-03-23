@@ -49,22 +49,32 @@ export function StudyEmptyState({
             ))}
           </select>
 
-          {!isGrammarLibrary ? (
-            <select
-              value={studyView}
-              onChange={onStudyViewChange}
-              className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
-            >
-              <option value="all">全部单词</option>
-              <option value="favorites">收藏</option>
-              <option value="weak">薄弱项</option>
-              <option value="recent_failures">最近失败</option>
-            </select>
-          ) : (
+          <select
+            value={studyView}
+            onChange={onStudyViewChange}
+            className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
+          >
+            {isGrammarLibrary ? (
+              <>
+                <option value="all">全部句法卡</option>
+                <option value="weak">薄弱项</option>
+                <option value="recent_failures">最近失败</option>
+              </>
+            ) : (
+              <>
+                <option value="all">全部单词</option>
+                <option value="favorites">收藏</option>
+                <option value="weak">薄弱项</option>
+                <option value="recent_failures">最近失败</option>
+              </>
+            )}
+          </select>
+
+          {isGrammarLibrary ? (
             <div className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-300">
               句法模式
             </div>
-          )}
+          ) : null}
         </div>
 
         <button
