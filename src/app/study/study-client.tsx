@@ -67,6 +67,7 @@ export default function StudyClient({
   enrichmentProgress,
   libraries,
   initialLibrarySlug,
+  initialStudyView = "all",
   initialHistoryReview,
   initialSentenceDraft,
 }: {
@@ -75,6 +76,7 @@ export default function StudyClient({
   enrichmentProgress: StudyEnrichmentProgress[]
   libraries: StudyLibrary[]
   initialLibrarySlug: string
+  initialStudyView?: StudyView
   initialHistoryReview?: HistoryReviewContext | null
   initialSentenceDraft?: string
 }) {
@@ -82,7 +84,7 @@ export default function StudyClient({
   const [submissionMode, setSubmissionMode] = useState<SubmissionMode>("scheduled")
   const [showSentenceHelp, setShowSentenceHelp] = useState(false)
   const [librarySlug, setLibrarySlug] = useState<string>(initialLibrarySlug)
-  const [studyView, setStudyView] = useState<StudyView>("all")
+  const [studyView, setStudyView] = useState<StudyView>(initialStudyView)
   const [favoriteWordIds, setFavoriteWordIds] =
     useState<string[]>(initialFavoriteWordIds)
   const [favoritePending, setFavoritePending] = useState(false)
@@ -218,7 +220,7 @@ export default function StudyClient({
     const nextLibrarySlug = event.target.value
     const nextLibrary =
       availableLibraries.find((item) => item.slug === nextLibrarySlug) ?? null
-    const nextStudyView = nextLibrary?.contentType === "grammar" ? "all" : studyView
+    const nextStudyView = normalizeStudyViewForContentType(nextLibrary?.contentType, studyView)
 
     setLibrarySlug(nextLibrarySlug)
     setStudyView(nextStudyView)
@@ -231,7 +233,10 @@ export default function StudyClient({
   }
 
   const handleStudyModeChange = async (event: ChangeEvent<HTMLSelectElement>) => {
-    const nextStudyView = event.target.value as StudyView
+    const nextStudyView = normalizeStudyViewForContentType(
+      selectedLibraryContentType,
+      event.target.value as StudyView
+    )
     setStudyView(nextStudyView)
     setHistoryReviewContext(null)
     resetSessionScope()
@@ -265,6 +270,13 @@ export default function StudyClient({
       setFavoritePending(false)
     }
   }
+
+  useEffect(() => {
+    const nextStudyView = normalizeStudyViewForContentType(selectedLibraryContentType, studyView)
+    if (nextStudyView !== studyView) {
+      setStudyView(nextStudyView)
+    }
+  }, [selectedLibraryContentType, studyView])
 
   if (!currentItem) {
     return (
@@ -484,4 +496,15 @@ export default function StudyClient({
       ) : null}
     </div>
   )
+}
+
+function normalizeStudyViewForContentType(
+  contentType: StudyLibrary["contentType"] | null | undefined,
+  studyView: StudyView
+) {
+  if (contentType === "grammar" && studyView === "favorites") {
+    return "all"
+  }
+
+  return studyView
 }

@@ -34,6 +34,7 @@ export default async function StudyPage({
 }: {
   searchParams?: Promise<{
     library?: string
+    view?: string
     reviewSentenceId?: string
     reviewGrammarAttemptId?: string
   }>
@@ -45,6 +46,7 @@ export default async function StudyPage({
 async function renderStudyPage(
   searchParams?: Promise<{
     library?: string
+    view?: string
     reviewSentenceId?: string
     reviewGrammarAttemptId?: string
   }>
@@ -53,6 +55,7 @@ async function renderStudyPage(
   const resolvedSearchParams = searchParams ? await searchParams : undefined
   const requestedLibrarySlug =
     resolvedSearchParams?.library?.trim().toLowerCase() || 'all'
+  const requestedStudyView = resolveRequestedStudyView(resolvedSearchParams?.view)
   const reviewSentenceId = resolvedSearchParams?.reviewSentenceId?.trim() || ''
   const reviewGrammarAttemptId =
     resolvedSearchParams?.reviewGrammarAttemptId?.trim() || ''
@@ -72,6 +75,7 @@ async function renderStudyPage(
         ? Promise.resolve([])
         : getStudyBatch({
             librarySlug: requestedLibrarySlug,
+            studyView: requestedStudyView,
           }),
     ])
 
@@ -89,6 +93,7 @@ async function renderStudyPage(
     initialBatch: initialBatch.length,
     libraries: libraries.length,
     favorites: initialFavoriteWordIds.length,
+    studyView: requestedStudyView,
   })
 
   return (
@@ -99,9 +104,26 @@ async function renderStudyPage(
         enrichmentProgress={[]}
         libraries={libraries}
         initialLibrarySlug={initialLibrarySlug}
+        initialStudyView={requestedStudyView}
         initialHistoryReview={historyReviewTarget?.review ?? null}
         initialSentenceDraft={historyReviewTarget?.review?.sentence ?? ''}
       />
     </div>
   )
+}
+
+function resolveRequestedStudyView(
+  value?: string
+): 'all' | 'favorites' | 'weak' | 'recent_failures' {
+  switch (value?.trim().toLowerCase()) {
+    case 'favorites':
+      return 'favorites'
+    case 'weak':
+      return 'weak'
+    case 'recent_failures':
+      return 'recent_failures'
+    case 'all':
+    default:
+      return 'all'
+  }
 }

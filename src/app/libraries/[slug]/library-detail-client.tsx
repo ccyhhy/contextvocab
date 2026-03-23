@@ -28,9 +28,9 @@ import {
 } from "./actions"
 
 const OFFICIAL_LIBRARY_DESCRIPTIONS: Record<string, string> = {
-  "cet-4": "Core CET-4 vocabulary library.",
-  "cet-6": "Core CET-6 vocabulary library.",
-  "basic-scene-grammar": "Core scene-based grammar library for high-frequency structures and sentence frames.",
+  "cet-4": "大学英语四级核心词汇库。",
+  "cet-6": "大学英语六级核心词汇库。",
+  "basic-scene-grammar": "覆盖高频结构与句型骨架的基础场景句法库。",
 }
 
 function getLibraryProgress(counts: { wordCount: number; activeCount: number }) {
@@ -44,14 +44,14 @@ function getLibraryProgress(counts: { wordCount: number; activeCount: number }) 
 function getPlanStatusLabel(status: LibraryDetail["planStatus"]) {
   switch (status) {
     case "active":
-      return "Active"
+      return "进行中"
     case "paused":
-      return "Paused"
+      return "已暂停"
     case "completed":
-      return "Completed"
+      return "已完成"
     case "not_started":
     default:
-      return "Not started"
+      return "未开始"
   }
 }
 
@@ -60,30 +60,42 @@ function getLibraryDescription(library: Pick<LibraryDetail, "slug" | "sourceType
     return (
       OFFICIAL_LIBRARY_DESCRIPTIONS[library.slug] ??
       library.description ??
-      "Organize learning content into libraries while keeping progress on the shared study system."
+      "将学习内容按词库组织，同时继续共用同一套学习进度与复习系统。"
     )
   }
 
   return (
     library.description ??
-    "Organize learning content into libraries while keeping progress on the shared study system."
+    "将学习内容按词库组织，同时继续共用同一套学习进度与复习系统。"
   )
 }
 
 function getContentTypeLabel(contentType: LibraryDetail["contentType"]) {
   switch (contentType) {
     case "grammar":
-      return "Grammar"
+      return "句法"
     case "mixed":
-      return "Mixed"
+      return "混合"
     case "word":
     default:
-      return "Words"
+      return "单词"
   }
 }
 
 function getItemLabel(contentType: LibraryDetail["contentType"]) {
-  return contentType === "grammar" ? "Items" : "Words"
+  return contentType === "grammar" ? "条目" : "单词"
+}
+
+function getProgressLabel(contentType: LibraryDetail["contentType"]) {
+  return contentType === "grammar" ? "已接触进度" : "学习进度"
+}
+
+function buildStudyHref(librarySlug: string, studyView: "all" | "weak" | "recent_failures") {
+  const params = new URLSearchParams({ library: librarySlug })
+  if (studyView !== "all") {
+    params.set("view", studyView)
+  }
+  return `/study?${params.toString()}`
 }
 
 function ResultNotice({ result }: { result: LibraryWordMutationResult | null }) {
@@ -122,13 +134,13 @@ function BatchImportNotice({ result }: { result: LibraryBatchImportResult | null
         typeof result.alreadyExistsCount === "number" ||
         typeof result.matchedCount === "number") && (
         <p className="mt-2 text-xs opacity-90">
-          Matched {result.matchedCount ?? 0} / Added {result.addedCount ?? 0} / Existing{" "}
+          匹配 {result.matchedCount ?? 0} / 新增 {result.addedCount ?? 0} / 已存在{" "}
           {result.alreadyExistsCount ?? 0}
         </p>
       )}
       {result.unmatchedWords && result.unmatchedWords.length > 0 && (
         <p className="mt-2 text-xs leading-6 opacity-90">
-          Unmatched: {result.unmatchedWords.join(", ")}
+          未匹配：{result.unmatchedWords.join(", ")}
         </p>
       )}
     </div>
@@ -156,7 +168,7 @@ function GrammarCard({ item }: { item: LibraryDetailGrammarItem }) {
           {item.usageNote ? (
             <p className="mt-2 text-sm leading-7 text-zinc-400">{item.usageNote}</p>
           ) : null}
-          {item.sceneTags.length > 0 ? (
+              {item.sceneTags.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-2">
               {item.sceneTags.map((tag) => (
                 <span
@@ -170,13 +182,13 @@ function GrammarCard({ item }: { item: LibraryDetailGrammarItem }) {
           ) : null}
           {item.primaryTemplate ? (
             <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-zinc-200">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Template</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">模板</p>
               <p className="mt-2">{item.primaryTemplate}</p>
             </div>
           ) : null}
           {item.primaryExample ? (
             <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-zinc-200">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Example</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">例句</p>
               <p className="mt-2">{item.primaryExample}</p>
               {item.primaryExampleTranslation ? (
                 <p className="mt-1 text-xs leading-6 text-zinc-500">
@@ -226,6 +238,7 @@ export default function LibraryDetailClient({
   const progress = getLibraryProgress(library)
   const allItemsIntroduced = library.wordCount > 0 && library.remainingCount === 0
   const itemLabel = getItemLabel(library.contentType)
+  const progressLabel = getProgressLabel(library.contentType)
 
   const runLibrarySearch = (query: string) => {
     setMutationResult(null)
@@ -354,7 +367,7 @@ export default function LibraryDetailClient({
   }
 
   const handleRemoveWord = (wordId: string) => {
-    const confirmed = window.confirm("Remove this word from the current library?")
+    const confirmed = window.confirm("确定要把这个单词从当前词库中移除吗？")
     if (!confirmed) {
       return
     }
@@ -385,14 +398,14 @@ export default function LibraryDetailClient({
             className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition-colors hover:bg-white/10"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to libraries
+            返回词库
           </Link>
 
           <Link
-            href={`/study?library=${encodeURIComponent(library.slug)}`}
+            href={buildStudyHref(library.slug, "all")}
             className="inline-flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-100 transition-colors hover:bg-blue-500/15"
           >
-            Start studying
+            开始学习
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -403,7 +416,7 @@ export default function LibraryDetailClient({
               <div className="flex flex-wrap items-center gap-2">
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-zinc-400">
                   <BookOpen className="h-3.5 w-3.5" />
-                  {library.sourceType === "official" ? "Official" : "Custom"}
+                  {library.sourceType === "official" ? "官方" : "自定义"}
                 </div>
                 <div className="inline-flex items-center rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-blue-100">
                   {getContentTypeLabel(library.contentType)}
@@ -423,15 +436,15 @@ export default function LibraryDetailClient({
                 <p className="mt-2 text-2xl font-black text-white">{library.wordCount}</p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Due</p>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">待复习</p>
                 <p className="mt-2 text-2xl font-black text-amber-200">{library.dueCount}</p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Started</p>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">已开始</p>
                 <p className="mt-2 text-2xl font-black text-blue-200">{library.activeCount}</p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Remaining</p>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">未开始</p>
                 <p className="mt-2 text-2xl font-black text-white">{library.remainingCount}</p>
               </div>
             </div>
@@ -441,14 +454,14 @@ export default function LibraryDetailClient({
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                  Study progress
+                  {progressLabel}
                 </p>
                 <p className="mt-2 text-2xl font-black text-white">{progress}%</p>
               </div>
               <div className="text-sm text-zinc-400">
                 {allItemsIntroduced
-                  ? "All scheduled content from this library has already been introduced."
-                  : `Started ${library.activeCount} / Remaining ${library.remainingCount}`}
+                  ? "这个词库里的计划内容都已经进入你的学习流了。"
+                  : `已开始 ${library.activeCount} / 未开始 ${library.remainingCount}`}
               </div>
             </div>
 
@@ -461,13 +474,34 @@ export default function LibraryDetailClient({
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-zinc-400">
-            <span>Plan: {getPlanStatusLabel(library.planStatus)}</span>
-            <span>Daily new: {library.dailyNewLimit ?? "not set"}</span>
+            <span>计划状态：{getPlanStatusLabel(library.planStatus)}</span>
+            <span>每日新内容：{library.dailyNewLimit ?? "未设置"}</span>
             <span>
               {library.isEditable && !isGrammarLibrary
-                ? "Editable custom library"
-                : "Read-only library"}
+                ? "可编辑自定义词库"
+                : "只读词库"}
             </span>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href={buildStudyHref(library.slug, "all")}
+              className="inline-flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-100 transition-colors hover:bg-blue-500/15"
+            >
+              开始学习
+            </Link>
+            <Link
+              href={buildStudyHref(library.slug, "weak")}
+              className="inline-flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm font-medium text-amber-100 transition-colors hover:bg-amber-500/15"
+            >
+              练薄弱项
+            </Link>
+            <Link
+              href={buildStudyHref(library.slug, "recent_failures")}
+              className="inline-flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-100 transition-colors hover:bg-rose-500/15"
+            >
+              练最近失败
+            </Link>
           </div>
         </div>
       </div>
@@ -481,16 +515,16 @@ export default function LibraryDetailClient({
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold text-white">
-                  {isGrammarLibrary ? "Grammar items" : "Library words"}
+                  {isGrammarLibrary ? "句法条目" : "词库内容"}
                 </h2>
                 <p className="mt-1 text-sm text-zinc-400">
                   {isGrammarLibrary
-                    ? "Search the structures already included in this grammar library."
-                    : "Search words already included in this library. Default order follows the library sequence."}
+                    ? "搜索这个句法词库中已经收录的结构卡。"
+                    : "搜索这个词库里已经收录的单词。默认顺序沿用词库顺序。"}
                 </p>
               </div>
               <div className="text-sm text-zinc-500">
-                Showing{" "}
+                当前显示{" "}
                 {isGrammarLibrary ? grammarPage.items.length : wordPage.items.length} /{" "}
                 {isGrammarLibrary ? grammarPage.totalCount : wordPage.totalCount}
               </div>
@@ -503,7 +537,7 @@ export default function LibraryDetailClient({
               <input
                 value={libraryQueryInput}
                 onChange={(event) => setLibraryQueryInput(event.target.value)}
-                placeholder={isGrammarLibrary ? "Search patterns or titles" : "Search words in this library"}
+                placeholder={isGrammarLibrary ? "搜索结构名称或标题" : "搜索词库中的单词"}
                 className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-blue-500/40"
               />
               <button
@@ -512,7 +546,7 @@ export default function LibraryDetailClient({
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Search className="h-4 w-4" />
-                {isLoadingItems ? "Searching..." : "Search"}
+                {isLoadingItems ? "搜索中..." : "搜索"}
               </button>
             </form>
 
@@ -524,7 +558,7 @@ export default function LibraryDetailClient({
                   ))
                 ) : (
                   <div className="rounded-2xl border border-white/8 bg-black/20 px-4 py-6 text-sm text-zinc-400">
-                    {isLoadingItems ? "Loading grammar items..." : "No matching grammar items found."}
+                    {isLoadingItems ? "正在加载句法条目..." : "没有找到匹配的句法条目。"}
                   </div>
                 )
               ) : wordPage.items.length > 0 ? (
@@ -545,7 +579,7 @@ export default function LibraryDetailClient({
                         </div>
                         <p className="mt-2 text-sm leading-7 text-zinc-300">{item.definition}</p>
                         {item.tags ? (
-                          <p className="mt-2 text-xs text-zinc-500">Tags: {item.tags}</p>
+                          <p className="mt-2 text-xs text-zinc-500">标签：{item.tags}</p>
                         ) : null}
                       </div>
 
@@ -557,7 +591,7 @@ export default function LibraryDetailClient({
                           className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-100 transition-colors hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
-                          {isMutating && pendingWordId === item.wordId ? "Removing..." : "Remove"}
+                          {isMutating && pendingWordId === item.wordId ? "移除中..." : "移除"}
                         </button>
                       ) : null}
                     </div>
@@ -565,7 +599,7 @@ export default function LibraryDetailClient({
                 ))
               ) : (
                 <div className="rounded-2xl border border-white/8 bg-black/20 px-4 py-6 text-sm text-zinc-400">
-                  {isLoadingItems ? "Loading words..." : "No matching words found."}
+                  {isLoadingItems ? "正在加载单词..." : "没有找到匹配的单词。"}
                 </div>
               )}
             </div>
@@ -578,7 +612,7 @@ export default function LibraryDetailClient({
                 disabled={isLoadingItems}
                 className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isLoadingItems ? "Loading..." : "Load more"}
+                {isLoadingItems ? "加载中..." : "加载更多"}
               </button>
             )}
           </div>
@@ -587,14 +621,14 @@ export default function LibraryDetailClient({
         <aside className="space-y-4">
           <div className="glass-panel rounded-3xl border border-white/[0.08] p-6">
             <h2 className="text-xl font-bold text-white">
-              {library.isEditable && !isGrammarLibrary ? "Search and add words" : "Notes"}
+              {library.isEditable && !isGrammarLibrary ? "搜索并添加单词" : "说明"}
             </h2>
             <p className="mt-2 text-sm leading-7 text-zinc-400">
               {library.isEditable && !isGrammarLibrary
-                ? "Search the global word list and append existing words into this custom library."
+                ? "从全局词表里搜索现有单词，并把它们追加到这个自定义词库中。"
                 : isGrammarLibrary
-                  ? "Grammar libraries are currently read-only in the UI. You can browse cards here and study them from the study page."
-                  : "Official libraries are read-only. If you want to customize the content, duplicate it into a custom word library first."}
+                  ? "句法词库目前在词库页仍是只读浏览模式。你可以先在这里查阅卡片，再去学习页练习。"
+                  : "官方词库目前在词库页是只读的。如果你想自定义内容，建议先复制到自己的自定义单词词库。"}
             </p>
 
             {library.isEditable && !isGrammarLibrary ? (
@@ -603,11 +637,11 @@ export default function LibraryDetailClient({
                   <textarea
                     value={batchWordsText}
                     onChange={(event) => setBatchWordsText(event.target.value)}
-                    placeholder="Paste one word per line, or separate words with commas"
+                    placeholder="每行一个单词，或用逗号分隔多个单词"
                     className="h-40 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm leading-7 text-white outline-none transition-colors focus:border-emerald-500/40"
                   />
                   <p className="text-xs leading-6 text-zinc-500">
-                    Batch import appends new matched words to the end of the library and skips existing ones automatically.
+                    批量导入会把新匹配到的单词追加到词库末尾，已存在的单词会自动跳过。
                   </p>
                   <button
                     type="submit"
@@ -615,7 +649,7 @@ export default function LibraryDetailClient({
                     className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <Plus className="h-4 w-4" />
-                    {isImporting ? "Importing..." : "Batch import words"}
+                    {isImporting ? "导入中..." : "批量导入单词"}
                   </button>
                 </form>
 
@@ -625,7 +659,7 @@ export default function LibraryDetailClient({
                   <input
                     value={addQueryInput}
                     onChange={(event) => setAddQueryInput(event.target.value)}
-                    placeholder="Search the global word list"
+                    placeholder="搜索全局词表"
                     className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-emerald-500/40"
                   />
                   <button
@@ -634,7 +668,7 @@ export default function LibraryDetailClient({
                     className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <Search className="h-4 w-4" />
-                    {isSearchingAdd ? "Searching..." : "Search addable words"}
+                    {isSearchingAdd ? "搜索中..." : "搜索可添加的单词"}
                   </button>
                 </form>
 
@@ -651,7 +685,7 @@ export default function LibraryDetailClient({
                           </div>
                           <p className="mt-2 text-sm leading-6 text-zinc-300">{item.definition}</p>
                           {item.tags ? (
-                            <p className="mt-2 text-xs text-zinc-500">Tags: {item.tags}</p>
+                            <p className="mt-2 text-xs text-zinc-500">标签：{item.tags}</p>
                           ) : null}
                         </div>
 
@@ -663,10 +697,10 @@ export default function LibraryDetailClient({
                         >
                           <Plus className="h-3.5 w-3.5" />
                           {item.alreadyInLibrary
-                            ? "Already added"
+                            ? "已添加"
                             : isMutating && pendingWordId === item.id
-                              ? "Adding..."
-                              : "Add"}
+                              ? "添加中..."
+                              : "添加"}
                         </button>
                       </div>
                     </div>
@@ -674,7 +708,7 @@ export default function LibraryDetailClient({
 
                   {submittedAddQuery && addResults.length === 0 && !isSearchingAdd ? (
                     <div className="rounded-2xl border border-white/8 bg-black/20 px-4 py-6 text-sm text-zinc-400">
-                      No addable matching words were found.
+                      没有找到可添加的匹配单词。
                     </div>
                   ) : null}
                 </div>
@@ -682,8 +716,8 @@ export default function LibraryDetailClient({
             ) : (
               <div className="mt-5 rounded-2xl border border-white/8 bg-black/20 px-4 py-5 text-sm leading-7 text-zinc-400">
                 {isGrammarLibrary
-                  ? "This page is the read-only browser for grammar cards. Editing tools for grammar libraries can be added later without changing the study model again."
-                  : "This official library is currently read-only in the UI."}
+                  ? "这里目前主要用于浏览句法卡片。后续如果要补句法词库编辑能力，可以在不改学习模型的前提下继续加。"
+                  : "这个官方词库目前在词库页里是只读的。"}
               </div>
             )}
           </div>
