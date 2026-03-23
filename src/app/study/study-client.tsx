@@ -96,7 +96,7 @@ export default function StudyClient({
   const selectedLibraryContentType = selectedLibrary?.contentType ?? null
   const currentWord = isStudyBatchWordItem(currentItem) ? currentItem : null
   const currentGrammar = isStudyBatchGrammarItem(currentItem) ? currentItem : null
-  const isGrammarWorkspace = selectedLibraryContentType === "grammar"
+  const isGrammarWorkspace = selectedLibraryContentType === "grammar" || currentGrammar !== null
 
   const { sentenceHelpItems, sentenceHelpState, sentenceHelpSourceLabel } = useSentenceHelp({
     currentWord,
