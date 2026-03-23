@@ -119,7 +119,7 @@ async function pickRandomUnseenWord(
 ): Promise<unknown | null> {
   let countQuery = supabase.from('words').select('id', { count: 'exact', head: true })
   if (tag !== 'All') {
-    countQuery = countQuery.eq('tags', tag)
+    countQuery = countQuery.ilike('tags', `%${tag}%`)
   }
   if (preferredWordIds.length > 0) {
     countQuery = countQuery.in('id', preferredWordIds)
@@ -135,7 +135,7 @@ async function pickRandomUnseenWord(
     const randomOffset = Math.floor(Math.random() * count)
     let pickQuery = supabase.from('words').select('*').range(randomOffset, randomOffset).limit(1)
     if (tag !== 'All') {
-      pickQuery = pickQuery.eq('tags', tag)
+      pickQuery = pickQuery.ilike('tags', `%${tag}%`)
     }
     if (preferredWordIds.length > 0) {
       pickQuery = pickQuery.in('id', preferredWordIds)
@@ -166,7 +166,7 @@ async function findFallbackUnseenWord(
   const excludeIds = [...new Set([...startedWordIds, ...skippedWordIds])]
   let fallbackQuery = supabase.from('words').select('*')
   if (tag !== 'All') {
-    fallbackQuery = fallbackQuery.eq('tags', tag)
+    fallbackQuery = fallbackQuery.ilike('tags', `%${tag}%`)
   }
   if (preferredWordIds.length > 0) {
     fallbackQuery = fallbackQuery.in('id', preferredWordIds)
@@ -225,6 +225,27 @@ async function getWordById(supabase: SupabaseClient, wordId: string) {
   return data
 }
 
+async function pickUnseenLibraryWordViaRpc(
+  supabase: SupabaseClient,
+  userId: string,
+  libraryId: string,
+  skippedWordIds: string[]
+) {
+  const { data, error } = await supabase.rpc('pick_unstudied_library_word', {
+    p_user_id: userId,
+    p_library_id: libraryId,
+    p_skipped_ids: skippedWordIds,
+  })
+
+  if (error) {
+    console.error('Failed to pick unseen library word via RPC:', error)
+    return null
+  }
+
+  const candidate = Array.isArray(data) ? data[0] : null
+  return isWordCandidate(candidate) ? candidate : null
+}
+
 export async function loadNewStudyItems({
   supabase,
   userId,
@@ -232,6 +253,7 @@ export async function loadNewStudyItems({
   skippedWordIds,
   preferredWordIds,
   batchSize,
+  libraryId = null,
   libraryWordIds = [],
   deps,
 }: {
@@ -241,6 +263,7 @@ export async function loadNewStudyItems({
   skippedWordIds: string[]
   preferredWordIds: string[]
   batchSize: number
+  libraryId?: string | null
   libraryWordIds?: string[]
   deps: StudyNewWordServiceDeps
 }) {
@@ -256,7 +279,27 @@ export async function loadNewStudyItems({
 
   while (items.length < batchSize) {
     let candidate: unknown | null
-    if (libraryWordIds.length > 0) {
+    if (libraryId) {
+      candidate = await pickUnseenLibraryWordViaRpc(
+        supabase,
+        userId,
+        libraryId,
+        Array.from(excludedWordIds)
+      )
+
+      if (!candidate && libraryWordIds.length > 0) {
+        const availableWordIds = libraryUnseenWordIds.filter(
+          (wordId) => !excludedWordIds.has(wordId)
+        )
+
+        if (availableWordIds.length === 0) {
+          break
+        }
+
+        const randomIndex = Math.floor(Math.random() * availableWordIds.length)
+        candidate = await getWordById(supabase, availableWordIds[randomIndex]!)
+      }
+    } else if (libraryWordIds.length > 0) {
       const availableWordIds = libraryUnseenWordIds.filter((wordId) => !excludedWordIds.has(wordId))
 
       if (availableWordIds.length === 0) {
@@ -295,7 +338,8 @@ export async function loadNewStudyItems({
     tag,
     batchSize,
     resultCount: items.length,
-    libraryScoped: libraryWordIds.length > 0,
+    libraryScoped: Boolean(libraryId) || libraryWordIds.length > 0,
+    libraryRpc: Boolean(libraryId),
     preferred: preferredWordIds.length,
     skipped: skippedWordIds.length,
   })

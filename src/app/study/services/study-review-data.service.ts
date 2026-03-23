@@ -28,6 +28,7 @@ interface StudyReviewDataServiceDeps {
 
 interface DueQueryChain {
   eq: (column: string, value: unknown) => DueQueryChain
+  ilike: (column: string, value: string) => DueQueryChain
   lte: (column: string, value: unknown) => DueQueryChain
   gte: (column: string, value: unknown) => DueQueryChain
   lt: (column: string, value: unknown) => DueQueryChain
@@ -80,7 +81,7 @@ function applyDueFilters(
   }
 
   if (tag !== 'All') {
-    nextQuery = nextQuery.eq('words.tags', tag)
+    nextQuery = nextQuery.ilike('words.tags', `%${tag}%`)
   }
   if (libraryWordIds.length > 0) {
     nextQuery = nextQuery.in('word_id', libraryWordIds)

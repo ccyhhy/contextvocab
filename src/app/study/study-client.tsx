@@ -1,5 +1,6 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { type ChangeEvent, useEffect, useRef, useState } from "react"
 import {
   type HistoryReviewContext,
@@ -14,14 +15,9 @@ import {
   StudyContextSummary,
   StudyEmptyState,
   StudyEnrichmentSummary,
-  StudyEvaluationResult,
-  StudyGrammarHelpPanel,
-  StudyHistoryReviewPanel,
   StudyGrammarPanel,
+  StudyHistoryReviewPanel,
   StudySentenceComposer,
-  StudySentenceHelpPanel,
-  StudySpeechSettingsDialog,
-  StudyStreamingPreview,
   StudyToolbar,
   StudyWordPanel,
 } from "./components"
@@ -34,6 +30,36 @@ import {
   useStudySidebarData,
   useStudySubmission,
 } from "./hooks"
+
+const StudySpeechSettingsDialog = dynamic(() =>
+  import("./components/study-speech-settings-dialog").then(
+    (module) => module.StudySpeechSettingsDialog
+  )
+)
+
+const StudySentenceHelpPanel = dynamic(() =>
+  import("./components/study-sentence-help-panel").then(
+    (module) => module.StudySentenceHelpPanel
+  )
+)
+
+const StudyGrammarHelpPanel = dynamic(() =>
+  import("./components/study-grammar-help-panel").then(
+    (module) => module.StudyGrammarHelpPanel
+  )
+)
+
+const StudyStreamingPreview = dynamic(() =>
+  import("./components/study-streaming-preview").then(
+    (module) => module.StudyStreamingPreview
+  )
+)
+
+const StudyEvaluationResult = dynamic(() =>
+  import("./components/study-evaluation-result").then(
+    (module) => module.StudyEvaluationResult
+  )
+)
 
 export default function StudyClient({
   initialBatch,
@@ -57,7 +83,8 @@ export default function StudyClient({
   const [showSentenceHelp, setShowSentenceHelp] = useState(false)
   const [librarySlug, setLibrarySlug] = useState<string>(initialLibrarySlug)
   const [studyView, setStudyView] = useState<StudyView>("all")
-  const [favoriteWordIds, setFavoriteWordIds] = useState<string[]>(initialFavoriteWordIds)
+  const [favoriteWordIds, setFavoriteWordIds] =
+    useState<string[]>(initialFavoriteWordIds)
   const [favoritePending, setFavoritePending] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showGrammarHints, setShowGrammarHints] = useState(false)
@@ -92,15 +119,17 @@ export default function StudyClient({
     },
   })
 
-  const selectedLibrary = availableLibraries.find((item) => item.slug === librarySlug) ?? null
+  const selectedLibrary =
+    availableLibraries.find((item) => item.slug === librarySlug) ?? null
   const selectedLibraryContentType = selectedLibrary?.contentType ?? null
   const currentWord = isStudyBatchWordItem(currentItem) ? currentItem : null
   const currentGrammar = isStudyBatchGrammarItem(currentItem) ? currentItem : null
 
-  const { sentenceHelpItems, sentenceHelpState, sentenceHelpSourceLabel } = useSentenceHelp({
-    currentWord,
-    enabled: showSentenceHelp && currentWord !== null,
-  })
+  const { sentenceHelpItems, sentenceHelpState, sentenceHelpSourceLabel } =
+    useSentenceHelp({
+      currentWord,
+      enabled: showSentenceHelp && currentWord !== null,
+    })
   const {
     status,
     result,
@@ -129,7 +158,10 @@ export default function StudyClient({
     setMounted(true)
   }, [])
 
-  const resetComposerState = (options?: { preserveSentence?: boolean; keepSentenceHelp?: boolean }) => {
+  const resetComposerState = (options?: {
+    preserveSentence?: boolean
+    keepSentenceHelp?: boolean
+  }) => {
     if (!options?.preserveSentence) {
       setSentence("")
     }
@@ -143,6 +175,7 @@ export default function StudyClient({
   const applySentenceHelp = (text: string) => {
     setSentence(text)
     setShowSentenceHelp(false)
+    setShowGrammarHints(false)
 
     requestAnimationFrame(() => {
       const input = sentenceInputRef.current
@@ -183,7 +216,8 @@ export default function StudyClient({
 
   const handleLibraryChange = async (event: ChangeEvent<HTMLSelectElement>) => {
     const nextLibrarySlug = event.target.value
-    const nextLibrary = availableLibraries.find((item) => item.slug === nextLibrarySlug) ?? null
+    const nextLibrary =
+      availableLibraries.find((item) => item.slug === nextLibrarySlug) ?? null
     const nextStudyView = nextLibrary?.contentType === "grammar" ? "all" : studyView
 
     setLibrarySlug(nextLibrarySlug)
@@ -210,13 +244,18 @@ export default function StudyClient({
   const toggleFavorite = async () => {
     if (!currentWord) return
     setFavoritePending(true)
+
     try {
       const updatedFavorites = await toggleFavoriteWord(
         currentWord.word_id,
         !favoriteWordIds.includes(currentWord.word_id)
       )
       setFavoriteWordIds(updatedFavorites)
-      if (studyView === "favorites" && !updatedFavorites.includes(currentWord.word_id)) {
+
+      if (
+        studyView === "favorites" &&
+        !updatedFavorites.includes(currentWord.word_id)
+      ) {
         await handleNext(librarySlug, false, studyView)
       }
     } catch (error) {
@@ -233,7 +272,7 @@ export default function StudyClient({
         availableLibraries={availableLibraries}
         librarySlug={librarySlug}
         studyView={studyView}
-        loading={loadingNext}
+        loading={loadingNext || refillingQueue}
         selectedLibraryContentType={selectedLibraryContentType}
         onLibraryChange={handleLibraryChange}
         onStudyViewChange={handleStudyModeChange}
@@ -246,10 +285,12 @@ export default function StudyClient({
     )
   }
 
-  const isFavorite = currentWord ? favoriteWordIds.includes(currentWord.word_id) : false
+  const isFavorite = currentWord
+    ? favoriteWordIds.includes(currentWord.word_id)
+    : false
 
   return (
-    <div className="mx-auto flex w-full flex-col gap-6 max-w-[1600px]">
+    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
       <StudySpeechSettingsDialog
         open={showSettings}
         speechConfig={speechConfig}
@@ -331,7 +372,7 @@ export default function StudyClient({
               />
             ) : null}
 
-            {status !== "result" && (
+            {status !== "result" ? (
               <div className="glass-panel rounded-3xl p-5">
                 <StudySentenceComposer
                   targetLabel={currentWord.words.word}
@@ -346,7 +387,7 @@ export default function StudyClient({
                   onSkip={() => void handleNext(librarySlug, true)}
                 />
               </div>
-            )}
+            ) : null}
 
             <StudySentenceHelpPanel
               visible={showSentenceHelp}
@@ -378,7 +419,10 @@ export default function StudyClient({
       ) : currentGrammar ? (
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.95fr)]">
           <div className="min-w-0">
-            <StudyGrammarPanel currentGrammar={currentGrammar} loadingNext={loadingNext} />
+            <StudyGrammarPanel
+              currentGrammar={currentGrammar}
+              loadingNext={loadingNext}
+            />
           </div>
 
           <div className="min-w-0 space-y-4 lg:sticky lg:top-24">
@@ -399,7 +443,9 @@ export default function StudyClient({
                   isSubmitting={status === "submitting"}
                   isPracticeMode={submissionMode === "practice"}
                   placeholderText={`请写一个明确使用 "${currentGrammar.grammar.pattern}" 的句子...`}
-                  submitLabel={submissionMode === "practice" ? "提交重写" : "提交句法练习"}
+                  submitLabel={
+                    submissionMode === "practice" ? "提交重写" : "提交句法练习"
+                  }
                   skipLabel="下一张卡片"
                   onSentenceChange={setSentence}
                   onSubmit={() => void submitCurrentSentence(submissionMode)}

@@ -32,6 +32,12 @@ import {
 } from "./actions"
 
 const SEARCH_DEBOUNCE_MS = 300
+const EMPTY_GRAMMAR_HISTORY: GrammarHistoryResult = {
+  attempts: [],
+  total: 0,
+  page: 1,
+  pageSize: 15,
+}
 
 function ScoreBadge({ score }: { score: number }) {
   const color =
@@ -328,6 +334,30 @@ function SectionHeader({
   )
 }
 
+function HistorySectionSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: rows }, (_, index) => (
+        <div
+          key={index}
+          className="glass-panel overflow-hidden rounded-2xl border border-white/[0.08] p-5"
+        >
+          <div className="animate-pulse space-y-3">
+            <div className="flex items-start gap-4">
+              <div className="h-10 w-14 rounded-xl bg-white/[0.06]" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="h-4 w-40 rounded bg-white/[0.06]" />
+                <div className="h-3 w-64 rounded bg-white/[0.05]" />
+              </div>
+            </div>
+            <div className="h-16 rounded-xl bg-white/[0.04]" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function Pagination({
   page,
   total,
@@ -402,16 +432,69 @@ const sortOptions: Array<{ value: HistorySortBy; label: string }> = [
   { value: "lowest", label: "最低分优先" },
 ]
 
+async function loadGrammarHistory({
+  page,
+  search,
+  sortBy,
+}: {
+  page: number
+  search: string
+  sortBy: HistorySortBy
+}) {
+  try {
+    return await getGrammarAttemptHistory({
+      page,
+      search,
+      sortBy,
+    })
+  } catch (error) {
+    console.error("Failed to load grammar history:", error)
+    return {
+      ...EMPTY_GRAMMAR_HISTORY,
+      page,
+    }
+  }
+}
+
+async function loadSentenceHistory({
+  page,
+  search,
+  sortBy,
+}: {
+  page: number
+  search: string
+  sortBy: HistorySortBy
+}) {
+  try {
+    return await getSentenceHistory({
+      page,
+      search,
+      sortBy,
+    })
+  } catch (error) {
+    console.error("Failed to load sentence history:", error)
+    return {
+      sentences: [],
+      total: 0,
+      page,
+      pageSize: 15,
+    }
+  }
+}
+
 export default function HistoryClient({
   initialSentenceData,
   initialGrammarData,
 }: {
   initialSentenceData: HistoryResult
-  initialGrammarData: GrammarHistoryResult
+  initialGrammarData?: GrammarHistoryResult | null
 }) {
-  const [sentenceData, setSentenceData] = useState<HistoryResult>(initialSentenceData)
-  const [grammarData, setGrammarData] =
-    useState<GrammarHistoryResult>(initialGrammarData)
+  const [sentenceData, setSentenceData] =
+    useState<HistoryResult>(initialSentenceData)
+  const [grammarData, setGrammarData] = useState<GrammarHistoryResult>(
+    initialGrammarData ?? EMPTY_GRAMMAR_HISTORY
+  )
+  const [grammarLoading, setGrammarLoading] = useState(initialGrammarData == null)
   const [searchInput, setSearchInput] = useState("")
   const deferredSearch = useDeferredValue(searchInput)
   const [appliedSearch, setAppliedSearch] = useState("")
@@ -421,6 +504,7 @@ export default function HistoryClient({
   const latestCombinedRequestRef = useRef(0)
   const latestSentenceRequestRef = useRef(0)
   const latestGrammarRequestRef = useRef(0)
+  const latestInitialGrammarRequestRef = useRef(0)
   const appliedSearchRef = useRef(appliedSearch)
   const sortByRef = useRef(sortBy)
 
@@ -433,6 +517,29 @@ export default function HistoryClient({
   }, [sortBy])
 
   useEffect(() => {
+    if (initialGrammarData !== null && initialGrammarData !== undefined) {
+      return
+    }
+
+    const requestId = ++latestInitialGrammarRequestRef.current
+
+    startTransition(() => {
+      void (async () => {
+        const result = await loadGrammarHistory({
+          page: 1,
+          search: appliedSearchRef.current,
+          sortBy: sortByRef.current,
+        })
+
+        if (latestInitialGrammarRequestRef.current === requestId) {
+          setGrammarData(result)
+          setGrammarLoading(false)
+        }
+      })()
+    })
+  }, [initialGrammarData, startTransition])
+
+  useEffect(() => {
     if (!didMountRef.current) {
       didMountRef.current = true
       return
@@ -442,25 +549,29 @@ export default function HistoryClient({
     const timer = window.setTimeout(() => {
       setAppliedSearch(nextSearch)
       const requestId = ++latestCombinedRequestRef.current
+      setGrammarLoading(true)
 
-      startTransition(async () => {
-        const [nextSentenceData, nextGrammarData] = await Promise.all([
-          getSentenceHistory({
-            page: 1,
-            search: nextSearch,
-            sortBy: sortByRef.current,
-          }),
-          getGrammarAttemptHistory({
-            page: 1,
-            search: nextSearch,
-            sortBy: sortByRef.current,
-          }),
-        ])
+      startTransition(() => {
+        void (async () => {
+          const [nextSentenceData, nextGrammarData] = await Promise.all([
+            loadSentenceHistory({
+              page: 1,
+              search: nextSearch,
+              sortBy: sortByRef.current,
+            }),
+            loadGrammarHistory({
+              page: 1,
+              search: nextSearch,
+              sortBy: sortByRef.current,
+            }),
+          ])
 
-        if (latestCombinedRequestRef.current === requestId) {
-          setSentenceData(nextSentenceData)
-          setGrammarData(nextGrammarData)
-        }
+          if (latestCombinedRequestRef.current === requestId) {
+            setSentenceData(nextSentenceData)
+            setGrammarData(nextGrammarData)
+            setGrammarLoading(false)
+          }
+        })()
       })
     }, SEARCH_DEBOUNCE_MS)
 
@@ -470,41 +581,47 @@ export default function HistoryClient({
   const handleSortChange = (value: HistorySortBy) => {
     setSortBy(value)
     const requestId = ++latestCombinedRequestRef.current
+    setGrammarLoading(true)
 
-    startTransition(async () => {
-      const [nextSentenceData, nextGrammarData] = await Promise.all([
-        getSentenceHistory({
-          page: 1,
-          search: appliedSearchRef.current,
-          sortBy: value,
-        }),
-        getGrammarAttemptHistory({
-          page: 1,
-          search: appliedSearchRef.current,
-          sortBy: value,
-        }),
-      ])
+    startTransition(() => {
+      void (async () => {
+        const [nextSentenceData, nextGrammarData] = await Promise.all([
+          loadSentenceHistory({
+            page: 1,
+            search: appliedSearchRef.current,
+            sortBy: value,
+          }),
+          loadGrammarHistory({
+            page: 1,
+            search: appliedSearchRef.current,
+            sortBy: value,
+          }),
+        ])
 
-      if (latestCombinedRequestRef.current === requestId) {
-        setSentenceData(nextSentenceData)
-        setGrammarData(nextGrammarData)
-      }
+        if (latestCombinedRequestRef.current === requestId) {
+          setSentenceData(nextSentenceData)
+          setGrammarData(nextGrammarData)
+          setGrammarLoading(false)
+        }
+      })()
     })
   }
 
   const handleSentencePageChange = (page: number) => {
     const requestId = ++latestSentenceRequestRef.current
 
-    startTransition(async () => {
-      const result = await getSentenceHistory({
-        page,
-        search: appliedSearchRef.current,
-        sortBy: sortByRef.current,
-      })
+    startTransition(() => {
+      void (async () => {
+        const result = await loadSentenceHistory({
+          page,
+          search: appliedSearchRef.current,
+          sortBy: sortByRef.current,
+        })
 
-      if (latestSentenceRequestRef.current === requestId) {
-        setSentenceData(result)
-      }
+        if (latestSentenceRequestRef.current === requestId) {
+          setSentenceData(result)
+        }
+      })()
     })
 
     window.scrollTo({ top: 0, behavior: "smooth" })
@@ -512,24 +629,31 @@ export default function HistoryClient({
 
   const handleGrammarPageChange = (page: number) => {
     const requestId = ++latestGrammarRequestRef.current
+    setGrammarLoading(true)
 
-    startTransition(async () => {
-      const result = await getGrammarAttemptHistory({
-        page,
-        search: appliedSearchRef.current,
-        sortBy: sortByRef.current,
-      })
+    startTransition(() => {
+      void (async () => {
+        const result = await loadGrammarHistory({
+          page,
+          search: appliedSearchRef.current,
+          sortBy: sortByRef.current,
+        })
 
-      if (latestGrammarRequestRef.current === requestId) {
-        setGrammarData(result)
-      }
+        if (latestGrammarRequestRef.current === requestId) {
+          setGrammarData(result)
+          setGrammarLoading(false)
+        }
+      })()
     })
 
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-8 p-4 sm:p-8" aria-busy={isPending}>
+    <div
+      className="mx-auto w-full max-w-5xl space-y-8 p-4 sm:p-8"
+      aria-busy={isPending}
+    >
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -539,7 +663,7 @@ export default function HistoryClient({
           历史复习
         </h1>
         <p className="mt-1 text-sm text-zinc-500">
-          单词造句 {sentenceData.total} 条，句法练习 {grammarData.total} 条
+          单词造句 {sentenceData.total} 条，句法练习 {grammarData.total} 条。
         </p>
       </motion.div>
 
@@ -564,7 +688,9 @@ export default function HistoryClient({
           <SortAsc className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
           <select
             value={sortBy}
-            onChange={(event) => handleSortChange(event.target.value as HistorySortBy)}
+            onChange={(event) =>
+              handleSortChange(event.target.value as HistorySortBy)
+            }
             className="cursor-pointer appearance-none rounded-xl border border-white/10 bg-black/40 py-2.5 pl-10 pr-8 text-sm text-zinc-200 outline-none transition-all focus:border-blue-500/50"
           >
             {sortOptions.map((option) => (
@@ -576,12 +702,12 @@ export default function HistoryClient({
         </div>
       </motion.div>
 
-      <section className={`space-y-4 transition-opacity ${isPending ? "opacity-70" : ""}`}>
+      <section className={`space-y-4 transition-opacity ${isPending ? "opacity-80" : ""}`}>
         <SectionHeader
           icon={<BookMarked className="h-4 w-4 text-blue-300" />}
           title="单词造句历史"
           total={sentenceData.total}
-          description="回看你曾经写过的单词句子，并从原句直接进入复习。"
+          description="回看你写过的单词句子，并从原句直接进入复习。"
         />
 
         {sentenceData.sentences.length === 0 ? (
@@ -615,20 +741,24 @@ export default function HistoryClient({
         />
       </section>
 
-      <section className={`space-y-4 transition-opacity ${isPending ? "opacity-70" : ""}`}>
+      <section
+        className={`space-y-4 transition-opacity ${grammarLoading ? "opacity-90" : ""}`}
+      >
         <SectionHeader
           icon={<Sparkles className="h-4 w-4 text-violet-300" />}
           title="句法练习历史"
           total={grammarData.total}
-          description="回看你练过的句法结构，直接用原句重新练一遍。"
+          description="回看你练过的句法结构，并用原句快速重新练一遍。"
         />
 
-        {grammarData.attempts.length === 0 ? (
+        {grammarLoading && grammarData.attempts.length === 0 ? (
+          <HistorySectionSkeleton />
+        ) : grammarData.attempts.length === 0 ? (
           <div className="glass-panel rounded-2xl p-12 text-center">
             <p className="text-sm text-zinc-500">
               {appliedSearch
                 ? "没有找到匹配的句法练习记录。"
-                : "还没有句法练习记录，去 Grammar 词库里试几张卡吧。"}
+                : "还没有句法练习记录，去 grammar 词库里试几张卡吧。"}
             </p>
           </div>
         ) : (

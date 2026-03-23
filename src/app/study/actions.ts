@@ -437,6 +437,7 @@ let favoriteColumnSupported: boolean | null = null
 const DEFAULT_STUDY_BATCH_SIZE = 5
 const SUPABASE_PAGE_SIZE = 1000
 const STUDY_LIBRARY_MEMBERSHIP_CACHE_TTL_MS = 60 * 60 * 1000
+const STUDY_LIBRARY_OPTIONS_CACHE_TTL_MS = 60 * 1000
 const STUDY_PERFORMANCE_LOG_THRESHOLD_MS = 150
 const SENTENCE_HELP_MAX_OUTPUT_TOKENS = 360
 const EVALUATION_MAX_OUTPUT_TOKENS = 2000
@@ -452,6 +453,7 @@ interface TimedCacheEntry<T> {
 }
 
 const libraryWordIdsCache = new Map<string, TimedCacheEntry<string[]>>()
+const studyLibraryOptionsCache = new Map<string, TimedCacheEntry<StudyLibrary[]>>()
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value))
@@ -2348,6 +2350,7 @@ async function getNewStudyItems(
   skippedWordIds: string[],
   preferredWordIds: string[],
   batchSize: number,
+  libraryId: string | null = null,
   libraryWordIds: string[] = []
 ) {
   return loadNewStudyItems({
@@ -2357,6 +2360,7 @@ async function getNewStudyItems(
     skippedWordIds,
     preferredWordIds,
     batchSize,
+    libraryId,
     libraryWordIds,
     deps: {
       getStartedWordIds,
@@ -2599,7 +2603,9 @@ async function loadGrammarStudyBatch({
   const { examplesByItemId, templatesByItemId, contrastsByItemId } =
     await loadGrammarStudySupportData(supabase, grammarItemIds)
 
-  await ensureUserLibraryPlan(supabase, userId, library.id)
+  void ensureUserLibraryPlan(supabase, userId, library.id).catch((error) => {
+    console.error('Failed to ensure user library plan during grammar batch load:', error)
+  })
   await touchUserLibraryGrammarItems(supabase, userId, library.id, grammarItemIds)
 
   return grammarRows.map((row) => ({
@@ -2637,14 +2643,27 @@ export async function getStudyLibraries(): Promise<StudyLibrary[]> {
 }
 
 export async function getStudyLibraryOptions(): Promise<StudyLibrary[]> {
-  const { supabase } = await requireActionSession()
-  return loadStudyLibraryOptions({
+  const { supabase, user } = await requireActionSession()
+  const cacheKey = user.id
+  const cached = getActiveTimedCacheValue(studyLibraryOptionsCache.get(cacheKey))
+  if (cached) {
+    return cached
+  }
+
+  const options = await loadStudyLibraryOptions({
     supabase,
     legacyLibraryOptions: LEGACY_LIBRARY_OPTIONS,
     deps: {
       isMissingLibrariesTableError,
     },
   })
+
+  return setTimedCacheValue(
+    studyLibraryOptionsCache,
+    cacheKey,
+    options,
+    STUDY_LIBRARY_OPTIONS_CACHE_TTL_MS
+  )
 }
 
 export async function getStudyEnrichmentProgress(

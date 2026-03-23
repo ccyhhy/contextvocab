@@ -58,7 +58,7 @@ export function StudyEmptyState({
               <option value="all">全部单词</option>
               <option value="favorites">收藏</option>
               <option value="weak">薄弱项</option>
-              <option value="recent_failures">最近失误</option>
+              <option value="recent_failures">最近失败</option>
             </select>
           ) : (
             <div className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-300">
@@ -76,7 +76,9 @@ export function StudyEmptyState({
         </button>
       </div>
 
-      <div className="glass-panel rounded-3xl p-10 text-center text-zinc-300">{message}</div>
+      <div className="glass-panel rounded-3xl p-10 text-center text-zinc-300">
+        {message}
+      </div>
     </div>
   )
 }

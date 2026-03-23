@@ -51,6 +51,7 @@ interface StudyBatchServiceDeps {
     skippedWordIds: string[],
     preferredWordIds: string[],
     batchSize: number,
+    libraryId?: string | null,
     libraryWordIds?: string[]
   ) => Promise<StudyBatchWordItem[]>
   hydrateStudyBatchWordDetails: (
@@ -146,19 +147,38 @@ export async function loadStudyBatch({
   const preferredWordIds =
     resolvedStudyView === 'favorites' ? await deps.getUserFavoriteWordIds(supabase, userId) : []
   let tagFilter = tag
+  let libraryId: string | null = null
   let libraryWordIds: string[] = []
+  const legacyTagForLibrary = deps.getLegacyTagForLibrarySlug(resolvedLibrarySlug)
 
   if (resolvedLibrarySlug !== 'all') {
-    const library = await deps.getLibraryBySlug(supabase, resolvedLibrarySlug)
-    if (library) {
-      tagFilter = 'All'
-      libraryWordIds = await deps.getLibraryWordIds(supabase, library.id)
-      await deps.ensureUserLibraryPlan(supabase, userId, library.id)
+    if (legacyTagForLibrary !== 'All') {
+      tagFilter = legacyTagForLibrary
     } else {
-      tagFilter = deps.getLegacyTagForLibrarySlug(resolvedLibrarySlug)
+      const library = await deps.getLibraryBySlug(supabase, resolvedLibrarySlug)
+      if (library) {
+        libraryId = library.id
+        tagFilter = 'All'
+        libraryWordIds = await deps.getLibraryWordIds(supabase, library.id)
+        void deps.ensureUserLibraryPlan(supabase, userId, library.id).catch((error) => {
+          console.error('Failed to ensure user library plan during batch load:', error)
+        })
+      } else {
+        tagFilter = deps.getLegacyTagForLibrarySlug(resolvedLibrarySlug)
+      }
     }
   } else {
     tagFilter = 'All'
+  }
+
+  if (libraryId && libraryWordIds.length === 0) {
+    deps.logStudyPerformance('getStudyBatch', startedAt, {
+      librarySlug: resolvedLibrarySlug,
+      studyView: resolvedStudyView,
+      batchSize,
+      emptyLibrary: true,
+    })
+    return []
   }
 
   if (resolvedStudyView === 'favorites' && preferredWordIds.length === 0) {
@@ -205,6 +225,7 @@ export async function loadStudyBatch({
         [...skippedWordIds, ...dueItems.map((item) => item.word_id)],
         preferredWordIds,
         batchSize,
+        libraryId,
         libraryWordIds
       )
 
@@ -225,7 +246,7 @@ export async function loadStudyBatch({
     dueItems: dueItems.length,
     newItems: newItems.length,
     hydratedItems: hydratedBatch.length,
-    libraryScoped: libraryWordIds.length > 0,
+    libraryScoped: resolvedLibrarySlug !== 'all',
     preferred: preferredWordIds.length,
     skipped: skippedWordIds.length,
   })
