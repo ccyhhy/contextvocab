@@ -96,7 +96,6 @@ export default function StudyClient({
   const selectedLibraryContentType = selectedLibrary?.contentType ?? null
   const currentWord = isStudyBatchWordItem(currentItem) ? currentItem : null
   const currentGrammar = isStudyBatchGrammarItem(currentItem) ? currentItem : null
-  const isGrammarWorkspace = selectedLibraryContentType === "grammar" || currentGrammar !== null
 
   const { sentenceHelpItems, sentenceHelpState, sentenceHelpSourceLabel } = useSentenceHelp({
     currentWord,
@@ -250,11 +249,7 @@ export default function StudyClient({
   const isFavorite = currentWord ? favoriteWordIds.includes(currentWord.word_id) : false
 
   return (
-    <div
-      className={`mx-auto flex w-full flex-col gap-6 ${
-        isGrammarWorkspace ? "max-w-[1600px]" : "max-w-2xl"
-      }`}
-    >
+    <div className="mx-auto flex w-full flex-col gap-6 max-w-[1600px]">
       <StudySpeechSettingsDialog
         open={showSettings}
         speechConfig={speechConfig}
@@ -314,66 +309,72 @@ export default function StudyClient({
       ) : null}
 
       {currentWord ? (
-        <>
-          <StudyWordPanel
-            currentWord={currentWord}
-            isFavorite={isFavorite}
-            favoritePending={favoritePending}
-            isSubmitting={status === "submitting"}
-            onToggleFavorite={() => void toggleFavorite()}
-            onPlayAudio={playAudio}
-            onApplySentenceHelp={applySentenceHelp}
-            loadingNext={loadingNext}
-          />
-
-          {historyReviewContext?.targetKind === "word" ? (
-            <StudyHistoryReviewPanel
-              review={historyReviewContext}
-              onReuseSentence={applySentenceHelp}
-            />
-          ) : null}
-
-          {status !== "result" && (
-            <StudySentenceComposer
-              targetLabel={currentWord.words.word}
-              sentence={sentence}
-              inputRef={sentenceInputRef}
-              showSentenceHelp={showSentenceHelp}
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.95fr)]">
+          <div className="min-w-0">
+            <StudyWordPanel
+              currentWord={currentWord}
+              isFavorite={isFavorite}
+              favoritePending={favoritePending}
               isSubmitting={status === "submitting"}
-              isPracticeMode={submissionMode === "practice"}
-              onSentenceChange={setSentence}
-              onSubmit={() => void submitCurrentSentence(submissionMode)}
-              onToggleHelp={() => setShowSentenceHelp((current) => !current)}
-              onSkip={() => void handleNext(librarySlug, true)}
+              onToggleFavorite={() => void toggleFavorite()}
+              onPlayAudio={playAudio}
+              onApplySentenceHelp={applySentenceHelp}
+              loadingNext={loadingNext}
             />
-          )}
+          </div>
 
-          <StudySentenceHelpPanel
-            visible={showSentenceHelp}
-            sourceLabel={sentenceHelpSourceLabel}
-            state={sentenceHelpState}
-            items={sentenceHelpItems}
-            onClose={() => setShowSentenceHelp(false)}
-            onApply={applySentenceHelp}
-          />
+          <div className="min-w-0 space-y-4 lg:sticky lg:top-24">
+            {historyReviewContext?.targetKind === "word" ? (
+              <StudyHistoryReviewPanel
+                review={historyReviewContext}
+                onReuseSentence={applySentenceHelp}
+              />
+            ) : null}
 
-          <StudyStreamingPreview
-            visible={status === "submitting"}
-            streamPhase={streamPhase}
-            streamProgressChars={streamProgressChars}
-            streamSections={streamSections}
-          />
+            {status !== "result" && (
+              <div className="glass-panel rounded-3xl p-5">
+                <StudySentenceComposer
+                  targetLabel={currentWord.words.word}
+                  sentence={sentence}
+                  inputRef={sentenceInputRef}
+                  showSentenceHelp={showSentenceHelp}
+                  isSubmitting={status === "submitting"}
+                  isPracticeMode={submissionMode === "practice"}
+                  onSentenceChange={setSentence}
+                  onSubmit={() => void submitCurrentSentence(submissionMode)}
+                  onToggleHelp={() => setShowSentenceHelp((current) => !current)}
+                  onSkip={() => void handleNext(librarySlug, true)}
+                />
+              </div>
+            )}
 
-          <StudyEvaluationResult
-            visible={status === "result"}
-            result={result}
-            sentence={sentence}
-            mounted={mounted}
-            onRewrite={handleRewrite}
-            onNext={() => void handleNext(librarySlug)}
-            onPlayAudio={playAudio}
-          />
-        </>
+            <StudySentenceHelpPanel
+              visible={showSentenceHelp}
+              sourceLabel={sentenceHelpSourceLabel}
+              state={sentenceHelpState}
+              items={sentenceHelpItems}
+              onClose={() => setShowSentenceHelp(false)}
+              onApply={applySentenceHelp}
+            />
+
+            <StudyStreamingPreview
+              visible={status === "submitting"}
+              streamPhase={streamPhase}
+              streamProgressChars={streamProgressChars}
+              streamSections={streamSections}
+            />
+
+            <StudyEvaluationResult
+              visible={status === "result"}
+              result={result}
+              sentence={sentence}
+              mounted={mounted}
+              onRewrite={handleRewrite}
+              onNext={() => void handleNext(librarySlug)}
+              onPlayAudio={playAudio}
+            />
+          </div>
+        </div>
       ) : currentGrammar ? (
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.95fr)]">
           <div className="min-w-0">
