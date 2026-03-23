@@ -2,6 +2,7 @@
 
 import { type ChangeEvent, useEffect, useRef, useState } from "react"
 import {
+  type HistoryReviewContext,
   toggleFavoriteWord,
   type StudyBatchItem,
   type StudyEnrichmentProgress,
@@ -15,6 +16,7 @@ import {
   StudyEnrichmentSummary,
   StudyEvaluationResult,
   StudyGrammarHelpPanel,
+  StudyHistoryReviewPanel,
   StudyGrammarPanel,
   StudySentenceComposer,
   StudySentenceHelpPanel,
@@ -39,14 +41,18 @@ export default function StudyClient({
   enrichmentProgress,
   libraries,
   initialLibrarySlug,
+  initialHistoryReview,
+  initialSentenceDraft,
 }: {
   initialBatch: StudyBatchItem[]
   initialFavoriteWordIds: string[]
   enrichmentProgress: StudyEnrichmentProgress[]
   libraries: StudyLibrary[]
   initialLibrarySlug: string
+  initialHistoryReview?: HistoryReviewContext | null
+  initialSentenceDraft?: string
 }) {
-  const [sentence, setSentence] = useState("")
+  const [sentence, setSentence] = useState(initialSentenceDraft ?? "")
   const [submissionMode, setSubmissionMode] = useState<SubmissionMode>("scheduled")
   const [showSentenceHelp, setShowSentenceHelp] = useState(false)
   const [librarySlug, setLibrarySlug] = useState<string>(initialLibrarySlug)
@@ -56,6 +62,8 @@ export default function StudyClient({
   const [showSettings, setShowSettings] = useState(false)
   const [showGrammarHints, setShowGrammarHints] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [historyReviewContext, setHistoryReviewContext] =
+    useState<HistoryReviewContext | null>(initialHistoryReview ?? null)
 
   const sentenceInputRef = useRef<HTMLTextAreaElement | null>(null)
   const { speechConfig, availableVoices, updateSpeechConfig, playAudio, saveSpeechConfig } =
@@ -164,6 +172,7 @@ export default function StudyClient({
     isSkipping = false,
     nextStudyView = studyView
   ) => {
+    setHistoryReviewContext(null)
     resetComposerState()
     setSubmissionMode("scheduled")
     await advanceToNextItem({
@@ -180,6 +189,7 @@ export default function StudyClient({
 
     setLibrarySlug(nextLibrarySlug)
     setStudyView(nextStudyView)
+    setHistoryReviewContext(null)
     resetSessionScope()
     clearVisibleBatch()
     setSubmissionMode("scheduled")
@@ -190,6 +200,7 @@ export default function StudyClient({
   const handleStudyModeChange = async (event: ChangeEvent<HTMLSelectElement>) => {
     const nextStudyView = event.target.value as StudyView
     setStudyView(nextStudyView)
+    setHistoryReviewContext(null)
     resetSessionScope()
     clearVisibleBatch()
     setSubmissionMode("scheduled")
@@ -315,6 +326,13 @@ export default function StudyClient({
             loadingNext={loadingNext}
           />
 
+          {historyReviewContext?.targetKind === "word" ? (
+            <StudyHistoryReviewPanel
+              review={historyReviewContext}
+              onReuseSentence={applySentenceHelp}
+            />
+          ) : null}
+
           {status !== "result" && (
             <StudySentenceComposer
               targetLabel={currentWord.words.word}
@@ -363,6 +381,13 @@ export default function StudyClient({
           </div>
 
           <div className="min-w-0 space-y-4 xl:sticky xl:top-24">
+            {historyReviewContext?.targetKind === "grammar" ? (
+              <StudyHistoryReviewPanel
+                review={historyReviewContext}
+                onReuseSentence={applySentenceHelp}
+              />
+            ) : null}
+
             {status !== "result" ? (
               <div className="glass-panel rounded-3xl p-5">
                 <StudySentenceComposer

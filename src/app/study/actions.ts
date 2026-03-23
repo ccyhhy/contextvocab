@@ -98,6 +98,23 @@ export interface StudySubmissionResult {
   userGrammarItemId: string | null
 }
 
+export interface HistoryReviewContext {
+  historyId: string
+  targetKind: StudyTargetKind
+  title: string
+  subtitle?: string | null
+  sentence: string
+  score: number
+  feedback: string
+  createdAt: string
+}
+
+export interface HistoryReviewTarget {
+  batchItem: StudyBatchItem | null
+  review: HistoryReviewContext | null
+  preferredLibrarySlug?: string | null
+}
+
 export interface StudyWordContrast {
   word: string
   note: string
@@ -359,6 +376,31 @@ type FailureCounterRecord = Pick<UserWordRecord, 'consecutive_failures' | 'lapse
 
 interface PastSentenceRow {
   original_text: string | null
+}
+
+interface HistorySentenceReviewRow {
+  id: string
+  word_id: string
+  original_text: string
+  ai_score?: number | null
+  ai_feedback?: string | null
+  created_at: string
+  words?: WordRow | WordRow[] | null
+}
+
+interface HistoryGrammarAttemptReviewRow {
+  id: string
+  grammar_item_id: string
+  original_text: string
+  ai_score?: number | null
+  ai_feedback?: string | null
+  created_at: string
+  grammar_items?: GrammarItemRow | GrammarItemRow[] | null
+}
+
+interface LibraryGrammarMembershipRow {
+  library_id?: string | null
+  position?: number | null
 }
 
 interface FavoriteRow {
@@ -2379,62 +2421,20 @@ async function getGrammarLearningHistory(
     .reverse()
 }
 
-async function loadGrammarStudyBatch({
-  supabase,
-  userId,
-  library,
-  skippedItemIds,
-  batchSize,
-}: {
-  supabase: SupabaseClient
-  userId: string
-  library: LibraryRow
-  skippedItemIds: string[]
-  batchSize: number
-}): Promise<StudyBatchGrammarItem[]> {
-  const query = supabase
-    .from('library_grammar_items')
-    .select(
-      'grammar_item_id, position, grammar_items!inner(id, slug, title, short_label, pattern, family, subtype, anchor, core_explanation, usage_note, usage_register, scene_tags, slot_schema, common_errors)'
-    )
-    .eq('library_id', library.id)
-    .order('position', { ascending: true, nullsFirst: false })
-    .limit(batchSize)
-
-  if (skippedItemIds.length > 0) {
-    query.not('grammar_item_id', 'in', toPostgrestInList(skippedItemIds))
+async function loadGrammarStudySupportData(
+  supabase: SupabaseClient,
+  grammarItemIds: string[]
+) {
+  const emptyMaps = {
+    examplesByItemId: new Map<string, GrammarExampleInfo[]>(),
+    templatesByItemId: new Map<string, GrammarTemplateInfo[]>(),
+    contrastsByItemId: new Map<string, GrammarContrastInfo[]>(),
   }
 
-  const { data, error } = await query
-
-  if (error) {
-    console.error('Failed to load grammar study batch:', error)
-    return []
+  if (grammarItemIds.length === 0) {
+    return emptyMaps
   }
 
-  const grammarRows = ((data ?? []) as LibraryGrammarItemRow[])
-    .map((row) => {
-      const grammar = normalizeGrammarItemRow(row.grammar_items)
-      const grammarItemId =
-        typeof row.grammar_item_id === 'string' ? row.grammar_item_id : grammar?.id ?? null
-      if (!grammar || !grammarItemId) {
-        return null
-      }
-
-      return {
-        grammarItemId,
-        grammar,
-      }
-    })
-    .filter(
-      (row): row is { grammarItemId: string; grammar: GrammarItemRow } => row !== null
-    )
-
-  if (grammarRows.length === 0) {
-    return []
-  }
-
-  const grammarItemIds = grammarRows.map((row) => row.grammarItemId)
   const [{ data: exampleRows, error: examplesError }, { data: templateRows, error: templatesError }, { data: contrastRows, error: contrastsError }] =
     await Promise.all([
       supabase
@@ -2504,33 +2504,100 @@ async function loadGrammarStudyBatch({
   }
 
   const examplesByItemId = new Map<string, GrammarExampleInfo[]>()
-  for (const row of grammarItemIds) {
-    const items = normalizeGrammarExamples(
-      ((exampleRows ?? []) as GrammarItemExampleRow[]).filter(
-        (example) => example.grammar_item_id === row
-      )
-    )
-    examplesByItemId.set(row, items)
-  }
-
   const templatesByItemId = new Map<string, GrammarTemplateInfo[]>()
-  for (const row of grammarItemIds) {
-    const items = normalizeGrammarTemplates(
-      ((templateRows ?? []) as GrammarItemTemplateRow[]).filter(
-        (template) => template.grammar_item_id === row
+  const contrastsByItemId = new Map<string, GrammarContrastInfo[]>()
+
+  for (const grammarItemId of grammarItemIds) {
+    examplesByItemId.set(
+      grammarItemId,
+      normalizeGrammarExamples(
+        ((exampleRows ?? []) as GrammarItemExampleRow[]).filter(
+          (example) => example.grammar_item_id === grammarItemId
+        )
       )
     )
-    templatesByItemId.set(row, items)
+    templatesByItemId.set(
+      grammarItemId,
+      normalizeGrammarTemplates(
+        ((templateRows ?? []) as GrammarItemTemplateRow[]).filter(
+          (template) => template.grammar_item_id === grammarItemId
+        )
+      )
+    )
+    contrastsByItemId.set(
+      grammarItemId,
+      normalizeGrammarContrasts(
+        contrastRowsList.filter((contrast) => contrast.grammar_item_id === grammarItemId),
+        contrastTitleMap
+      )
+    )
   }
 
-  const contrastsByItemId = new Map<string, GrammarContrastInfo[]>()
-  for (const row of grammarItemIds) {
-    const items = normalizeGrammarContrasts(
-      contrastRowsList.filter((contrast) => contrast.grammar_item_id === row),
-      contrastTitleMap
-    )
-    contrastsByItemId.set(row, items)
+  return {
+    examplesByItemId,
+    templatesByItemId,
+    contrastsByItemId,
   }
+}
+
+async function loadGrammarStudyBatch({
+  supabase,
+  userId,
+  library,
+  skippedItemIds,
+  batchSize,
+}: {
+  supabase: SupabaseClient
+  userId: string
+  library: LibraryRow
+  skippedItemIds: string[]
+  batchSize: number
+}): Promise<StudyBatchGrammarItem[]> {
+  const query = supabase
+    .from('library_grammar_items')
+    .select(
+      'grammar_item_id, position, grammar_items!inner(id, slug, title, short_label, pattern, family, subtype, anchor, core_explanation, usage_note, usage_register, scene_tags, slot_schema, common_errors)'
+    )
+    .eq('library_id', library.id)
+    .order('position', { ascending: true, nullsFirst: false })
+    .limit(batchSize)
+
+  if (skippedItemIds.length > 0) {
+    query.not('grammar_item_id', 'in', toPostgrestInList(skippedItemIds))
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Failed to load grammar study batch:', error)
+    return []
+  }
+
+  const grammarRows = ((data ?? []) as LibraryGrammarItemRow[])
+    .map((row) => {
+      const grammar = normalizeGrammarItemRow(row.grammar_items)
+      const grammarItemId =
+        typeof row.grammar_item_id === 'string' ? row.grammar_item_id : grammar?.id ?? null
+      if (!grammar || !grammarItemId) {
+        return null
+      }
+
+      return {
+        grammarItemId,
+        grammar,
+      }
+    })
+    .filter(
+      (row): row is { grammarItemId: string; grammar: GrammarItemRow } => row !== null
+    )
+
+  if (grammarRows.length === 0) {
+    return []
+  }
+
+  const grammarItemIds = grammarRows.map((row) => row.grammarItemId)
+  const { examplesByItemId, templatesByItemId, contrastsByItemId } =
+    await loadGrammarStudySupportData(supabase, grammarItemIds)
 
   await ensureUserLibraryPlan(supabase, userId, library.id)
   await touchUserLibraryGrammarItems(supabase, userId, library.id, grammarItemIds)
@@ -3095,6 +3162,200 @@ export async function getNextWord(
   })
 
   return batch[0] ?? null
+}
+
+export async function getHistorySentenceReviewTarget(
+  sentenceId: string
+): Promise<HistoryReviewTarget> {
+  const normalizedSentenceId = sanitizeText(sentenceId).trim()
+  if (!normalizedSentenceId) {
+    return { batchItem: null, review: null }
+  }
+
+  const { supabase, user } = await requireActionSession()
+  const { data, error } = await supabase
+    .from('sentences')
+    .select(
+      'id, word_id, original_text, ai_score, ai_feedback, created_at, words!inner(id, word, definition, tags, phonetic, example)'
+    )
+    .eq('user_id', user.id)
+    .eq('id', normalizedSentenceId)
+    .maybeSingle()
+
+  if (error) {
+    console.error('Failed to load history sentence review target:', error)
+    return { batchItem: null, review: null }
+  }
+
+  const sentenceRow = data as HistorySentenceReviewRow | null
+  if (!sentenceRow || typeof sentenceRow.word_id !== 'string') {
+    return { batchItem: null, review: null }
+  }
+  const joinedWord = Array.isArray(sentenceRow.words) ? sentenceRow.words[0] : sentenceRow.words
+
+  const { data: userWordData, error: userWordError } = await supabase
+    .from('user_words')
+    .select('*, words(*)')
+    .eq('user_id', user.id)
+    .eq('word_id', sentenceRow.word_id)
+    .maybeSingle()
+
+  if (userWordError) {
+    console.error('Failed to load user word for history review:', userWordError)
+  }
+
+  const baseBatchItem =
+    normalizeStudyBatchItem(userWordData, {
+      isNew: false,
+      priorityReason: 'due',
+    }) ??
+    normalizeNewStudyBatchItem(joinedWord, {
+      isNew: false,
+      priorityReason: 'due',
+    })
+
+  if (!baseBatchItem) {
+    return { batchItem: null, review: null }
+  }
+
+  const [hydratedBatchItem] = await hydrateStudyBatchWordDetails(supabase, [baseBatchItem])
+  if (!hydratedBatchItem) {
+    return { batchItem: null, review: null }
+  }
+
+  return {
+    batchItem: hydratedBatchItem,
+    review: {
+      historyId: sentenceRow.id,
+      targetKind: 'word',
+      title: hydratedBatchItem.words.word,
+      subtitle: hydratedBatchItem.words.definition ?? null,
+      sentence: sentenceRow.original_text,
+      score: typeof sentenceRow.ai_score === 'number' ? sentenceRow.ai_score : 0,
+      feedback: sentenceRow.ai_feedback ?? '',
+      createdAt: sentenceRow.created_at,
+    },
+  }
+}
+
+export async function getHistoryGrammarReviewTarget(
+  attemptId: string
+): Promise<HistoryReviewTarget> {
+  const normalizedAttemptId = sanitizeText(attemptId).trim()
+  if (!normalizedAttemptId) {
+    return { batchItem: null, review: null }
+  }
+
+  const { supabase, user } = await requireActionSession()
+  const { data, error } = await supabase
+    .from('grammar_attempts')
+    .select(
+      'id, grammar_item_id, original_text, ai_score, ai_feedback, created_at, grammar_items!inner(id, slug, title, short_label, pattern, family, subtype, anchor, core_explanation, usage_note, usage_register, scene_tags, slot_schema, common_errors)'
+    )
+    .eq('user_id', user.id)
+    .eq('id', normalizedAttemptId)
+    .maybeSingle()
+
+  if (error) {
+    console.error('Failed to load history grammar review target:', error)
+    return { batchItem: null, review: null }
+  }
+
+  const attemptRow = data as HistoryGrammarAttemptReviewRow | null
+  if (!attemptRow || typeof attemptRow.grammar_item_id !== 'string') {
+    return { batchItem: null, review: null }
+  }
+
+  const grammarRow = normalizeGrammarItemRow(attemptRow.grammar_items)
+  if (!grammarRow) {
+    return { batchItem: null, review: null }
+  }
+
+  const [{ data: userGrammarData, error: userGrammarError }, { data: libraryMemberships, error: libraryMembershipError }] =
+    await Promise.all([
+      supabase
+        .from('user_grammar_items')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('grammar_item_id', attemptRow.grammar_item_id)
+        .maybeSingle(),
+      supabase
+        .from('library_grammar_items')
+        .select('library_id, position')
+        .eq('grammar_item_id', attemptRow.grammar_item_id)
+        .order('position', { ascending: true, nullsFirst: false }),
+    ])
+
+  if (userGrammarError) {
+    console.error('Failed to load user grammar item for history review:', userGrammarError)
+  }
+
+  if (libraryMembershipError) {
+    console.error('Failed to load grammar library memberships for history review:', libraryMembershipError)
+  }
+
+  const { examplesByItemId, templatesByItemId, contrastsByItemId } =
+    await loadGrammarStudySupportData(supabase, [attemptRow.grammar_item_id])
+
+  const userGrammarItem =
+    userGrammarData && typeof userGrammarData === 'object'
+      ? (userGrammarData as UserGrammarItemRecord)
+      : null
+
+  const libraryIds = ((libraryMemberships ?? []) as LibraryGrammarMembershipRow[])
+    .map((row) => row.library_id)
+    .filter((libraryId): libraryId is string => typeof libraryId === 'string')
+
+  let preferredLibrarySlug: string | null = null
+  if (libraryIds.length > 0) {
+    const { data: libraries, error: librariesError } = await supabase
+      .from('libraries')
+      .select('id, slug')
+      .in('id', libraryIds)
+
+    if (librariesError) {
+      console.error('Failed to load grammar history libraries:', librariesError)
+    } else {
+      const slugById = new Map<string, string>()
+      for (const row of (libraries ?? []) as Array<{ id?: string | null; slug?: string | null }>) {
+        if (typeof row.id === 'string' && typeof row.slug === 'string') {
+          slugById.set(row.id, row.slug)
+        }
+      }
+
+      preferredLibrarySlug =
+        libraryIds.map((libraryId) => slugById.get(libraryId)).find((slug): slug is string => Boolean(slug)) ??
+        null
+    }
+  }
+
+  return {
+    batchItem: {
+      kind: 'grammar',
+      id: userGrammarItem?.id ?? attemptRow.grammar_item_id,
+      userGrammarItemId: userGrammarItem?.id ?? null,
+      grammar_item_id: attemptRow.grammar_item_id,
+      grammar: buildGrammarStudyInfo(
+        grammarRow,
+        examplesByItemId.get(attemptRow.grammar_item_id) ?? [],
+        templatesByItemId.get(attemptRow.grammar_item_id) ?? [],
+        contrastsByItemId.get(attemptRow.grammar_item_id) ?? []
+      ),
+      isNew: false,
+      priorityReason: 'due',
+    },
+    review: {
+      historyId: attemptRow.id,
+      targetKind: 'grammar',
+      title: grammarRow.title,
+      subtitle: grammarRow.pattern,
+      sentence: attemptRow.original_text,
+      score: typeof attemptRow.ai_score === 'number' ? attemptRow.ai_score : 0,
+      feedback: attemptRow.ai_feedback ?? '',
+      createdAt: attemptRow.created_at,
+    },
+    preferredLibrarySlug,
+  }
 }
 
 export async function submitSentence(

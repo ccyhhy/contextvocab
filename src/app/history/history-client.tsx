@@ -1,6 +1,8 @@
 "use client"
 
+import Link from "next/link"
 import {
+  type ReactNode,
   useDeferredValue,
   useEffect,
   useRef,
@@ -8,9 +10,22 @@ import {
   useTransition,
 } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { ChevronDown, ChevronUp, Clock, MessageSquare, Search, SortAsc } from "lucide-react"
 import {
+  BookMarked,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  History,
+  MessageSquare,
+  Search,
+  SortAsc,
+  Sparkles,
+} from "lucide-react"
+import {
+  getGrammarAttemptHistory,
   getSentenceHistory,
+  type GrammarAttemptRecord,
+  type GrammarHistoryResult,
   type HistoryResult,
   type HistorySortBy,
   type SentenceRecord,
@@ -21,23 +36,25 @@ const SEARCH_DEBOUNCE_MS = 300
 function ScoreBadge({ score }: { score: number }) {
   const color =
     score >= 80
-      ? "text-green-400 bg-green-500/10 border-green-500/20"
+      ? "border-green-500/20 bg-green-500/10 text-green-400"
       : score >= 60
-        ? "text-yellow-400 bg-yellow-500/10 border-yellow-500/20"
-        : "text-red-400 bg-red-500/10 border-red-500/20"
+        ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-400"
+        : "border-red-500/20 bg-red-500/10 text-red-400"
 
   return (
-    <span className={`inline-flex h-10 w-14 items-center justify-center rounded-xl border text-sm font-bold ${color}`}>
+    <span
+      className={`inline-flex h-10 w-14 items-center justify-center rounded-xl border text-sm font-bold ${color}`}
+    >
       {score}
     </span>
   )
 }
 
-function UsageBadge({ item }: { item: SentenceRecord }) {
+function WordUsageBadge({ item }: { item: SentenceRecord }) {
   if (item.attemptStatus === "needs_help") {
     return (
       <span className="rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-300">
-        Need Help
+        需要帮助
       </span>
     )
   }
@@ -45,7 +62,7 @@ function UsageBadge({ item }: { item: SentenceRecord }) {
   if (item.isMetaSentence) {
     return (
       <span className="rounded-full border border-orange-500/20 bg-orange-500/10 px-2 py-0.5 text-[10px] font-medium text-orange-300">
-        Meta
+        元句子
       </span>
     )
   }
@@ -53,19 +70,61 @@ function UsageBadge({ item }: { item: SentenceRecord }) {
   if (item.usageQuality === "weak") {
     return (
       <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-[10px] font-medium text-yellow-300">
-        Weak
+        用法偏弱
       </span>
     )
   }
 
   return (
     <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-      In Context
+      用法到位
     </span>
   )
 }
 
-function SentenceCard({ item }: { item: SentenceRecord }) {
+function GrammarStatusBadge({ item }: { item: GrammarAttemptRecord }) {
+  if (!item.patternMatched) {
+    return (
+      <span className="rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-300">
+        未命中结构
+      </span>
+    )
+  }
+
+  if (item.attemptStatus === "needs_help") {
+    return (
+      <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-[10px] font-medium text-yellow-300">
+        需要重练
+      </span>
+    )
+  }
+
+  return (
+    <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+      结构命中
+    </span>
+  )
+}
+
+function MetricBadge({
+  label,
+  value,
+}: {
+  label: string
+  value: number | null | undefined
+}) {
+  if (typeof value !== "number") {
+    return null
+  }
+
+  return (
+    <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[10px] text-zinc-400">
+      {label} {value}/5
+    </span>
+  )
+}
+
+function WordSentenceCard({ item }: { item: SentenceRecord }) {
   const [expanded, setExpanded] = useState(false)
   const date = new Date(item.created_at)
 
@@ -75,18 +134,22 @@ function SentenceCard({ item }: { item: SentenceRecord }) {
       className="glass-panel overflow-hidden rounded-2xl transition-all hover:border-white/[0.12]"
     >
       <button
+        type="button"
         onClick={() => setExpanded((current) => !current)}
         className="flex w-full items-center gap-4 px-5 py-4 text-left"
       >
         <ScoreBadge score={item.score} />
         <div className="min-w-0 flex-1">
-          <div className="mb-1 flex items-center gap-2">
+          <div className="mb-1 flex flex-wrap items-center gap-2">
             <span className="text-sm font-semibold text-white">{item.word}</span>
-            <UsageBadge item={item} />
+            <WordUsageBadge item={item} />
             <span className="flex items-center gap-1 text-xs text-zinc-500">
               <Clock className="h-3 w-3" />
               {date.toLocaleDateString("zh-CN")}{" "}
-              {date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
+              {date.toLocaleTimeString("zh-CN", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </span>
           </div>
           <p className="truncate text-sm text-zinc-400">{item.sentence}</p>
@@ -101,7 +164,7 @@ function SentenceCard({ item }: { item: SentenceRecord }) {
       </button>
 
       <AnimatePresence>
-        {expanded && (
+        {expanded ? (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -111,9 +174,9 @@ function SentenceCard({ item }: { item: SentenceRecord }) {
           >
             <div className="border-t border-white/[0.06] px-5 pb-4 pt-0">
               <div className="mt-3 flex flex-wrap gap-2">
-                <UsageBadge item={item} />
+                <WordUsageBadge item={item} />
                 <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
-                  {item.usesWordInContext ? "Used In Context" : "Not In Context"}
+                  {item.usesWordInContext ? "已在语境中使用" : "未在语境中使用"}
                 </span>
               </div>
 
@@ -131,11 +194,204 @@ function SentenceCard({ item }: { item: SentenceRecord }) {
                 <p className="mb-1 text-xs text-zinc-500">你的造句</p>
                 <p className="text-sm italic text-zinc-200">&quot;{item.sentence}&quot;</p>
               </div>
+
+              <div className="mt-3 flex justify-end">
+                <Link
+                  href={`/study?reviewSentenceId=${item.id}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm text-blue-100 transition-colors hover:bg-blue-500/15"
+                >
+                  <History className="h-4 w-4" />
+                  复习这句
+                </Link>
+              </div>
             </div>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </motion.div>
+  )
+}
+
+function GrammarAttemptCard({ item }: { item: GrammarAttemptRecord }) {
+  const [expanded, setExpanded] = useState(false)
+  const date = new Date(item.created_at)
+
+  return (
+    <motion.div
+      layout
+      className="glass-panel overflow-hidden rounded-2xl transition-all hover:border-white/[0.12]"
+    >
+      <button
+        type="button"
+        onClick={() => setExpanded((current) => !current)}
+        className="flex w-full items-center gap-4 px-5 py-4 text-left"
+      >
+        <ScoreBadge score={item.score} />
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold text-white">{item.title}</span>
+            <GrammarStatusBadge item={item} />
+            <span className="flex items-center gap-1 text-xs text-zinc-500">
+              <Clock className="h-3 w-3" />
+              {date.toLocaleDateString("zh-CN")}{" "}
+              {date.toLocaleTimeString("zh-CN", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          </div>
+          <p className="truncate text-sm text-blue-200/85">{item.pattern}</p>
+          <p className="mt-1 truncate text-sm text-zinc-400">{item.sentence}</p>
+        </div>
+        <motion.div
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+          className="shrink-0 text-zinc-500"
+        >
+          <ChevronDown className="h-4 w-4" />
+        </motion.div>
+      </button>
+
+      <AnimatePresence>
+        {expanded ? (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-white/[0.06] px-5 pb-4 pt-0">
+              <div className="mt-3 flex flex-wrap gap-2">
+                <GrammarStatusBadge item={item} />
+                <MetricBadge label="结构" value={item.structureAccuracy} />
+                <MetricBadge label="场景" value={item.sceneFit} />
+                <MetricBadge label="自然度" value={item.naturalness} />
+              </div>
+
+              <div className="mt-3 rounded-xl border border-white/[0.05] bg-[#09090b]/60 p-4">
+                <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <MessageSquare className="h-3 w-3" />
+                  AI 评语
+                </div>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
+                  {item.feedback || "暂无评语。"}
+                </p>
+              </div>
+
+              <div className="mt-3 rounded-lg border border-white/[0.04] bg-white/[0.02] p-3">
+                <p className="mb-1 text-xs text-zinc-500">你的练习句子</p>
+                <p className="text-sm italic text-zinc-200">&quot;{item.sentence}&quot;</p>
+              </div>
+
+              <div className="mt-3 flex justify-end">
+                <Link
+                  href={`/study?reviewGrammarAttemptId=${item.id}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-4 py-2 text-sm text-violet-100 transition-colors hover:bg-violet-500/15"
+                >
+                  <History className="h-4 w-4" />
+                  复习这句
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </motion.div>
+  )
+}
+
+function SectionHeader({
+  icon,
+  title,
+  total,
+  description,
+}: {
+  icon: ReactNode
+  title: string
+  total: number
+  description: string
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <div className="flex items-center gap-2 text-base font-semibold text-white">
+          {icon}
+          {title}
+        </div>
+        <p className="mt-1 text-sm text-zinc-500">{description}</p>
+      </div>
+      <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-zinc-400">
+        共 {total} 条
+      </span>
+    </div>
+  )
+}
+
+function Pagination({
+  page,
+  total,
+  pageSize,
+  onPageChange,
+}: {
+  page: number
+  total: number
+  pageSize: number
+  onPageChange: (page: number) => void
+}) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  if (totalPages <= 1) {
+    return null
+  }
+
+  const pageNumbers = Array.from({ length: Math.min(totalPages, 7) }, (_, index) => {
+    if (totalPages <= 7) {
+      return index + 1
+    }
+    if (page <= 4) {
+      return index + 1
+    }
+    if (page >= totalPages - 3) {
+      return totalPages - 6 + index
+    }
+    return page - 3 + index
+  })
+
+  return (
+    <div className="flex items-center justify-center gap-2 pt-4">
+      <button
+        type="button"
+        onClick={() => onPageChange(page - 1)}
+        disabled={page <= 1}
+        className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-all hover:bg-white/[0.06] hover:text-white disabled:pointer-events-none disabled:opacity-30"
+      >
+        <ChevronUp className="h-4 w-4 -rotate-90" />
+      </button>
+
+      {pageNumbers.map((pageNumber) => (
+        <button
+          key={pageNumber}
+          type="button"
+          onClick={() => onPageChange(pageNumber)}
+          className={`h-9 w-9 rounded-lg text-sm font-medium transition-all ${
+            pageNumber === page
+              ? "bg-blue-600 text-white"
+              : "text-zinc-400 hover:bg-white/[0.06] hover:text-white"
+          }`}
+        >
+          {pageNumber}
+        </button>
+      ))}
+
+      <button
+        type="button"
+        onClick={() => onPageChange(page + 1)}
+        disabled={page >= totalPages}
+        className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-all hover:bg-white/[0.06] hover:text-white disabled:pointer-events-none disabled:opacity-30"
+      >
+        <ChevronUp className="h-4 w-4 rotate-90" />
+      </button>
+    </div>
   )
 }
 
@@ -146,19 +402,27 @@ const sortOptions: Array<{ value: HistorySortBy; label: string }> = [
   { value: "lowest", label: "最低分优先" },
 ]
 
-export default function HistoryClient({ initialData }: { initialData: HistoryResult }) {
-  const [data, setData] = useState<HistoryResult>(initialData)
+export default function HistoryClient({
+  initialSentenceData,
+  initialGrammarData,
+}: {
+  initialSentenceData: HistoryResult
+  initialGrammarData: GrammarHistoryResult
+}) {
+  const [sentenceData, setSentenceData] = useState<HistoryResult>(initialSentenceData)
+  const [grammarData, setGrammarData] =
+    useState<GrammarHistoryResult>(initialGrammarData)
   const [searchInput, setSearchInput] = useState("")
   const deferredSearch = useDeferredValue(searchInput)
   const [appliedSearch, setAppliedSearch] = useState("")
   const [sortBy, setSortBy] = useState<HistorySortBy>("newest")
   const [isPending, startTransition] = useTransition()
   const didMountRef = useRef(false)
-  const latestRequestRef = useRef(0)
+  const latestCombinedRequestRef = useRef(0)
+  const latestSentenceRequestRef = useRef(0)
+  const latestGrammarRequestRef = useRef(0)
   const appliedSearchRef = useRef(appliedSearch)
   const sortByRef = useRef(sortBy)
-
-  const totalPages = Math.max(1, Math.ceil(data.total / data.pageSize))
 
   useEffect(() => {
     appliedSearchRef.current = appliedSearch
@@ -177,17 +441,25 @@ export default function HistoryClient({ initialData }: { initialData: HistoryRes
     const nextSearch = deferredSearch.trim()
     const timer = window.setTimeout(() => {
       setAppliedSearch(nextSearch)
-      const requestId = ++latestRequestRef.current
+      const requestId = ++latestCombinedRequestRef.current
 
       startTransition(async () => {
-        const result = await getSentenceHistory({
-          page: 1,
-          search: nextSearch,
-          sortBy: sortByRef.current,
-        })
+        const [nextSentenceData, nextGrammarData] = await Promise.all([
+          getSentenceHistory({
+            page: 1,
+            search: nextSearch,
+            sortBy: sortByRef.current,
+          }),
+          getGrammarAttemptHistory({
+            page: 1,
+            search: nextSearch,
+            sortBy: sortByRef.current,
+          }),
+        ])
 
-        if (latestRequestRef.current === requestId) {
-          setData(result)
+        if (latestCombinedRequestRef.current === requestId) {
+          setSentenceData(nextSentenceData)
+          setGrammarData(nextGrammarData)
         }
       })
     }, SEARCH_DEBOUNCE_MS)
@@ -197,33 +469,59 @@ export default function HistoryClient({ initialData }: { initialData: HistoryRes
 
   const handleSortChange = (value: HistorySortBy) => {
     setSortBy(value)
-    const requestId = ++latestRequestRef.current
+    const requestId = ++latestCombinedRequestRef.current
 
     startTransition(async () => {
-      const result = await getSentenceHistory({
-        page: 1,
-        search: appliedSearchRef.current,
-        sortBy: value,
-      })
+      const [nextSentenceData, nextGrammarData] = await Promise.all([
+        getSentenceHistory({
+          page: 1,
+          search: appliedSearchRef.current,
+          sortBy: value,
+        }),
+        getGrammarAttemptHistory({
+          page: 1,
+          search: appliedSearchRef.current,
+          sortBy: value,
+        }),
+      ])
 
-      if (latestRequestRef.current === requestId) {
-        setData(result)
+      if (latestCombinedRequestRef.current === requestId) {
+        setSentenceData(nextSentenceData)
+        setGrammarData(nextGrammarData)
       }
     })
   }
 
-  const handlePageChange = (newPage: number) => {
-    const requestId = ++latestRequestRef.current
+  const handleSentencePageChange = (page: number) => {
+    const requestId = ++latestSentenceRequestRef.current
 
     startTransition(async () => {
       const result = await getSentenceHistory({
-        page: newPage,
+        page,
         search: appliedSearchRef.current,
         sortBy: sortByRef.current,
       })
 
-      if (latestRequestRef.current === requestId) {
-        setData(result)
+      if (latestSentenceRequestRef.current === requestId) {
+        setSentenceData(result)
+      }
+    })
+
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  const handleGrammarPageChange = (page: number) => {
+    const requestId = ++latestGrammarRequestRef.current
+
+    startTransition(async () => {
+      const result = await getGrammarAttemptHistory({
+        page,
+        search: appliedSearchRef.current,
+        sortBy: sortByRef.current,
+      })
+
+      if (latestGrammarRequestRef.current === requestId) {
+        setGrammarData(result)
       }
     })
 
@@ -231,14 +529,18 @@ export default function HistoryClient({ initialData }: { initialData: HistoryRes
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6 p-4 sm:p-8" aria-busy={isPending}>
+    <div className="mx-auto w-full max-w-5xl space-y-8 p-4 sm:p-8" aria-busy={isPending}>
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">历史记录</h1>
-        <p className="mt-1 text-sm text-zinc-500">共 {data.total} 条造句记录</p>
+        <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          历史复习
+        </h1>
+        <p className="mt-1 text-sm text-zinc-500">
+          单词造句 {sentenceData.total} 条，句法练习 {grammarData.total} 条
+        </p>
       </motion.div>
 
       <motion.div
@@ -253,7 +555,7 @@ export default function HistoryClient({ initialData }: { initialData: HistoryRes
             type="text"
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="搜索单词或句子..."
+            placeholder="搜索单词、句法或造句..."
             className="w-full rounded-xl border border-white/10 bg-black/40 py-2.5 pl-10 pr-4 text-sm text-zinc-200 outline-none transition-all placeholder:text-zinc-600 focus:border-blue-500/50"
           />
         </div>
@@ -274,73 +576,83 @@ export default function HistoryClient({ initialData }: { initialData: HistoryRes
         </div>
       </motion.div>
 
-      <div className={`space-y-2 transition-opacity ${isPending ? "opacity-50" : ""}`}>
-        {data.sentences.length === 0 ? (
+      <section className={`space-y-4 transition-opacity ${isPending ? "opacity-70" : ""}`}>
+        <SectionHeader
+          icon={<BookMarked className="h-4 w-4 text-blue-300" />}
+          title="单词造句历史"
+          total={sentenceData.total}
+          description="回看你曾经写过的单词句子，并从原句直接进入复习。"
+        />
+
+        {sentenceData.sentences.length === 0 ? (
           <div className="glass-panel rounded-2xl p-12 text-center">
             <p className="text-sm text-zinc-500">
-              {appliedSearch ? "没有找到匹配的记录。" : "还没有造句记录，先去学习一轮。"}
+              {appliedSearch
+                ? "没有找到匹配的单词造句记录。"
+                : "还没有单词造句记录，先去学习一轮吧。"}
             </p>
           </div>
         ) : (
-          data.sentences.map((item, index) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.03, duration: 0.3 }}
-            >
-              <SentenceCard item={item} />
-            </motion.div>
-          ))
-        )}
-      </div>
-
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-4">
-          <button
-            onClick={() => handlePageChange(data.page - 1)}
-            disabled={data.page <= 1}
-            className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-all hover:bg-white/[0.06] hover:text-white disabled:pointer-events-none disabled:opacity-30"
-          >
-            <ChevronUp className="h-4 w-4 -rotate-90" />
-          </button>
-
-          {Array.from({ length: Math.min(totalPages, 7) }, (_, index) => {
-            let pageNum: number
-            if (totalPages <= 7) {
-              pageNum = index + 1
-            } else if (data.page <= 4) {
-              pageNum = index + 1
-            } else if (data.page >= totalPages - 3) {
-              pageNum = totalPages - 6 + index
-            } else {
-              pageNum = data.page - 3 + index
-            }
-
-            return (
-              <button
-                key={pageNum}
-                onClick={() => handlePageChange(pageNum)}
-                className={`h-9 w-9 rounded-lg text-sm font-medium transition-all ${
-                  pageNum === data.page
-                    ? "bg-blue-600 text-white"
-                    : "text-zinc-400 hover:bg-white/[0.06] hover:text-white"
-                }`}
+          <div className="space-y-2">
+            {sentenceData.sentences.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.03, duration: 0.3 }}
               >
-                {pageNum}
-              </button>
-            )
-          })}
+                <WordSentenceCard item={item} />
+              </motion.div>
+            ))}
+          </div>
+        )}
 
-          <button
-            onClick={() => handlePageChange(data.page + 1)}
-            disabled={data.page >= totalPages}
-            className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-all hover:bg-white/[0.06] hover:text-white disabled:pointer-events-none disabled:opacity-30"
-          >
-            <ChevronUp className="h-4 w-4 rotate-90" />
-          </button>
-        </div>
-      )}
+        <Pagination
+          page={sentenceData.page}
+          total={sentenceData.total}
+          pageSize={sentenceData.pageSize}
+          onPageChange={handleSentencePageChange}
+        />
+      </section>
+
+      <section className={`space-y-4 transition-opacity ${isPending ? "opacity-70" : ""}`}>
+        <SectionHeader
+          icon={<Sparkles className="h-4 w-4 text-violet-300" />}
+          title="句法练习历史"
+          total={grammarData.total}
+          description="回看你练过的句法结构，直接用原句重新练一遍。"
+        />
+
+        {grammarData.attempts.length === 0 ? (
+          <div className="glass-panel rounded-2xl p-12 text-center">
+            <p className="text-sm text-zinc-500">
+              {appliedSearch
+                ? "没有找到匹配的句法练习记录。"
+                : "还没有句法练习记录，去 Grammar 词库里试几张卡吧。"}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {grammarData.attempts.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.03, duration: 0.3 }}
+              >
+                <GrammarAttemptCard item={item} />
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        <Pagination
+          page={grammarData.page}
+          total={grammarData.total}
+          pageSize={grammarData.pageSize}
+          onPageChange={handleGrammarPageChange}
+        />
+      </section>
     </div>
   )
 }
