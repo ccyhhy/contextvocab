@@ -1,0 +1,1209 @@
+
+> words@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://198.18.0.1:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 820ms
+ GET / 307 in 1763ms (compile: 1478ms, proxy.ts: 120ms, render: 164ms)
+ GET /study 200 in 323ms (compile: 249ms, proxy.ts: 5ms, render: 70ms)
+ GET / 307 in 118ms (compile: 4ms, proxy.ts: 6ms, render: 108ms)
+ GET /study 200 in 90ms (compile: 4ms, proxy.ts: 6ms, render: 81ms)
+ GET /login 200 in 155ms (compile: 34ms, proxy.ts: 6ms, render: 115ms)
+ GET /login?mode=signup 200 in 40ms (compile: 5ms, proxy.ts: 8ms, render: 27ms)
+[study:perf] getDueWordCount 556ms studyView=all tag=All libraryScoped=false skipped=0 preferred=0 count=0
+[study:perf] getDueRowsByCategory 578ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 244ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 333ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 189ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueStudyItems 1345ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 1813ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=0
+[study:perf] hydrateStudyBatchWordDetails 238ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 3398ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=0
+[study:page] 3446ms librarySlug=all reviewRoute=false hasReviewTarget=false initialBatch=5 libraries=3 favorites=0
+ GET /study 200 in 3.9s (compile: 4ms, proxy.ts: 226ms, render: 3.6s)
+ POST /login?mode=signup 303 in 5.6s (compile: 5ms, proxy.ts: 8ms, render: 5.6s)
+[study:perf] buildLibrarySummary 615ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 893ms library=cet-4 wordCount=3324 activeCount=0 dueCount=0
+[study:perf] getStudyLibraries 1469ms libraryCount=3 startedWordIds=0 dueWordIds=0 startedGrammarIds=0 dueGrammarIds=0
+[study:perf] getStudyEnrichmentProgress 3487ms libraryCount=3 cacheHit=false progressItems=4
+[study:perf] getStudySidebarData 4957ms libraryCount=3 progressItems=4
+ POST /study 200 in 5.3s (compile: 4ms, proxy.ts: 184ms, render: 5.1s)
+ POST /study 200 in 4.7s (compile: 4ms, proxy.ts: 154ms, render: 4.5s)
+[study:perf] getStudyLibraries 1263ms libraryCount=3 startedWordIds=0 dueWordIds=0 startedGrammarIds=0 dueGrammarIds=0
+[study:perf] getStudySidebarData 1264ms libraryCount=3 progressItems=4
+ POST /study 200 in 1928ms (compile: 4ms, proxy.ts: 406ms, render: 1517ms)
+ POST /study 200 in 1300ms (compile: 3ms, proxy.ts: 173ms, render: 1124ms)
+ POST /api/evaluate 200 in 12.4s (compile: 114ms, proxy.ts: 391ms, render: 11.9s)
+ POST /study 200 in 3.5s (compile: 3ms, proxy.ts: 298ms, render: 3.2s)
+[study:perf] getDueRowsByCategory 311ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueWordCount 399ms studyView=all tag=All libraryScoped=false skipped=0 preferred=0 count=0
+[study:perf] getDueRowsByCategory 365ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 199ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 298ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueStudyItems 1173ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 1699ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=0
+[study:perf] hydrateStudyBatchWordDetails 238ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 3111ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=0
+ POST /study 200 in 3.7s (compile: 4ms, proxy.ts: 364ms, render: 3.3s)
+ POST /study 200 in 4.6s (compile: 3ms, proxy.ts: 168ms, render: 4.5s)
+ POST /api/evaluate 200 in 14.3s (compile: 3ms, proxy.ts: 326ms, render: 14.0s)
+ POST /study 200 in 2.2s (compile: 4ms, proxy.ts: 341ms, render: 1884ms)
+[history:page] 805ms sentenceTotal=1 pageSize=15
+ GET /history 200 in 1644ms (compile: 73ms, proxy.ts: 562ms, render: 1009ms)
+ POST /history 200 in 4.8s (compile: 3ms, proxy.ts: 565ms, render: 4.2s)
+ POST /history 200 in 4.6s (compile: 3ms, proxy.ts: 260ms, render: 4.3s)
+ POST /history 200 in 1847ms (compile: 3ms, proxy.ts: 347ms, render: 1497ms)
+ POST /history 200 in 831ms (compile: 3ms, proxy.ts: 147ms, render: 681ms)
+[study:perf] hydrateStudyBatchWordDetails 1795ms batchSize=1 hydratedWords=1
+[study:page] 11611ms librarySlug=all reviewRoute=true hasReviewTarget=true initialBatch=1 libraries=3 favorites=0
+ GET /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 12.5s (compile: 4ms, proxy.ts: 656ms, render: 11.8s)
+[study:perf] buildLibrarySummary 872ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] buildLibrarySummary 1446ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] getStudyLibraries 7381ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=5 dueGrammarIds=0
+[study:perf] getStudySidebarData 7382ms libraryCount=3 progressItems=4
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 7.9s (compile: 4ms, proxy.ts: 342ms, render: 7.6s)
+[study:perf] getDueRowsByCategory 2704ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueWordCount 2799ms studyView=all tag=All libraryScoped=false skipped=1 preferred=0 count=0
+[study:perf] getDueRowsByCategory 1011ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueRowsByCategory 457ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueRowsByCategory 553ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueStudyItems 4726ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 3040ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=1
+[study:perf] hydrateStudyBatchWordDetails 387ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 8153ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=1
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 9.2s (compile: 5ms, proxy.ts: 762ms, render: 8.4s)
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 5.5s (compile: 3ms, proxy.ts: 501ms, render: 5.0s)
+[history:page] 7085ms sentenceTotal=1 pageSize=15
+ GET /history 200 in 11.8s (compile: 3ms, proxy.ts: 3.9s, render: 7.8s)
+[study:perf] getDueWordCount 4929ms studyView=all tag=All libraryScoped=false skipped=1 preferred=0 count=0
+[study:perf] getDueRowsByCategory 5291ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueRowsByCategory 579ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueRowsByCategory 445ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] buildLibrarySummary 312ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] buildLibrarySummary 363ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] getStudyLibraries 7150ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=5 dueGrammarIds=0
+[study:perf] getStudySidebarData 7150ms libraryCount=3 progressItems=4
+ POST /study 200 in 7.7s (compile: 3ms, proxy.ts: 270ms, render: 7.4s)
+ POST /history 200 in 9.8s (compile: 3ms, proxy.ts: 2.1s, render: 7.7s)
+[study:perf] getDueRowsByCategory 710ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueStudyItems 7027ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+ POST /history 200 in 1376ms (compile: 3ms, proxy.ts: 711ms, render: 661ms)
+ POST /history 200 in 805ms (compile: 5ms, proxy.ts: 157ms, render: 643ms)
+ POST /history 200 in 535ms (compile: 4ms, proxy.ts: 169ms, render: 362ms)
+[study:perf] getNewStudyItems 2083ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=1
+[study:perf] hydrateStudyBatchWordDetails 534ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 9645ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=1
+ POST /study 200 in 10.6s (compile: 3ms, proxy.ts: 358ms, render: 10.3s)
+ POST /history 200 in 11.6s (compile: 3ms, proxy.ts: 979ms, render: 10.6s)
+ POST /history 200 in 574ms (compile: 4ms, proxy.ts: 157ms, render: 413ms)
+[study:page] 1924ms librarySlug=basic-scene-grammar reviewRoute=true hasReviewTarget=true initialBatch=1 libraries=3 favorites=0
+ GET /study?reviewGrammarAttemptId=c06b0c99-69b0-4486-bea4-e23d155e1d97 200 in 2.6s (compile: 3ms, proxy.ts: 431ms, render: 2.1s)
+[study:perf] buildLibrarySummary 165ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] buildLibrarySummary 205ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] getStudyLibraries 897ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=5 dueGrammarIds=0
+[study:perf] getStudySidebarData 897ms libraryCount=3 progressItems=4
+ POST /study?reviewGrammarAttemptId=c06b0c99-69b0-4486-bea4-e23d155e1d97 200 in 1214ms (compile: 4ms, proxy.ts: 160ms, render: 1050ms)
+ POST /study?reviewGrammarAttemptId=c06b0c99-69b0-4486-bea4-e23d155e1d97 200 in 1219ms (compile: 4ms, proxy.ts: 145ms, render: 1070ms)
+[study:perf] buildLibrarySummary 178ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 605ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudySidebarData 606ms libraryCount=3 progressItems=4
+ POST /study?reviewGrammarAttemptId=c06b0c99-69b0-4486-bea4-e23d155e1d97 200 in 928ms (compile: 5ms, proxy.ts: 158ms, render: 765ms)
+ POST /study?reviewGrammarAttemptId=c06b0c99-69b0-4486-bea4-e23d155e1d97 200 in 1073ms (compile: 3ms, proxy.ts: 152ms, render: 917ms)
+✓ Compiled in 110ms
+ GET /study?reviewGrammarAttemptId=c06b0c99-69b0-4486-bea4-e23d155e1d97 200 in 1182ms (compile: 111ms, proxy.ts: 950ms, render: 122ms)
+[study:page] 3455ms librarySlug=basic-scene-grammar reviewRoute=true hasReviewTarget=true initialBatch=1 libraries=3 favorites=0
+ GET /study?reviewGrammarAttemptId=c06b0c99-69b0-4486-bea4-e23d155e1d97 200 in 4.8s (compile: 79ms, proxy.ts: 913ms, render: 3.8s)
+[study:perf] buildLibrarySummary 832ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 1059ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 2153ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudyEnrichmentProgress 3621ms libraryCount=3 cacheHit=false progressItems=4
+[study:perf] getStudySidebarData 5774ms libraryCount=3 progressItems=4
+ POST /study?reviewGrammarAttemptId=c06b0c99-69b0-4486-bea4-e23d155e1d97 200 in 6.2s (compile: 3ms, proxy.ts: 274ms, render: 5.9s)
+✓ Compiled in 63ms
+ POST /study?reviewGrammarAttemptId=c06b0c99-69b0-4486-bea4-e23d155e1d97 200 in 1262ms (compile: 3ms, proxy.ts: 283ms, render: 976ms)
+ GET /study?reviewGrammarAttemptId=c06b0c99-69b0-4486-bea4-e23d155e1d97 200 in 349ms (compile: 79ms, proxy.ts: 175ms, render: 95ms)
+✓ Compiled in 85ms
+[study:page] 2424ms librarySlug=basic-scene-grammar reviewRoute=true hasReviewTarget=true deferredLibraryOptions=false initialBatch=1 libraries=3 favorites=0
+ GET /study?reviewGrammarAttemptId=c06b0c99-69b0-4486-bea4-e23d155e1d97 200 in 3.7s (compile: 71ms, proxy.ts: 904ms, render: 2.7s)
+[study:perf] buildLibrarySummary 672ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 826ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 1413ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudyEnrichmentProgress 3598ms libraryCount=3 cacheHit=false progressItems=4
+[study:perf] getStudySidebarData 5013ms libraryCount=3 progressItems=4
+ POST /study?reviewGrammarAttemptId=c06b0c99-69b0-4486-bea4-e23d155e1d97 200 in 5.4s (compile: 4ms, proxy.ts: 163ms, render: 5.2s)
+ POST /study?reviewGrammarAttemptId=c06b0c99-69b0-4486-bea4-e23d155e1d97 200 in 1158ms (compile: 4ms, proxy.ts: 165ms, render: 990ms)
+[study:perf] hydrateStudyBatchWordDetails 410ms batchSize=1 hydratedWords=1
+[study:perf] getHistorySentenceReviewTarget 1057ms found=true wordId=664e0745-2863-4d57-8f02-96cfe0436013
+[study:page] 1058ms librarySlug=all reviewRoute=true hasReviewTarget=true deferredLibraryOptions=true initialBatch=1 libraries=0 favorites=0
+ GET /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 1740ms (compile: 4ms, proxy.ts: 422ms, render: 1314ms)
+[study:perf] buildLibrarySummary 207ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 235ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 1086ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudySidebarData 1086ms libraryCount=3 progressItems=4
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 1445ms (compile: 3ms, proxy.ts: 168ms, render: 1273ms)
+[study:perf] getDueRowsByCategory 192ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueWordCount 204ms studyView=all tag=All libraryScoped=false skipped=1 preferred=0 count=0
+[study:perf] getDueRowsByCategory 194ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueRowsByCategory 185ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueRowsByCategory 305ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueStudyItems 877ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 2644ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=1
+[study:perf] hydrateStudyBatchWordDetails 251ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 3776ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=1
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 4.1s (compile: 3ms, proxy.ts: 173ms, render: 3.9s)
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 6.0s (compile: 4ms, proxy.ts: 165ms, render: 5.8s)
+✓ Compiled in 60ms
+ GET /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 1224ms (compile: 84ms, proxy.ts: 1069ms, render: 71ms)
+✓ Compiled in 90ms
+ GET /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 628ms (compile: 87ms, proxy.ts: 408ms, render: 133ms)
+[study:perf] hydrateStudyBatchWordDetails 333ms batchSize=1 hydratedWords=1
+[study:perf] getHistorySentenceReviewTarget 937ms found=true wordId=664e0745-2863-4d57-8f02-96cfe0436013
+[study:page] 939ms librarySlug=all reviewRoute=true hasReviewTarget=true deferredLibraryOptions=true initialBatch=1 libraries=0 favorites=0
+ GET /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 1785ms (compile: 4ms, proxy.ts: 533ms, render: 1248ms)
+[study:perf] buildLibrarySummary 705ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 974ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 3410ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudyEnrichmentProgress 3693ms libraryCount=3 cacheHit=false progressItems=4
+[study:perf] getStudySidebarData 7105ms libraryCount=3 progressItems=4
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 7.4s (compile: 3ms, proxy.ts: 158ms, render: 7.3s)
+[study:perf] getDueRowsByCategory 183ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueWordCount 194ms studyView=all tag=All libraryScoped=false skipped=1 preferred=0 count=0
+[study:perf] getDueRowsByCategory 308ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueStudyItems 772ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 795ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=1
+[study:perf] hydrateStudyBatchWordDetails 167ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 1736ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=1
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 2.1s (compile: 4ms, proxy.ts: 161ms, render: 1904ms)
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 4.6s (compile: 3ms, proxy.ts: 159ms, render: 4.4s)
+[study:perf] hydrateStudyBatchWordDetails 339ms batchSize=1 hydratedWords=1
+[study:perf] getHistorySentenceReviewTarget 927ms found=true wordId=664e0745-2863-4d57-8f02-96cfe0436013
+[study:page] 929ms librarySlug=all reviewRoute=true hasReviewTarget=true deferredLibraryOptions=true initialBatch=1 libraries=0 favorites=0
+ GET /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 2.4s (compile: 4ms, proxy.ts: 1069ms, render: 1281ms)
+[study:perf] buildLibrarySummary 191ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 199ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 1118ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudySidebarData 1118ms libraryCount=3 progressItems=4
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 1462ms (compile: 3ms, proxy.ts: 175ms, render: 1284ms)
+[study:perf] getDueRowsByCategory 160ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueWordCount 177ms studyView=all tag=All libraryScoped=false skipped=1 preferred=0 count=0
+[study:perf] getDueRowsByCategory 291ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueStudyItems 733ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 879ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=1
+[study:perf] hydrateStudyBatchWordDetails 755ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 2368ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=1
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 2.8s (compile: 3ms, proxy.ts: 216ms, render: 2.5s)
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 4.5s (compile: 3ms, proxy.ts: 167ms, render: 4.3s)
+✓ Compiled in 49ms
+ GET /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 655ms (compile: 87ms, proxy.ts: 493ms, render: 74ms)
+[study:perf] getDueWordCount 1288ms studyView=all tag=All libraryScoped=false skipped=0 preferred=0 count=0
+[study:perf] getDueRowsByCategory 1306ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 1333ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 1370ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 1471ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueStudyItems 1472ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 1298ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=0
+[study:perf] hydrateStudyBatchWordDetails 341ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 3111ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=0
+[study:page] 3114ms librarySlug=all reviewRoute=false hasReviewTarget=false deferredLibraryOptions=false initialBatch=5 libraries=3 favorites=0
+ GET /study 200 in 4.2s (compile: 3ms, proxy.ts: 594ms, render: 3.6s)
+[study:perf] buildLibrarySummary 659ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 888ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 1365ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudyEnrichmentProgress 3596ms libraryCount=3 cacheHit=false progressItems=4
+[study:perf] getStudySidebarData 4962ms libraryCount=3 progressItems=4
+ POST /study 200 in 5.3s (compile: 3ms, proxy.ts: 202ms, render: 5.1s)
+ POST /study 200 in 3.9s (compile: 4ms, proxy.ts: 154ms, render: 3.8s)
+✓ Compiled in 55ms
+ GET /study 200 in 540ms (compile: 87ms, proxy.ts: 351ms, render: 102ms)
+✓ Compiled in 105ms
+ GET /study 200 in 2.4s (compile: 101ms, proxy.ts: 2.2s, render: 111ms)
+[study:perf] getDueRowsByCategory 5390ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 5407ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 5415ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 5423ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueStudyItems 5424ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 3006ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=0
+[study:perf] hydrateStudyBatchWordDetails 4838ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 13271ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=0
+[study:page] 13272ms librarySlug=all reviewRoute=false hasReviewTarget=false deferredLibraryOptions=false initialBatch=5 libraries=3 favorites=0
+ GET /study 200 in 16.4s (compile: 5ms, proxy.ts: 2.4s, render: 14.0s)
+[study:perf] buildLibrarySummary 1819ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 2340ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 5060ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudyEnrichmentProgress 15369ms libraryCount=3 cacheHit=false progressItems=4
+[study:perf] getStudySidebarData 20430ms libraryCount=3 progressItems=4
+ POST /study 200 in 21.6s (compile: 3ms, proxy.ts: 728ms, render: 20.9s)
+ POST /study 200 in 7.0s (compile: 4ms, proxy.ts: 632ms, render: 6.4s)
+✓ Compiled in 92ms
+ GET /study 200 in 1866ms (compile: 83ms, proxy.ts: 1679ms, render: 104ms)
+[study:perf] getDueRowsByCategory 3753ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 3817ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 3874ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 4166ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueStudyItems 4167ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 9372ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=0
+[study:perf] hydrateStudyBatchWordDetails 1276ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 14816ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=0
+[study:page] 14818ms librarySlug=all reviewRoute=false hasReviewTarget=false deferredLibraryOptions=false initialBatch=5 libraries=3 favorites=0
+ GET /study 200 in 17.7s (compile: 3ms, proxy.ts: 2.5s, render: 15.1s)
+[study:perf] buildLibrarySummary 2200ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 2749ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 12522ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+✓ Compiled in 97ms
+ POST /study 200 in 15.7s (compile: 4ms, proxy.ts: 486ms, render: 15.2s)
+[study:perf] getDueRowsByCategory 1349ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 1390ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 1490ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 1640ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueStudyItems 1641ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 9165ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=0
+[study:perf] hydrateStudyBatchWordDetails 540ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 11348ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=0
+[study:page] 11355ms librarySlug=all reviewRoute=false hasReviewTarget=false deferredLibraryOptions=false initialBatch=5 libraries=3 favorites=0
+ GET /study 200 in 13.0s (compile: 77ms, proxy.ts: 1213ms, render: 11.7s)
+[study:perf] getStudyEnrichmentProgress 15045ms libraryCount=3 cacheHit=false progressItems=4
+[study:perf] getStudySidebarData 27567ms libraryCount=3 progressItems=4
+[study:perf] buildLibrarySummary 1278ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 1435ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 2868ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudyEnrichmentProgress 10307ms libraryCount=3 cacheHit=false progressItems=4
+[study:perf] getStudySidebarData 13176ms libraryCount=3 progressItems=4
+ POST /study 200 in 14.3s (compile: 3ms, proxy.ts: 846ms, render: 13.4s)
+ POST /study 200 in 5.0s (compile: 4ms, proxy.ts: 384ms, render: 4.6s)
+[study:perf] getDueRowsByCategory 2725ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 2894ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 3150ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 3193ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueStudyItems 3193ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 1881ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=0
+[study:perf] hydrateStudyBatchWordDetails 437ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 5513ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=0
+[study:page] 5514ms librarySlug=all reviewRoute=false hasReviewTarget=false deferredLibraryOptions=false initialBatch=5 libraries=3 favorites=0
+ GET /study 200 in 8.6s (compile: 5ms, proxy.ts: 2.6s, render: 6.0s)
+ POST /study 200 in 353ms (compile: 3ms, proxy.ts: 182ms, render: 169ms)
+ POST /study 200 in 5.2s (compile: 3ms, proxy.ts: 148ms, render: 5.0s)
+ GET /dashboard 200 in 1901ms (compile: 71ms, proxy.ts: 781ms, render: 1049ms)
+[study:perf] getDueRowsByCategory 444ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 448ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 453ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 455ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueStudyItems 456ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 971ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=0
+[study:perf] hydrateStudyBatchWordDetails 236ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 1664ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=0
+[study:page] 1665ms librarySlug=all reviewRoute=false hasReviewTarget=false deferredLibraryOptions=false initialBatch=5 libraries=3 favorites=0
+ GET /study 200 in 2.0s (compile: 3ms, proxy.ts: 189ms, render: 1857ms)
+[study:perf] getStudyLibraries 625ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudySidebarData 625ms libraryCount=3 progressItems=4
+ POST /study 200 in 966ms (compile: 3ms, proxy.ts: 158ms, render: 805ms)
+ POST /study 200 in 3.8s (compile: 3ms, proxy.ts: 149ms, render: 3.7s)
+ POST /study 200 in 305ms (compile: 3ms, proxy.ts: 150ms, render: 152ms)
+ POST /study 200 in 1373ms (compile: 3ms, proxy.ts: 157ms, render: 1213ms)
+[history:page] 166ms sentenceTotal=1 pageSize=15
+ GET /history 200 in 564ms (compile: 3ms, proxy.ts: 206ms, render: 354ms)
+ POST /history 200 in 464ms (compile: 4ms, proxy.ts: 157ms, render: 304ms)
+ POST /history 200 in 667ms (compile: 23ms, proxy.ts: 327ms, render: 317ms)
+ POST /history 200 in 518ms (compile: 3ms, proxy.ts: 155ms, render: 360ms)
+ POST /history 200 in 454ms (compile: 3ms, proxy.ts: 146ms, render: 306ms)
+[study:perf] hydrateStudyBatchWordDetails 156ms batchSize=1 hydratedWords=1
+[study:perf] getHistorySentenceReviewTarget 468ms found=true wordId=664e0745-2863-4d57-8f02-96cfe0436013
+[study:page] 468ms librarySlug=all reviewRoute=true hasReviewTarget=true deferredLibraryOptions=true initialBatch=1 libraries=0 favorites=0
+ GET /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 778ms (compile: 3ms, proxy.ts: 142ms, render: 633ms)
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 302ms (compile: 3ms, proxy.ts: 148ms, render: 152ms)
+[study:perf] getDueRowsByCategory 173ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueRowsByCategory 178ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueRowsByCategory 305ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueRowsByCategory 309ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueStudyItems 309ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 722ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=1
+[study:perf] hydrateStudyBatchWordDetails 164ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 1195ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=1
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 1505ms (compile: 3ms, proxy.ts: 139ms, render: 1363ms)
+ GET /dashboard 200 in 625ms (compile: 3ms, proxy.ts: 148ms, render: 474ms)
+ POST /study 200 in 400ms (compile: 4ms, proxy.ts: 232ms, render: 164ms)
+ POST /dashboard 200 in 565ms (compile: 5ms, proxy.ts: 152ms, render: 407ms)
+[study:perf] getDueRowsByCategory 289ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=1 rows=0 limit=30
+[study:perf] getDueStudyItems 291ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 768ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=1
+[study:perf] hydrateStudyBatchWordDetails 154ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 1214ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=1
+ POST /study 200 in 1551ms (compile: 3ms, proxy.ts: 148ms, render: 1401ms)
+ POST /dashboard 200 in 1704ms (compile: 3ms, proxy.ts: 145ms, render: 1556ms)
+[study:perf] getStudyLibraries 748ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+ GET /libraries 200 in 1354ms (compile: 286ms, proxy.ts: 146ms, render: 922ms)
+ POST /study?reviewSentenceId=d766ff94-8500-4069-951c-beae656828ad 200 in 4.1s (compile: 3ms, proxy.ts: 149ms, render: 3.9s)
+ GET /dashboard 200 in 499ms (compile: 4ms, proxy.ts: 151ms, render: 344ms)
+[study:perf] buildLibrarySummary 151ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] getStudyLibraries 834ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+ GET /libraries 200 in 1247ms (compile: 3ms, proxy.ts: 142ms, render: 1102ms)
+[study:perf] getDueRowsByCategory 157ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 161ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 165ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 174ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueStudyItems 174ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 790ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=0
+[study:perf] hydrateStudyBatchWordDetails 186ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 1151ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=0
+[study:page] 1152ms librarySlug=all reviewRoute=false hasReviewTarget=false deferredLibraryOptions=false initialBatch=5 libraries=3 favorites=0
+ GET /study 200 in 1519ms (compile: 3ms, proxy.ts: 180ms, render: 1335ms)
+ POST /study 200 in 437ms (compile: 3ms, proxy.ts: 263ms, render: 171ms)
+ POST /study 200 in 4.0s (compile: 3ms, proxy.ts: 176ms, render: 3.8s)
+[study:perf] getStudyLibraries 727ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudySidebarData 728ms libraryCount=3 progressItems=4
+ POST /study 200 in 1042ms (compile: 4ms, proxy.ts: 153ms, render: 885ms)
+[study:page] 1886ms librarySlug=basic-scene-grammar reviewRoute=false hasReviewTarget=false deferredLibraryOptions=false initialBatch=5 libraries=3 favorites=0
+ GET /study?library=basic-scene-grammar 200 in 2.5s (compile: 4ms, proxy.ts: 367ms, render: 2.2s)
+[study:perf] getStudyLibraries 744ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudySidebarData 744ms libraryCount=3 progressItems=4
+ POST /study?library=basic-scene-grammar 200 in 1069ms (compile: 4ms, proxy.ts: 151ms, render: 915ms)
+✓ Compiled in 100ms
+⨯ ReferenceError: getLibraryGrammarItemIds is not defined
+    at loadGrammarStudyBatch (src\app\study\actions.ts:2689:33)
+    at getStudyBatch (src\app\study\actions.ts:3363:12)
+    at async renderStudyPage (src\app\study\page.tsx:63:5)
+  2687 |   today: string
+  2688 | }): Promise<StudyBatchGrammarItem[]> {
+> 2689 |   const libraryGrammarItemIds = await getLibraryGrammarItemIds(supabase, library.id)
+       |                                 ^
+  2690 |   if (libraryGrammarItemIds.length === 0) {
+  2691 |     return []
+  2692 |   } {
+  digest: '663208775'
+}
+ GET /study?library=basic-scene-grammar 200 in 1228ms (compile: 3ms, proxy.ts: 1147ms, render: 77ms)
+⨯ ReferenceError: getLibraryGrammarItemIds is not defined
+    at loadGrammarStudyBatch (src\app\study\actions.ts:2689:33)
+    at getStudyBatch (src\app\study\actions.ts:3363:12)
+    at async renderStudyPage (src\app\study\page.tsx:63:5)
+  2687 |   today: string
+  2688 | }): Promise<StudyBatchGrammarItem[]> {
+> 2689 |   const libraryGrammarItemIds = await getLibraryGrammarItemIds(supabase, library.id)
+       |                                 ^
+  2690 |   if (libraryGrammarItemIds.length === 0) {
+  2691 |     return []
+  2692 |   } {
+  digest: '464787695'
+}
+ GET /study?library=basic-scene-grammar 200 in 1832ms (compile: 72ms, proxy.ts: 979ms, render: 780ms)
+✓ Compiled in 91ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⨯ ReferenceError: getLibraryGrammarItemIds is not defined
+    at loadGrammarStudyBatch (src\app\study\actions.ts:2689:33)
+    at getStudyBatch (src\app\study\actions.ts:3363:12)
+    at async renderStudyPage (src\app\study\page.tsx:63:5)
+  2687 |   today: string
+  2688 | }): Promise<StudyBatchGrammarItem[]> {
+> 2689 |   const libraryGrammarItemIds = await getLibraryGrammarItemIds(supabase, library.id)
+       |                                 ^
+  2690 |   if (libraryGrammarItemIds.length === 0) {
+  2691 |     return []
+  2692 |   } {
+  digest: '464787695'
+}
+ GET /study?library=basic-scene-grammar 200 in 1239ms (compile: 67ms, proxy.ts: 347ms, render: 825ms)
+✓ Compiled in 91ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⨯ ReferenceError: getLibraryGrammarItemIds is not defined
+    at loadGrammarStudyBatch (src\app\study\actions.ts:2689:33)
+    at getStudyBatch (src\app\study\actions.ts:3363:12)
+    at async renderStudyPage (src\app\study\page.tsx:63:5)
+  2687 |   today: string
+  2688 | }): Promise<StudyBatchGrammarItem[]> {
+> 2689 |   const libraryGrammarItemIds = await getLibraryGrammarItemIds(supabase, library.id)
+       |                                 ^
+  2690 |   if (libraryGrammarItemIds.length === 0) {
+  2691 |     return []
+  2692 |   } {
+  digest: '464787695'
+}
+ GET /study?library=basic-scene-grammar 200 in 1076ms (compile: 70ms, proxy.ts: 309ms, render: 696ms)
+⨯ ./src/app/study/components/index.ts:12:1
+Module not found: Can't resolve './study-toolbar'
+[0m [90m 10 |[39m [36mexport[39m { [33mStudySpeechSettingsDialog[39m } [36mfrom[39m [32m'./study-speech-settings-dialog'[39m
+ [90m 11 |[39m [36mexport[39m { [33mStudyStreamingPreview[39m } [36mfrom[39m [32m'./study-streaming-preview'[39m
+[31m[1m>[22m[39m[90m 12 |[39m [36mexport[39m { [33mStudyToolbar[39m } [36mfrom[39m [32m'./study-toolbar'[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 13 |[39m [36mexport[39m { [33mStudyWordPanel[39m } [36mfrom[39m [32m'./study-word-panel'[39m
+ [90m 14 |[39m [36mexport[39m {
+ [90m 15 |[39m   [33mAnimatedScore[39m[33m,[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:12:1
+Module not found: Can't resolve './study-toolbar'
+[0m [90m 10 |[39m [36mexport[39m { [33mStudySpeechSettingsDialog[39m } [36mfrom[39m [32m'./study-speech-settings-dialog'[39m
+ [90m 11 |[39m [36mexport[39m { [33mStudyStreamingPreview[39m } [36mfrom[39m [32m'./study-streaming-preview'[39m
+[31m[1m>[22m[39m[90m 12 |[39m [36mexport[39m { [33mStudyToolbar[39m } [36mfrom[39m [32m'./study-toolbar'[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 13 |[39m [36mexport[39m { [33mStudyWordPanel[39m } [36mfrom[39m [32m'./study-word-panel'[39m
+ [90m 14 |[39m [36mexport[39m {
+ [90m 15 |[39m   [33mAnimatedScore[39m[33m,[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:12:1
+Module not found: Can't resolve './study-toolbar'
+[0m [90m 10 |[39m [36mexport[39m { [33mStudySpeechSettingsDialog[39m } [36mfrom[39m [32m'./study-speech-settings-dialog'[39m
+ [90m 11 |[39m [36mexport[39m { [33mStudyStreamingPreview[39m } [36mfrom[39m [32m'./study-streaming-preview'[39m
+[31m[1m>[22m[39m[90m 12 |[39m [36mexport[39m { [33mStudyToolbar[39m } [36mfrom[39m [32m'./study-toolbar'[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 13 |[39m [36mexport[39m { [33mStudyWordPanel[39m } [36mfrom[39m [32m'./study-word-panel'[39m
+ [90m 14 |[39m [36mexport[39m {
+ [90m 15 |[39m   [33mAnimatedScore[39m[33m,[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:12:1
+Module not found: Can't resolve './study-toolbar'
+[0m [90m 10 |[39m [36mexport[39m { [33mStudySpeechSettingsDialog[39m } [36mfrom[39m [32m'./study-speech-settings-dialog'[39m
+ [90m 11 |[39m [36mexport[39m { [33mStudyStreamingPreview[39m } [36mfrom[39m [32m'./study-streaming-preview'[39m
+[31m[1m>[22m[39m[90m 12 |[39m [36mexport[39m { [33mStudyToolbar[39m } [36mfrom[39m [32m'./study-toolbar'[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 13 |[39m [36mexport[39m { [33mStudyWordPanel[39m } [36mfrom[39m [32m'./study-word-panel'[39m
+ [90m 14 |[39m [36mexport[39m {
+ [90m 15 |[39m   [33mAnimatedScore[39m[33m,[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:12:1
+Module not found: Can't resolve './study-toolbar'
+[0m [90m 10 |[39m [36mexport[39m { [33mStudySpeechSettingsDialog[39m } [36mfrom[39m [32m'./study-speech-settings-dialog'[39m
+ [90m 11 |[39m [36mexport[39m { [33mStudyStreamingPreview[39m } [36mfrom[39m [32m'./study-streaming-preview'[39m
+[31m[1m>[22m[39m[90m 12 |[39m [36mexport[39m { [33mStudyToolbar[39m } [36mfrom[39m [32m'./study-toolbar'[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 13 |[39m [36mexport[39m { [33mStudyWordPanel[39m } [36mfrom[39m [32m'./study-word-panel'[39m
+ [90m 14 |[39m [36mexport[39m {
+ [90m 15 |[39m   [33mAnimatedScore[39m[33m,[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:12:1
+Module not found: Can't resolve './study-toolbar'
+[0m [90m 10 |[39m [36mexport[39m { [33mStudySpeechSettingsDialog[39m } [36mfrom[39m [32m'./study-speech-settings-dialog'[39m
+ [90m 11 |[39m [36mexport[39m { [33mStudyStreamingPreview[39m } [36mfrom[39m [32m'./study-streaming-preview'[39m
+[31m[1m>[22m[39m[90m 12 |[39m [36mexport[39m { [33mStudyToolbar[39m } [36mfrom[39m [32m'./study-toolbar'[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 13 |[39m [36mexport[39m { [33mStudyWordPanel[39m } [36mfrom[39m [32m'./study-word-panel'[39m
+ [90m 14 |[39m [36mexport[39m {
+ [90m 15 |[39m   [33mAnimatedScore[39m[33m,[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:12:1
+Module not found: Can't resolve './study-toolbar'
+[0m [90m 10 |[39m [36mexport[39m { [33mStudySpeechSettingsDialog[39m } [36mfrom[39m [32m'./study-speech-settings-dialog'[39m
+ [90m 11 |[39m [36mexport[39m { [33mStudyStreamingPreview[39m } [36mfrom[39m [32m'./study-streaming-preview'[39m
+[31m[1m>[22m[39m[90m 12 |[39m [36mexport[39m { [33mStudyToolbar[39m } [36mfrom[39m [32m'./study-toolbar'[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 13 |[39m [36mexport[39m { [33mStudyWordPanel[39m } [36mfrom[39m [32m'./study-word-panel'[39m
+ [90m 14 |[39m [36mexport[39m {
+ [90m 15 |[39m   [33mAnimatedScore[39m[33m,[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:12:1
+Module not found: Can't resolve './study-toolbar'
+[0m [90m 10 |[39m [36mexport[39m { [33mStudySpeechSettingsDialog[39m } [36mfrom[39m [32m'./study-speech-settings-dialog'[39m
+ [90m 11 |[39m [36mexport[39m { [33mStudyStreamingPreview[39m } [36mfrom[39m [32m'./study-streaming-preview'[39m
+[31m[1m>[22m[39m[90m 12 |[39m [36mexport[39m { [33mStudyToolbar[39m } [36mfrom[39m [32m'./study-toolbar'[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 13 |[39m [36mexport[39m { [33mStudyWordPanel[39m } [36mfrom[39m [32m'./study-word-panel'[39m
+ [90m 14 |[39m [36mexport[39m {
+ [90m 15 |[39m   [33mAnimatedScore[39m[33m,[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:12:1
+Module not found: Can't resolve './study-toolbar'
+[0m [90m 10 |[39m [36mexport[39m { [33mStudySpeechSettingsDialog[39m } [36mfrom[39m [32m'./study-speech-settings-dialog'[39m
+ [90m 11 |[39m [36mexport[39m { [33mStudyStreamingPreview[39m } [36mfrom[39m [32m'./study-streaming-preview'[39m
+[31m[1m>[22m[39m[90m 12 |[39m [36mexport[39m { [33mStudyToolbar[39m } [36mfrom[39m [32m'./study-toolbar'[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 13 |[39m [36mexport[39m { [33mStudyWordPanel[39m } [36mfrom[39m [32m'./study-word-panel'[39m
+ [90m 14 |[39m [36mexport[39m {
+ [90m 15 |[39m   [33mAnimatedScore[39m[33m,[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:12:1
+Module not found: Can't resolve './study-toolbar'
+[0m [90m 10 |[39m [36mexport[39m { [33mStudySpeechSettingsDialog[39m } [36mfrom[39m [32m'./study-speech-settings-dialog'[39m
+ [90m 11 |[39m [36mexport[39m { [33mStudyStreamingPreview[39m } [36mfrom[39m [32m'./study-streaming-preview'[39m
+[31m[1m>[22m[39m[90m 12 |[39m [36mexport[39m { [33mStudyToolbar[39m } [36mfrom[39m [32m'./study-toolbar'[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 13 |[39m [36mexport[39m { [33mStudyWordPanel[39m } [36mfrom[39m [32m'./study-word-panel'[39m
+ [90m 14 |[39m [36mexport[39m {
+ [90m 15 |[39m   [33mAnimatedScore[39m[33m,[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:12:1
+Module not found: Can't resolve './study-toolbar'
+[0m [90m 10 |[39m [36mexport[39m { [33mStudySpeechSettingsDialog[39m } [36mfrom[39m [32m'./study-speech-settings-dialog'[39m
+ [90m 11 |[39m [36mexport[39m { [33mStudyStreamingPreview[39m } [36mfrom[39m [32m'./study-streaming-preview'[39m
+[31m[1m>[22m[39m[90m 12 |[39m [36mexport[39m { [33mStudyToolbar[39m } [36mfrom[39m [32m'./study-toolbar'[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 13 |[39m [36mexport[39m { [33mStudyWordPanel[39m } [36mfrom[39m [32m'./study-word-panel'[39m
+ [90m 14 |[39m [36mexport[39m {
+ [90m 15 |[39m   [33mAnimatedScore[39m[33m,[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:12:1
+Module not found: Can't resolve './study-toolbar'
+[0m [90m 10 |[39m [36mexport[39m { [33mStudySpeechSettingsDialog[39m } [36mfrom[39m [32m'./study-speech-settings-dialog'[39m
+ [90m 11 |[39m [36mexport[39m { [33mStudyStreamingPreview[39m } [36mfrom[39m [32m'./study-streaming-preview'[39m
+[31m[1m>[22m[39m[90m 12 |[39m [36mexport[39m { [33mStudyToolbar[39m } [36mfrom[39m [32m'./study-toolbar'[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 13 |[39m [36mexport[39m { [33mStudyWordPanel[39m } [36mfrom[39m [32m'./study-word-panel'[39m
+ [90m 14 |[39m [36mexport[39m {
+ [90m 15 |[39m   [33mAnimatedScore[39m[33m,[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+✓ Compiled in 56ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 55ms
+⨯ ReferenceError: getLibraryGrammarItemIds is not defined
+    at loadGrammarStudyBatch (src\app\study\actions.ts:2689:33)
+    at getStudyBatch (src\app\study\actions.ts:3363:12)
+    at async renderStudyPage (src\app\study\page.tsx:63:5)
+  2687 |   today: string
+  2688 | }): Promise<StudyBatchGrammarItem[]> {
+> 2689 |   const libraryGrammarItemIds = await getLibraryGrammarItemIds(supabase, library.id)
+       |                                 ^
+  2690 |   if (libraryGrammarItemIds.length === 0) {
+  2691 |     return []
+  2692 |   } {
+  digest: '464787695'
+}
+ GET /study?library=basic-scene-grammar 200 in 1894ms (compile: 69ms, proxy.ts: 975ms, render: 849ms)
+⨯ ./src/app/study/components/index.ts:2:1
+Module not found: Can't resolve './study-empty-state'
+[0m [90m 1 |[39m [36mexport[39m { [33mStudyContextSummary[39m } [36mfrom[39m [32m'./study-context-summary'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mexport[39m { [33mStudyEmptyState[39m } [36mfrom[39m [32m'./study-empty-state'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mexport[39m { [33mStudyEnrichmentSummary[39m } [36mfrom[39m [32m'./study-enrichment-summary'[39m
+ [90m 4 |[39m [36mexport[39m { [33mStudyEvaluationResult[39m } [36mfrom[39m [32m'./study-evaluation-result'[39m
+ [90m 5 |[39m [36mexport[39m { [33mStudyGrammarHelpPanel[39m } [36mfrom[39m [32m'./study-grammar-help-panel'[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:2:1
+Module not found: Can't resolve './study-empty-state'
+[0m [90m 1 |[39m [36mexport[39m { [33mStudyContextSummary[39m } [36mfrom[39m [32m'./study-context-summary'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mexport[39m { [33mStudyEmptyState[39m } [36mfrom[39m [32m'./study-empty-state'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mexport[39m { [33mStudyEnrichmentSummary[39m } [36mfrom[39m [32m'./study-enrichment-summary'[39m
+ [90m 4 |[39m [36mexport[39m { [33mStudyEvaluationResult[39m } [36mfrom[39m [32m'./study-evaluation-result'[39m
+ [90m 5 |[39m [36mexport[39m { [33mStudyGrammarHelpPanel[39m } [36mfrom[39m [32m'./study-grammar-help-panel'[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:2:1
+Module not found: Can't resolve './study-empty-state'
+[0m [90m 1 |[39m [36mexport[39m { [33mStudyContextSummary[39m } [36mfrom[39m [32m'./study-context-summary'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mexport[39m { [33mStudyEmptyState[39m } [36mfrom[39m [32m'./study-empty-state'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mexport[39m { [33mStudyEnrichmentSummary[39m } [36mfrom[39m [32m'./study-enrichment-summary'[39m
+ [90m 4 |[39m [36mexport[39m { [33mStudyEvaluationResult[39m } [36mfrom[39m [32m'./study-evaluation-result'[39m
+ [90m 5 |[39m [36mexport[39m { [33mStudyGrammarHelpPanel[39m } [36mfrom[39m [32m'./study-grammar-help-panel'[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:2:1
+Module not found: Can't resolve './study-empty-state'
+[0m [90m 1 |[39m [36mexport[39m { [33mStudyContextSummary[39m } [36mfrom[39m [32m'./study-context-summary'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mexport[39m { [33mStudyEmptyState[39m } [36mfrom[39m [32m'./study-empty-state'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mexport[39m { [33mStudyEnrichmentSummary[39m } [36mfrom[39m [32m'./study-enrichment-summary'[39m
+ [90m 4 |[39m [36mexport[39m { [33mStudyEvaluationResult[39m } [36mfrom[39m [32m'./study-evaluation-result'[39m
+ [90m 5 |[39m [36mexport[39m { [33mStudyGrammarHelpPanel[39m } [36mfrom[39m [32m'./study-grammar-help-panel'[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:2:1
+Module not found: Can't resolve './study-empty-state'
+[0m [90m 1 |[39m [36mexport[39m { [33mStudyContextSummary[39m } [36mfrom[39m [32m'./study-context-summary'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mexport[39m { [33mStudyEmptyState[39m } [36mfrom[39m [32m'./study-empty-state'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mexport[39m { [33mStudyEnrichmentSummary[39m } [36mfrom[39m [32m'./study-enrichment-summary'[39m
+ [90m 4 |[39m [36mexport[39m { [33mStudyEvaluationResult[39m } [36mfrom[39m [32m'./study-evaluation-result'[39m
+ [90m 5 |[39m [36mexport[39m { [33mStudyGrammarHelpPanel[39m } [36mfrom[39m [32m'./study-grammar-help-panel'[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:2:1
+Module not found: Can't resolve './study-empty-state'
+[0m [90m 1 |[39m [36mexport[39m { [33mStudyContextSummary[39m } [36mfrom[39m [32m'./study-context-summary'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mexport[39m { [33mStudyEmptyState[39m } [36mfrom[39m [32m'./study-empty-state'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mexport[39m { [33mStudyEnrichmentSummary[39m } [36mfrom[39m [32m'./study-enrichment-summary'[39m
+ [90m 4 |[39m [36mexport[39m { [33mStudyEvaluationResult[39m } [36mfrom[39m [32m'./study-evaluation-result'[39m
+ [90m 5 |[39m [36mexport[39m { [33mStudyGrammarHelpPanel[39m } [36mfrom[39m [32m'./study-grammar-help-panel'[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:2:1
+Module not found: Can't resolve './study-empty-state'
+[0m [90m 1 |[39m [36mexport[39m { [33mStudyContextSummary[39m } [36mfrom[39m [32m'./study-context-summary'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mexport[39m { [33mStudyEmptyState[39m } [36mfrom[39m [32m'./study-empty-state'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mexport[39m { [33mStudyEnrichmentSummary[39m } [36mfrom[39m [32m'./study-enrichment-summary'[39m
+ [90m 4 |[39m [36mexport[39m { [33mStudyEvaluationResult[39m } [36mfrom[39m [32m'./study-evaluation-result'[39m
+ [90m 5 |[39m [36mexport[39m { [33mStudyGrammarHelpPanel[39m } [36mfrom[39m [32m'./study-grammar-help-panel'[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:2:1
+Module not found: Can't resolve './study-empty-state'
+[0m [90m 1 |[39m [36mexport[39m { [33mStudyContextSummary[39m } [36mfrom[39m [32m'./study-context-summary'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mexport[39m { [33mStudyEmptyState[39m } [36mfrom[39m [32m'./study-empty-state'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mexport[39m { [33mStudyEnrichmentSummary[39m } [36mfrom[39m [32m'./study-enrichment-summary'[39m
+ [90m 4 |[39m [36mexport[39m { [33mStudyEvaluationResult[39m } [36mfrom[39m [32m'./study-evaluation-result'[39m
+ [90m 5 |[39m [36mexport[39m { [33mStudyGrammarHelpPanel[39m } [36mfrom[39m [32m'./study-grammar-help-panel'[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:2:1
+Module not found: Can't resolve './study-empty-state'
+[0m [90m 1 |[39m [36mexport[39m { [33mStudyContextSummary[39m } [36mfrom[39m [32m'./study-context-summary'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mexport[39m { [33mStudyEmptyState[39m } [36mfrom[39m [32m'./study-empty-state'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mexport[39m { [33mStudyEnrichmentSummary[39m } [36mfrom[39m [32m'./study-enrichment-summary'[39m
+ [90m 4 |[39m [36mexport[39m { [33mStudyEvaluationResult[39m } [36mfrom[39m [32m'./study-evaluation-result'[39m
+ [90m 5 |[39m [36mexport[39m { [33mStudyGrammarHelpPanel[39m } [36mfrom[39m [32m'./study-grammar-help-panel'[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:2:1
+Module not found: Can't resolve './study-empty-state'
+[0m [90m 1 |[39m [36mexport[39m { [33mStudyContextSummary[39m } [36mfrom[39m [32m'./study-context-summary'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mexport[39m { [33mStudyEmptyState[39m } [36mfrom[39m [32m'./study-empty-state'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mexport[39m { [33mStudyEnrichmentSummary[39m } [36mfrom[39m [32m'./study-enrichment-summary'[39m
+ [90m 4 |[39m [36mexport[39m { [33mStudyEvaluationResult[39m } [36mfrom[39m [32m'./study-evaluation-result'[39m
+ [90m 5 |[39m [36mexport[39m { [33mStudyGrammarHelpPanel[39m } [36mfrom[39m [32m'./study-grammar-help-panel'[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:2:1
+Module not found: Can't resolve './study-empty-state'
+[0m [90m 1 |[39m [36mexport[39m { [33mStudyContextSummary[39m } [36mfrom[39m [32m'./study-context-summary'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mexport[39m { [33mStudyEmptyState[39m } [36mfrom[39m [32m'./study-empty-state'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mexport[39m { [33mStudyEnrichmentSummary[39m } [36mfrom[39m [32m'./study-enrichment-summary'[39m
+ [90m 4 |[39m [36mexport[39m { [33mStudyEvaluationResult[39m } [36mfrom[39m [32m'./study-evaluation-result'[39m
+ [90m 5 |[39m [36mexport[39m { [33mStudyGrammarHelpPanel[39m } [36mfrom[39m [32m'./study-grammar-help-panel'[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/study/components/index.ts:2:1
+Module not found: Can't resolve './study-empty-state'
+[0m [90m 1 |[39m [36mexport[39m { [33mStudyContextSummary[39m } [36mfrom[39m [32m'./study-context-summary'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mexport[39m { [33mStudyEmptyState[39m } [36mfrom[39m [32m'./study-empty-state'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mexport[39m { [33mStudyEnrichmentSummary[39m } [36mfrom[39m [32m'./study-enrichment-summary'[39m
+ [90m 4 |[39m [36mexport[39m { [33mStudyEvaluationResult[39m } [36mfrom[39m [32m'./study-evaluation-result'[39m
+ [90m 5 |[39m [36mexport[39m { [33mStudyGrammarHelpPanel[39m } [36mfrom[39m [32m'./study-grammar-help-panel'[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/study/components/index.ts [Client Component Browser]
+    ./src/app/study/study-client.tsx [Client Component Browser]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/study/components/index.ts [Client Component SSR]
+    ./src/app/study/study-client.tsx [Client Component SSR]
+    ./src/app/study/study-client.tsx [Server Component]
+    ./src/app/study/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+✓ Compiled in 59ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 61ms
+⨯ ReferenceError: getLibraryGrammarItemIds is not defined
+    at loadGrammarStudyBatch (src\app\study\actions.ts:2689:33)
+    at getStudyBatch (src\app\study\actions.ts:3363:12)
+    at async renderStudyPage (src\app\study\page.tsx:63:5)
+  2687 |   today: string
+  2688 | }): Promise<StudyBatchGrammarItem[]> {
+> 2689 |   const libraryGrammarItemIds = await getLibraryGrammarItemIds(supabase, library.id)
+       |                                 ^
+  2690 |   if (libraryGrammarItemIds.length === 0) {
+  2691 |     return []
+  2692 |   } {
+  digest: '464787695'
+}
+ GET /study?library=basic-scene-grammar 200 in 2.1s (compile: 71ms, proxy.ts: 855ms, render: 1131ms)
+✓ Compiled in 96ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⨯ ReferenceError: getLibraryGrammarItemIds is not defined
+    at loadGrammarStudyBatch (src\app\study\actions.ts:2690:33)
+    at getStudyBatch (src\app\study\actions.ts:3364:12)
+    at async renderStudyPage (src\app\study\page.tsx:63:5)
+  2688 |   today: string
+  2689 | }): Promise<StudyBatchGrammarItem[]> {
+> 2690 |   const libraryGrammarItemIds = await getLibraryGrammarItemIds(supabase, library.id)
+       |                                 ^
+  2691 |   if (libraryGrammarItemIds.length === 0) {
+  2692 |     return []
+  2693 |   } {
+  digest: '1329535848'
+}
+ GET /study?library=basic-scene-grammar 200 in 1630ms (compile: 70ms, proxy.ts: 695ms, render: 864ms)
+✓ Compiled in 95ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[study:page] 2487ms librarySlug=basic-scene-grammar reviewRoute=false hasReviewTarget=false deferredLibraryOptions=false initialBatch=5 libraries=3 favorites=0
+ GET /study?library=basic-scene-grammar 200 in 3.3s (compile: 81ms, proxy.ts: 304ms, render: 2.9s)
+[study:perf] buildLibrarySummary 768ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 922ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 1503ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudyEnrichmentProgress 3578ms libraryCount=3 cacheHit=false progressItems=4
+[study:perf] getStudySidebarData 5081ms libraryCount=3 progressItems=4
+ POST /study?library=basic-scene-grammar 200 in 5.4s (compile: 4ms, proxy.ts: 147ms, render: 5.2s)
+✓ Compiled in 95ms
+ GET /study?library=basic-scene-grammar 200 in 1245ms (compile: 100ms, proxy.ts: 925ms, render: 220ms)
+ GET /study?library=basic-scene-grammar 200 in 429ms (compile: 4ms, proxy.ts: 270ms, render: 155ms)
+[study:page] 3602ms librarySlug=basic-scene-grammar reviewRoute=false hasReviewTarget=false deferredLibraryOptions=false initialBatch=5 libraries=3 favorites=0
+ GET /study?library=basic-scene-grammar 200 in 5.1s (compile: 11ms, proxy.ts: 1121ms, render: 4.0s)
+[study:perf] buildLibrarySummary 642ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 876ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 1497ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudyEnrichmentProgress 3533ms libraryCount=3 cacheHit=false progressItems=4
+[study:perf] getStudySidebarData 5031ms libraryCount=3 progressItems=4
+ POST /study?library=basic-scene-grammar 200 in 5.4s (compile: 6ms, proxy.ts: 202ms, render: 5.2s)
+ POST /study?library=basic-scene-grammar 200 in 1798ms (compile: 3ms, proxy.ts: 338ms, render: 1456ms)
+[study:page] 9134ms librarySlug=basic-scene-grammar reviewRoute=false hasReviewTarget=false deferredLibraryOptions=false initialBatch=5 libraries=3 favorites=0
+ GET /study?library=basic-scene-grammar 200 in 10.2s (compile: 3ms, proxy.ts: 872ms, render: 9.3s)
+[study:perf] buildLibrarySummary 227ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 280ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 2239ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudySidebarData 2240ms libraryCount=3 progressItems=4
+ POST /study?library=basic-scene-grammar 200 in 4.0s (compile: 3ms, proxy.ts: 1425ms, render: 2.5s)
+[study:perf] buildLibrarySummary 1129ms library=cet-6 wordCount=2219 activeCount=0 dueCount=0
+[study:perf] buildLibrarySummary 1222ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 2302ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+ GET /libraries 200 in 3.7s (compile: 74ms, proxy.ts: 1165ms, render: 2.5s)
+ GET /dashboard 200 in 590ms (compile: 3ms, proxy.ts: 225ms, render: 362ms)
+[history:page] 4642ms sentenceTotal=1 pageSize=15
+ GET /history 200 in 5.4s (compile: 3ms, proxy.ts: 379ms, render: 5.0s)
+ POST /history 200 in 1163ms (compile: 3ms, proxy.ts: 163ms, render: 996ms)
+ POST /history 200 in 938ms (compile: 3ms, proxy.ts: 158ms, render: 777ms)
+ POST /history 200 in 1124ms (compile: 3ms, proxy.ts: 165ms, render: 956ms)
+[study:perf] getDueRowsByCategory 917ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 1069ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+ POST /history 200 in 1502ms (compile: 3ms, proxy.ts: 147ms, render: 1352ms)
+[study:perf] getDueRowsByCategory 1223ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 1311ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueStudyItems 1311ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+[study:perf] getNewStudyItems 1100ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=0
+[study:perf] hydrateStudyBatchWordDetails 561ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 2975ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=0
+[study:page] 2977ms librarySlug=all reviewRoute=false hasReviewTarget=false deferredLibraryOptions=false initialBatch=5 libraries=3 favorites=0
+ GET /study 200 in 3.5s (compile: 3ms, proxy.ts: 333ms, render: 3.1s)
+[study:perf] buildLibrarySummary 150ms library=cet-4 wordCount=3324 activeCount=1 dueCount=0
+[study:perf] getStudyLibraries 1930ms libraryCount=3 startedWordIds=1 dueWordIds=0 startedGrammarIds=6 dueGrammarIds=0
+[study:perf] getStudyEnrichmentProgress 17484ms libraryCount=3 cacheHit=false progressItems=4
+[study:perf] getStudySidebarData 19415ms libraryCount=3 progressItems=4
+ POST /libraries 200 in 19.9s (compile: 3ms, proxy.ts: 285ms, render: 19.6s)
+ POST /history 200 in 20.0s (compile: 3ms, proxy.ts: 142ms, render: 19.9s)
+ POST /libraries 200 in 6.4s (compile: 3ms, proxy.ts: 260ms, render: 6.2s)
+ POST /history 200 in 11.4s (compile: 3ms, proxy.ts: 5.0s, render: 6.5s)
+ POST /libraries 200 in 324ms (compile: 5ms, proxy.ts: 151ms, render: 168ms)
+ POST /history 200 in 786ms (compile: 3ms, proxy.ts: 453ms, render: 330ms)
+ POST /history 200 in 7.3s (compile: 3ms, proxy.ts: 157ms, render: 7.1s)
+ POST /history 200 in 5.0s (compile: 3ms, proxy.ts: 3.2s, render: 1704ms)
+ POST /history 200 in 1234ms (compile: 3ms, proxy.ts: 254ms, render: 977ms)
+ POST /history 200 in 1221ms (compile: 3ms, proxy.ts: 178ms, render: 1041ms)
+[study:perf] getDueRowsByCategory 12461ms category=due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 12609ms category=overdue studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 12626ms category=weak_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueRowsByCategory 12631ms category=leech_due studyView=all tag=All libraryScoped=false preferred=0 skipped=0 rows=0 limit=30
+[study:perf] getDueStudyItems 12631ms studyView=all tag=All targetSize=30 resultCount=0 libraryScoped=false
+ GET /study 200 in 18.6s (compile: 3ms, proxy.ts: 790ms, render: 17.8s)
+[study:perf] getNewStudyItems 9032ms tag=All batchSize=5 resultCount=5 libraryScoped=false libraryRpc=false preferred=0 skipped=0
+[study:perf] hydrateStudyBatchWordDetails 1109ms batchSize=5 hydratedWords=5
+[study:perf] getStudyBatch 22774ms librarySlug=all studyView=all batchSize=5 dueCount=0 dueItems=0 newItems=5 hydratedItems=5 libraryScoped=false preferred=0 skipped=0
+[study:page] 22775ms librarySlug=all reviewRoute=false hasReviewTarget=false deferredLibraryOptions=false initialBatch=5 libraries=3 favorites=0
+^C^C

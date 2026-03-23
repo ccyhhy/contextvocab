@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { AlertTriangle, BookOpen, Lightbulb } from "lucide-react"
+import { AlertTriangle, BookOpen, Lightbulb, Code2 } from "lucide-react"
+import { motion } from "framer-motion"
 import type { StudyBatchGrammarItem } from "../actions"
 import {
   getPriorityLabel,
@@ -109,16 +110,24 @@ export function StudyGrammarPanel({
       </div>
 
       {primaryTemplate && (
-        <div className="mt-5 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 sm:p-6">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">最稳妥模板</p>
-          <div className="mt-3 space-y-3">
-            <p className="text-base font-semibold text-white">{primaryTemplate.template}</p>
+        <div className="mt-5 rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-500/[0.05] to-purple-500/[0.02] p-5 sm:p-6 overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+            <Code2 className="w-24 h-24" />
+          </div>
+          <div className="flex items-center gap-2 mb-4 relative z-10">
+            <Code2 className="h-4 w-4 text-blue-400" />
+            <span className="text-xs font-bold tracking-widest text-blue-300 uppercase">最稳妥模板</span>
+          </div>
+          <div className="space-y-4 relative z-10">
+            <div className="rounded-xl border border-white/10 bg-black/40 p-4 font-mono text-lg font-medium text-blue-100 shadow-inner overflow-x-auto whitespace-nowrap">
+              {primaryTemplate.template}
+            </div>
             {primaryTemplate.slotHints.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {primaryTemplate.slotHints.map((hint) => (
                   <span
                     key={`${currentGrammar.grammar_item_id}-primary-hint-${hint}`}
-                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-300"
+                    className="rounded-lg border border-white/5 bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300 shadow-sm"
                   >
                     {hint}
                   </span>
@@ -126,7 +135,7 @@ export function StudyGrammarPanel({
               </div>
             ) : null}
             {primaryTemplate.exampleSentence ? (
-              <div className="mt-3 rounded-xl border border-white/5 bg-black/20 p-4 text-sm leading-6">
+              <div className="mt-3 rounded-xl border border-white/5 bg-white/[0.02] p-4 text-sm leading-6">
                 <p className="text-zinc-200">{primaryTemplate.exampleSentence}</p>
                 {primaryTemplate.exampleTranslation ? (
                   <p className="mt-1 text-zinc-500">{primaryTemplate.exampleTranslation}</p>
@@ -155,42 +164,63 @@ export function StudyGrammarPanel({
       )}
 
       {(hasExamples || hasDetails || hasErrors) && (
-        <div className="mt-6">
-          <div className="flex flex-wrap gap-2 border-b border-white/10 pb-3">
+        <div className="mt-8">
+          <div className="flex flex-wrap gap-1 border-b border-white/5 pb-0">
             {hasExamples && (
               <button
                 onClick={() => setActiveTab("examples")}
-                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                className={`relative px-5 py-3 text-sm font-medium transition-colors ${
                   currentTab === "examples"
-                    ? "bg-white/10 text-white"
-                    : "text-zinc-400 hover:bg-white/5 hover:text-zinc-300"
+                    ? "text-blue-300"
+                    : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
                 场景例句
+                {currentTab === "examples" && (
+                  <motion.div
+                    layoutId="grammar-tab-indicator"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
               </button>
             )}
             {hasDetails && (
               <button
                 onClick={() => setActiveTab("details")}
-                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                className={`relative px-5 py-3 text-sm font-medium transition-colors ${
                   currentTab === "details"
-                    ? "bg-white/10 text-white"
-                    : "text-zinc-400 hover:bg-white/5 hover:text-zinc-300"
+                    ? "text-blue-300"
+                    : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
                 模板与槽位
+                {currentTab === "details" && (
+                  <motion.div
+                    layoutId="grammar-tab-indicator"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
               </button>
             )}
             {hasErrors && (
               <button
                 onClick={() => setActiveTab("errors")}
-                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                className={`relative px-5 py-3 text-sm font-medium transition-colors ${
                   currentTab === "errors"
-                    ? "bg-white/10 text-white"
-                    : "text-zinc-400 hover:bg-white/5 hover:text-zinc-300"
+                    ? "text-blue-300"
+                    : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
                 常见误区
+                {currentTab === "errors" && (
+                  <motion.div
+                    layoutId="grammar-tab-indicator"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
               </button>
             )}
           </div>

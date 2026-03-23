@@ -9,6 +9,8 @@ import {
   PenLine,
   Volume2,
   Wand2,
+  CalendarDays,
+  TrendingUp,
 } from "lucide-react"
 import { motion } from "framer-motion"
 import type { EvaluationResult, StudySubmissionResult } from "../actions"
@@ -391,25 +393,36 @@ export function StudyEvaluationResult({
         />
       </motion.div>
 
-      <div className="flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-4 sm:flex-row">
-        <div className="flex flex-col text-xs text-zinc-500">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-white/10 pt-6">
+        <div className="flex flex-col gap-2 w-full sm:w-auto">
           {result.nextSrs ? (
             <>
-              <span>
-                下次复习：{" "}
-                {mounted ? new Date(result.nextSrs.nextReviewDate).toLocaleDateString("zh-CN") : "..."}
-              </span>
-              <span>当前难度系数：{result.nextSrs.easeFactor}</span>
+              <div className="flex items-center gap-2">
+                <CalendarDays className="h-4 w-4 text-blue-400" />
+                <span className="text-sm text-zinc-400">
+                  下次复习：<span className="font-semibold text-blue-300 ml-1">
+                    {mounted ? new Date(result.nextSrs.nextReviewDate).toLocaleDateString("zh-CN") : "..."}
+                  </span>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-emerald-400/80" />
+                <span className="text-sm text-zinc-400">
+                  难度系数：<span className="font-semibold text-emerald-300 ml-1">
+                    {result.nextSrs.easeFactor}
+                  </span>
+                </span>
+              </div>
             </>
           ) : (
-            <span>当前复习计划未发生变化。</span>
+            <span className="text-sm text-zinc-500">当前复习计划未发生变化。</span>
           )}
         </div>
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+        <div className="flex w-full flex-col sm:flex-row gap-3 sm:w-auto sm:items-center">
           <button
             type="button"
             onClick={onRewrite}
-            className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-5 py-3 text-sm font-medium text-amber-100 transition-all hover:bg-amber-500/15"
+            className="rounded-xl border border-white/10 bg-transparent px-5 py-2.5 text-sm font-medium text-zinc-400 transition-all hover:bg-white/[0.04] hover:text-zinc-200"
           >
             根据反馈重写一次
           </button>

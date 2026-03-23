@@ -58,31 +58,33 @@ export function StudySentenceComposer({
         className="h-36 resize-none rounded-3xl border border-white/10 bg-black/40 p-6 text-lg text-zinc-100 outline-none transition-all duration-300 placeholder:text-zinc-600 focus:border-blue-500/50 focus:bg-black/60 focus:ring-4 focus:ring-blue-500/10"
       />
 
-      <div className="flex flex-wrap items-center gap-2">
-        {showHelpButton ? (
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          {showHelpButton ? (
+            <button
+              type="button"
+              onClick={onToggleHelp}
+              className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm text-amber-200 transition-colors hover:bg-amber-500/20"
+            >
+              <Lightbulb className="h-4 w-4" />
+              {showSentenceHelp ? "收起提示" : "显示提示"}
+            </button>
+          ) : null}
+
           <button
             type="button"
-            onClick={onToggleHelp}
-            className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm text-amber-200 transition-colors hover:bg-amber-500/20"
+            onClick={onSkip}
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-white/5"
           >
-            <Lightbulb className="h-4 w-4" />
-            {showSentenceHelp ? "收起提示" : "显示提示"}
+            <SkipForward className="h-4 w-4" />
+            {skipLabel}
           </button>
-        ) : null}
-
-        <button
-          type="button"
-          onClick={onSkip}
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-white/5"
-        >
-          <SkipForward className="h-4 w-4" />
-          {skipLabel}
-        </button>
+        </div>
 
         <button
           type="submit"
           disabled={!sentence.trim() || isSubmitting}
-          className="ml-auto inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 disabled:translate-y-0 disabled:bg-white/10 disabled:text-zinc-500 disabled:shadow-none"
+          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 disabled:translate-y-0 disabled:bg-white/10 disabled:text-zinc-500 disabled:shadow-none"
         >
           {isSubmitting ? (
             "AI 评估中..."
