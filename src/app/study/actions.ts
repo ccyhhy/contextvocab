@@ -442,8 +442,8 @@ const SENTENCE_HELP_MAX_OUTPUT_TOKENS = 360
 const EVALUATION_MAX_OUTPUT_TOKENS = 2000
 const LEGACY_LIBRARY_OPTIONS = [
   { slug: 'all', name: '全部词库', tag: 'All' },
-  { slug: 'cet-4', name: 'CET-4', tag: 'CET-4' },
-  { slug: 'cet-6', name: 'CET-6', tag: 'CET-6' },
+  { slug: 'cet-4', name: '大学英语四级', tag: 'CET-4' },
+  { slug: 'cet-6', name: '大学英语六级', tag: 'CET-6' },
 ] as const
 
 interface TimedCacheEntry<T> {

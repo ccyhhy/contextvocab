@@ -481,8 +481,8 @@ ALTER TABLE public.sentences
 -- official library seeds based on legacy tags
 INSERT INTO public.libraries (slug, name, description, source_type, content_type, language, is_public)
 VALUES
-  ('cet-4', 'CET-4', '大学英语四级核心词库', 'official', 'word', 'en', TRUE),
-  ('cet-6', 'CET-6', '大学英语六级核心词库', 'official', 'word', 'en', TRUE)
+  ('cet-4', '大学英语四级', '大学英语四级核心词库', 'official', 'word', 'en', TRUE),
+  ('cet-6', '大学英语六级', '大学英语六级核心词库', 'official', 'word', 'en', TRUE)
 ON CONFLICT (slug) DO UPDATE
 SET
   name = EXCLUDED.name,
