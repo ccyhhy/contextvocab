@@ -78,7 +78,7 @@ export function StudyWordPanel({
       <div className="mb-4 flex items-center gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-4">
-            <h1 className="text-5xl font-extrabold text-white">{currentWord.words.word}</h1>
+            <h1 className="text-5xl sm:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 tracking-tight pb-1">{currentWord.words.word}</h1>
             <button
               type="button"
               onClick={() => onPlayAudio(currentWord.words.word)}
@@ -95,9 +95,9 @@ export function StudyWordPanel({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 text-zinc-300">
-        <div className="flex items-start gap-3">
-          <BookOpen className="mt-1 h-5 w-5 shrink-0 text-blue-400/70" />
+      <div className="rounded-3xl border border-blue-500/10 bg-blue-500/[0.02] p-6 text-zinc-200">
+        <div className="flex items-start gap-4">
+          <BookOpen className="mt-1 h-6 w-6 shrink-0 text-blue-400/80" />
           <div className="space-y-2">
             <p>{primaryDefinition}</p>
             {secondaryDefinition ? <p className="text-sm leading-7 text-zinc-500">{secondaryDefinition}</p> : null}
@@ -169,7 +169,7 @@ export function StudyWordPanel({
                     key={`${currentWord.word_id}-preview-${item.sentence}`}
                     type="button"
                     onClick={() => onApplySentenceHelp(item.sentence)}
-                    className="block w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-left transition-colors hover:bg-white/5"
+                    className="block w-full rounded-2xl border border-white/5 bg-white/[0.02] px-4 py-4 text-left transition-all duration-300 hover:scale-[1.015] hover:-translate-y-0.5 hover:bg-white/5 hover:border-white/10 hover:shadow-xl hover:shadow-black/20"
                   >
                     <div className="text-sm leading-7 text-zinc-100">{item.sentence}</div>
                     {item.translation ? (

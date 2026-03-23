@@ -167,10 +167,10 @@ function EvaluationDetails({
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="flex gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3"
+          className="flex gap-3 rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 to-emerald-500/5 p-4 shadow-lg shadow-emerald-500/5"
         >
-          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
-          <p className="text-sm leading-relaxed text-zinc-300">{evaluation.praise}</p>
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+          <p className="text-sm leading-relaxed text-emerald-50">{evaluation.praise}</p>
         </motion.div>
       ) : null}
 
@@ -179,10 +179,10 @@ function EvaluationDetails({
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.9 }}
-          className="flex gap-3 rounded-xl border border-amber-500/[0.1] bg-amber-500/[0.04] p-3"
+          className="flex gap-3 rounded-2xl border border-amber-500/20 bg-gradient-to-r from-amber-500/10 to-amber-500/5 p-4 shadow-lg shadow-amber-500/5"
         >
-          <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
-          <p className="text-sm leading-relaxed text-zinc-300">{evaluation.suggestion}</p>
+          <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+          <p className="text-sm leading-relaxed text-amber-50">{evaluation.suggestion}</p>
         </motion.div>
       ) : null}
 
@@ -416,7 +416,7 @@ export function StudyEvaluationResult({
           <button
             type="button"
             onClick={onNext}
-            className="group flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-white/20 sm:w-auto"
+            className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-white/10 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/20 sm:w-auto"
           >
             {nextLabel}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

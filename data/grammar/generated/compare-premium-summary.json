@@ -1,0 +1,56 @@
+{
+  "generatedAt": "2026-03-22T11:47:59.108Z",
+  "summary": [
+    {
+      "model": "gpt-5.2",
+      "successCount": 6,
+      "totalCount": 6,
+      "successRate": "6/6",
+      "wallClockSec": 214.5,
+      "avgItemSec": 35.7,
+      "avgScore": 95,
+      "avgCoreLen": 81.2,
+      "avgUsageLen": 159.5,
+      "avgSceneTags": 5,
+      "avgSlots": 3,
+      "avgErrors": 6,
+      "avgContrasts": 5,
+      "avgExamples": 6,
+      "avgTemplates": 3.7
+    },
+    {
+      "model": "gpt-5.3",
+      "successCount": 0,
+      "totalCount": 6,
+      "successRate": "0/6",
+      "wallClockSec": 99.6,
+      "avgItemSec": 0,
+      "avgScore": 0,
+      "avgCoreLen": 0,
+      "avgUsageLen": 0,
+      "avgSceneTags": 0,
+      "avgSlots": 0,
+      "avgErrors": 0,
+      "avgContrasts": 0,
+      "avgExamples": 0,
+      "avgTemplates": 0
+    },
+    {
+      "model": "gpt-5.4",
+      "successCount": 6,
+      "totalCount": 6,
+      "successRate": "6/6",
+      "wallClockSec": 199.5,
+      "avgItemSec": 33.3,
+      "avgScore": 100,
+      "avgCoreLen": 105.3,
+      "avgUsageLen": 165.8,
+      "avgSceneTags": 5,
+      "avgSlots": 2.8,
+      "avgErrors": 6,
+      "avgContrasts": 4.7,
+      "avgExamples": 6,
+      "avgTemplates": 3.7
+    }
+  ]
+}

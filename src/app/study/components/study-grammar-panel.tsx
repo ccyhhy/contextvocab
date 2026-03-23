@@ -72,7 +72,7 @@ export function StudyGrammarPanel({
         <div className="flex items-start gap-4">
           <BookOpen className="mt-1 h-6 w-6 shrink-0 text-blue-400/80" />
           <div className="min-w-0 flex-1 space-y-3">
-            <h1 className="text-3xl font-extrabold text-white sm:text-4xl">{grammar.title}</h1>
+            <h1 className="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 tracking-tight pb-1">{grammar.title}</h1>
             <p className="text-lg font-medium text-blue-200/90">{grammar.pattern}</p>
             <p className="text-[15px] leading-relaxed text-zinc-200">{grammar.coreExplanation}</p>
             

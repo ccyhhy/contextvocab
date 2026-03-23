@@ -1,0 +1,57 @@
+{
+  "generatedAt": "2026-03-22T11:44:39.582Z",
+  "apiType": "responses",
+  "model": "gpt-5.3",
+  "spec": "premium-foundation-grammar-v1",
+  "selectedSlugs": [
+    "because-clause",
+    "since-clause-reason",
+    "although-clause",
+    "if-real-condition",
+    "that-clause-opinion",
+    "who-relative-clause"
+  ],
+  "summary": {
+    "model": "gpt-5.3",
+    "successCount": 0,
+    "totalCount": 6,
+    "successRate": "0/6",
+    "wallClockSec": 99.6,
+    "avgItemSec": 0,
+    "avgScore": 0,
+    "avgCoreLen": 0,
+    "avgUsageLen": 0,
+    "avgSceneTags": 0,
+    "avgSlots": 0,
+    "avgErrors": 0,
+    "avgContrasts": 0,
+    "avgExamples": 0,
+    "avgTemplates": 0
+  },
+  "items": [
+    {
+      "slug": "because-clause",
+      "error": "HTTP 503: {\"error\":{\"message\":\"Service temporarily unavailable\",\"type\":\"api_error\"}}"
+    },
+    {
+      "slug": "since-clause-reason",
+      "error": "HTTP 503: {\"error\":{\"message\":\"Service temporarily unavailable\",\"type\":\"api_error\"}}"
+    },
+    {
+      "slug": "although-clause",
+      "error": "HTTP 503: {\"error\":{\"message\":\"Service temporarily unavailable\",\"type\":\"api_error\"}}"
+    },
+    {
+      "slug": "if-real-condition",
+      "error": "HTTP 503: {\"error\":{\"message\":\"Service temporarily unavailable\",\"type\":\"api_error\"}}"
+    },
+    {
+      "slug": "that-clause-opinion",
+      "error": "HTTP 503: {\"error\":{\"message\":\"Service temporarily unavailable\",\"type\":\"api_error\"}}"
+    },
+    {
+      "slug": "who-relative-clause",
+      "error": "HTTP 503: {\"error\":{\"message\":\"Service temporarily unavailable\",\"type\":\"api_error\"}}"
+    }
+  ]
+}

@@ -1,0 +1,368 @@
+{
+  "library": {
+    "slug": "basic-scene-grammar",
+    "name": "Basic Scene Grammar",
+    "description": "Core scene-based grammar library for high-frequency structures, contrastive function words, and sentence frames.",
+    "sourceType": "official",
+    "language": "en",
+    "isPublic": true
+  },
+  "generatedAt": "2026-03-22T10:18:48.688Z",
+  "source": "E:\\codework\\words\\data\\grammar\\basic-scene-grammar.seed.json",
+  "model": "gpt-5.3",
+  "items": [
+    {
+      "slug": "because-clause",
+      "title": "because + clause",
+      "shortLabel": null,
+      "pattern": "because + clause",
+      "family": "reason_result",
+      "subtype": "cause_clause",
+      "anchor": "because",
+      "coreExplanation": "“because + clause”用来直接、明确地说明原因；because后面接完整从句（主语+动词）。",
+      "usageNote": "可放句中或句尾：I left because I was tired. / Because I was tired, I left. 句首时常用逗号隔开主句。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "explaining",
+        "conversation",
+        "writing",
+        "email"
+      ],
+      "slotSchema": [
+        {
+          "key": "reason",
+          "label": "reason clause",
+          "type": "clause",
+          "required": true,
+          "hint": "完整原因从句（主语+动词）"
+        },
+        {
+          "key": "result",
+          "label": "main clause",
+          "type": "clause",
+          "required": true,
+          "hint": "结果/主句，可在because前或后"
+        }
+      ],
+      "commonErrors": [
+        "because后面只接名词：because the rain（应为because of the rain或because it rained）",
+        "把because当介词用：because of he was late（应为because he was late）",
+        "句首Because从句后不加逗号导致阅读困难（写作中建议加）"
+      ],
+      "contrasts": [
+        {
+          "slug": "because-of-noun",
+          "title": "because of + noun / v-ing",
+          "note": "because后接从句；because of后接名词/动名词：because of the rain / because of being late。"
+        },
+        {
+          "slug": "since-clause-reason",
+          "title": "since + clause (reason)",
+          "note": "since更“顺带说明/已知原因”，语气通常比because弱、更书面一些。"
+        },
+        {
+          "slug": "because-of-noun-v-ing",
+          "title": "because of + noun / v-ing",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "since-clause",
+          "title": "since + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "as-clause",
+          "title": "as + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I stayed home because I was sick.",
+          "translation": "我待在家里，因为我生病了。",
+          "note": null,
+          "scene": "conversation",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Because the meeting was canceled, we went back early.",
+          "translation": "因为会议取消了，我们就提前回去了。",
+          "note": "句首原因从句后常用逗号。",
+          "scene": "writing",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Give a direct reason",
+          "template": "{result} because {reason}.",
+          "slotHints": [
+            "result=结果/主句",
+            "reason=原因从句（主语+动词）"
+          ],
+          "exampleSentence": "I can't go because I have to work.",
+          "exampleTranslation": "我不能去，因为我得工作。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "since-clause-reason",
+      "title": "since + clause (reason)",
+      "shortLabel": null,
+      "pattern": "since + clause",
+      "family": "reason_result",
+      "subtype": "background_reason",
+      "anchor": "since",
+      "coreExplanation": "“since + clause”表示原因，语气常把原因当作双方已知/默认的背景信息，重点在主句的结论或行动。常放句首，较常用于书面或较正式表达。",
+      "usageNote": "注意不要与表示时间的 since（“自从……”）混淆；表示原因时通常可用逗号把从句与主句分开，尤其句首。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "reasoning",
+        "writing",
+        "formal-writing"
+      ],
+      "slotSchema": [
+        {
+          "key": "sinceClause",
+          "label": "since 从句（原因）",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "陈述一个被视为已知/合理的原因"
+        },
+        {
+          "key": "mainClause",
+          "label": "主句（结果/决定）",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "表达结论、建议或采取的行动"
+        }
+      ],
+      "commonErrors": [
+        "把 since 当“自从”用在原因句里，导致时间/原因混淆",
+        "用 since 引出“对方未知、需要强调的新原因”，语气不自然（更适合 because）",
+        "从句用疑问句或倒装（since 后一般用正常陈述语序）"
+      ],
+      "contrasts": [
+        {
+          "slug": "because-clause",
+          "title": "because + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "as-clause-reason",
+          "title": "as + clause (reason)",
+          "note": "语气更弱、更客观；与 since 类似但更“顺带一提”的感觉。"
+        },
+        {
+          "slug": "as-clause",
+          "title": "as + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Since you’re already here, we can start the meeting.",
+          "translation": "既然你已经到了，我们可以开始开会了。",
+          "note": "把原因当作共同已知的背景，重点在“开始开会”。",
+          "scene": "work",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Since it was raining, we stayed home.",
+          "translation": "因为当时在下雨，我们就待在家里了。",
+          "note": "书面叙述中常用；也可用 because 但语气更强调原因。",
+          "scene": "daily-life",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Since (reason)",
+          "template": "Since {sinceClause}, {mainClause}.",
+          "slotHints": [
+            "sinceClause: 已知/默认的原因（完整陈述）",
+            "mainClause: 结论/决定/行动（完整陈述）"
+          ],
+          "exampleSentence": "Since the deadline is tomorrow, we should finish it today.",
+          "exampleTranslation": "既然截止日期是明天，我们今天就应该把它做完。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "although-clause",
+      "title": "although + clause",
+      "shortLabel": null,
+      "pattern": "although + clause, main clause",
+      "family": "concession_contrast",
+      "subtype": "concession_clause",
+      "anchor": "although",
+      "coreExplanation": "用 although 引导让步从句，表示“尽管/虽然…，但…”。常放句首并用逗号与主句分开，也可放句中。",
+      "usageNote": "偏书面、较正式；注意 although 后面必须接完整从句（主语+谓语）。",
+      "usageRegister": "formal",
+      "sceneTags": [
+        "contrast",
+        "writing",
+        "formal-writing",
+        "argument"
+      ],
+      "slotSchema": [
+        {
+          "key": "concession",
+          "label": "Concession clause",
+          "type": "clause",
+          "required": true,
+          "hint": "完整从句：主语+谓语，如 although it was raining"
+        },
+        {
+          "key": "main",
+          "label": "Main clause",
+          "type": "clause",
+          "required": true,
+          "hint": "主要结果/立场，如 we went out"
+        }
+      ],
+      "commonErrors": [
+        "although 后面只接名词/动名词：although the rain（应改 despite the rain 或 although it was raining）",
+        "although 和 but 同时使用：Although..., but ...（应去掉 but 或改用 Yet/Still）",
+        "从句不完整：Although tired, ...（可用 Though tired 更口语；或改 Although I was tired, ...）"
+      ],
+      "contrasts": [
+        {
+          "slug": "even-though-clause",
+          "title": "even though + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "despite-noun",
+          "title": "despite + noun / v-ing",
+          "note": "后接名词/动名词而非从句：Despite the rain / Despite being tired, ..."
+        },
+        {
+          "slug": "despite-noun-v-ing",
+          "title": "despite + noun / v-ing",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Although the deadline was tight, we finished the report on time.",
+          "translation": "尽管截止时间很紧，我们还是按时完成了报告。",
+          "note": "句首让步从句+逗号，书面常见。",
+          "scene": "formal-writing",
+          "isPrimary": true
+        },
+        {
+          "sentence": "We decided to go ahead although some people disagreed.",
+          "translation": "尽管有些人不同意，我们还是决定继续推进。",
+          "note": "although 也可放句末，逗号通常可省略。",
+          "scene": "writing",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Basic",
+          "template": "Although {concession}, {main}.",
+          "slotHints": [
+            "{concession}=让步从句（事实/情况）",
+            "{main}=主句（结果/决定）"
+          ],
+          "exampleSentence": "Although I was nervous, I spoke clearly.",
+          "exampleTranslation": "尽管我很紧张，我还是讲得很清楚。",
+          "position": 1
+        }
+      ],
+      "difficulty": 2
+    },
+    {
+      "slug": "if-real-condition",
+      "title": "if + present, will / can + base",
+      "shortLabel": null,
+      "pattern": "if + present, will / can + base",
+      "family": "condition",
+      "subtype": "real_condition",
+      "anchor": "if",
+      "coreExplanation": "用来表达“如果某个现实/可能发生的条件成立，那么将会/能够做某事”。if从句用一般现在时（表示将来条件），主句用will或can+动词原形。",
+      "usageNote": "if从句不要用will；可以用can表示能力/许可。两句顺序可互换。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "planning",
+        "advice",
+        "daily-life",
+        "work"
+      ],
+      "slotSchema": [
+        {
+          "key": "condition",
+          "label": "If-clause condition",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "一般现在时表达将来条件，如 you finish early"
+        },
+        {
+          "key": "result",
+          "label": "Main-clause result",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "will/can + 动词原形，如 I will call you"
+        }
+      ],
+      "commonErrors": [
+        "在if从句里用will：If it will rain...（应为 If it rains...）",
+        "主句动词不用原形：will goes / can to go（应为 will go / can go）",
+        "把一般现在误解为“现在”，不敢用来指将来条件"
+      ],
+      "contrasts": [
+        {
+          "slug": "unless-clause",
+          "title": "unless + clause",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        },
+        {
+          "slug": "if-past-would",
+          "title": "if + past, would + base",
+          "note": "用于不真实/假设情况：If I had time, I would help you（现在不太可能/与事实相反）。"
+        },
+        {
+          "slug": "if-past-would-base",
+          "title": "if + past, would + base",
+          "note": "Easily confused with this pattern; compare scenario and slot usage carefully."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "If you finish early, you can leave.",
+          "translation": "如果你提前做完，你就可以走。",
+          "note": "can表示许可/允许。",
+          "scene": "work",
+          "isPrimary": true
+        },
+        {
+          "sentence": "If it rains tomorrow, we'll stay home.",
+          "translation": "如果明天下雨，我们就待在家。",
+          "note": "if从句用一般现在rains表示将来条件。",
+          "scene": "daily-life",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Real future condition",
+          "template": "If {condition}, {result}.",
+          "slotHints": [
+            "condition: 一般现在时的条件句",
+            "result: will/can + 动词原形的结果句"
+          ],
+          "exampleSentence": "If you need help, I will explain it again.",
+          "exampleTranslation": "如果你需要帮助，我会再解释一遍。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    }
+  ]
+}
