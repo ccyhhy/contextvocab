@@ -2214,12 +2214,13 @@ async function getDueWordIds(
 
   for (let from = 0; ; from += SUPABASE_PAGE_SIZE) {
     const to = from + SUPABASE_PAGE_SIZE - 1
-    const { data, error } = await supabase
-      .from('user_words')
-      .select('word_id')
-      .eq('user_id', userId)
-      .lte('next_review_date', today)
-      .range(from, to)
+      const { data, error } = await supabase
+        .from('user_words')
+        .select('word_id')
+        .eq('user_id', userId)
+        .not('last_reviewed_at', 'is', null)
+        .lte('next_review_date', today)
+        .range(from, to)
 
     if (error) {
       console.error('Failed to load due word ids:', error)
@@ -2243,7 +2244,7 @@ async function getDueWordIds(
 
 async function attachWordToUser(
   wordId: string,
-  reviewDate: string,
+  reviewDate: string | null,
   supabase: SupabaseClient,
   userId: string,
   libraryId?: string | null
@@ -3820,17 +3821,32 @@ export async function getFavoriteWordIds() {
 
 export async function toggleFavoriteWord(wordId: string, nextFavorite: boolean) {
   const { supabase, user } = await requireActionSession()
-  const today = getTodayDateString()
 
   if (favoriteColumnSupported === false) {
     throw new Error('收藏功能需要先执行最新的 Supabase schema。')
   }
 
-  await attachWordToUser(wordId, today, supabase, user.id)
+  const userWord = await attachWordToUser(wordId, null, supabase, user.id)
+  const onlyUsedForFavorite =
+    nextFavorite &&
+    !!userWord &&
+    (userWord.repetitions ?? 0) === 0 &&
+    userWord.last_reviewed_at == null &&
+    userWord.last_score == null &&
+    (userWord.consecutive_failures ?? 0) === 0 &&
+    (userWord.lapse_count ?? 0) === 0 &&
+    (userWord.interval ?? 0) === 0
 
   const { error } = await supabase
     .from('user_words')
-    .update({ is_favorite: nextFavorite })
+    .update(
+      onlyUsedForFavorite
+        ? {
+            is_favorite: nextFavorite,
+            next_review_date: null,
+          }
+        : { is_favorite: nextFavorite }
+    )
     .eq('user_id', user.id)
     .eq('word_id', wordId)
 

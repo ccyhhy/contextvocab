@@ -415,7 +415,18 @@ async function getStartedLibraryWordIds(
       console.error('Failed to load started user_library_words for library detail:', libraryWordError)
     }
 
-    for (const row of (userWordRows ?? []) as WordIdRow[]) {
+    for (const row of ((userWordRows ?? []) as Array<
+      WordIdRow & {
+        repetitions?: number | null
+        last_reviewed_at?: string | null
+        last_score?: number | null
+      }
+    >).filter(
+      (row) =>
+        (row.repetitions ?? 0) > 0 ||
+        typeof row.last_reviewed_at === 'string' ||
+        typeof row.last_score === 'number'
+    )) {
       if (typeof row.word_id === 'string') {
         startedWordIds.add(row.word_id)
       }
@@ -450,11 +461,8 @@ async function getStartedLibraryGrammarItemIds(
       continue
     }
 
-    const [
-      { data: userGrammarRows, error: userGrammarError },
-      { data: attemptRows, error: attemptError },
-      { data: libraryGrammarRows, error: libraryGrammarError },
-    ] = await Promise.all([
+    const [{ data: userGrammarRows, error: userGrammarError }, { data: attemptRows, error: attemptError }] =
+      await Promise.all([
       supabase
         .from('user_grammar_items')
         .select('grammar_item_id')
@@ -462,11 +470,6 @@ async function getStartedLibraryGrammarItemIds(
         .in('grammar_item_id', chunk),
       supabase
         .from('grammar_attempts')
-        .select('grammar_item_id')
-        .eq('user_id', userId)
-        .in('grammar_item_id', chunk),
-      supabase
-        .from('user_library_grammar_items')
         .select('grammar_item_id')
         .eq('user_id', userId)
         .in('grammar_item_id', chunk),
@@ -480,14 +483,18 @@ async function getStartedLibraryGrammarItemIds(
       console.error('Failed to load started library grammar_attempts:', attemptError)
     }
 
-    if (libraryGrammarError) {
-      console.error(
-        'Failed to load started user_library_grammar_items for library detail:',
-        libraryGrammarError
-      )
-    }
-
-    for (const row of (userGrammarRows ?? []) as GrammarIdRow[]) {
+    for (const row of ((userGrammarRows ?? []) as Array<
+      GrammarIdRow & {
+        repetitions?: number | null
+        last_reviewed_at?: string | null
+        last_score?: number | null
+      }
+    >).filter(
+      (row) =>
+        (row.repetitions ?? 0) > 0 ||
+        typeof row.last_reviewed_at === 'string' ||
+        typeof row.last_score === 'number'
+    )) {
       if (typeof row.grammar_item_id === 'string') {
         startedGrammarItemIds.add(row.grammar_item_id)
       }
@@ -499,11 +506,6 @@ async function getStartedLibraryGrammarItemIds(
       }
     }
 
-    for (const row of (libraryGrammarRows ?? []) as GrammarIdRow[]) {
-      if (typeof row.grammar_item_id === 'string') {
-        startedGrammarItemIds.add(row.grammar_item_id)
-      }
-    }
   }
 
   return startedGrammarItemIds
@@ -552,10 +554,11 @@ async function buildLibraryDetail(
       getStartedLibraryGrammarItemIds(supabase, userId, libraryGrammarItemIds),
       supabase
         .from('user_grammar_items')
-        .select('id', { count: 'exact', head: true })
+        .select('id, repetitions, last_reviewed_at, last_score', { count: 'exact', head: true })
         .eq('user_id', userId)
         .in('grammar_item_id', libraryGrammarItemIds)
-        .lte('next_review_date', today),
+        .lte('next_review_date', today)
+        .or('repetitions.gt.0,last_reviewed_at.not.is.null,last_score.not.is.null'),
       planPromise,
     ])
 
@@ -607,10 +610,11 @@ async function buildLibraryDetail(
     getStartedLibraryWordIds(supabase, userId, libraryWordIds),
     supabase
       .from('user_words')
-      .select('id', { count: 'exact', head: true })
+      .select('id, repetitions, last_reviewed_at, last_score', { count: 'exact', head: true })
       .eq('user_id', userId)
       .in('word_id', libraryWordIds)
-      .lte('next_review_date', today),
+      .lte('next_review_date', today)
+      .or('repetitions.gt.0,last_reviewed_at.not.is.null,last_score.not.is.null'),
     planPromise,
   ])
 

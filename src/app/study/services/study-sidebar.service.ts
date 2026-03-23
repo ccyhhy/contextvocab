@@ -241,37 +241,69 @@ async function getLibraryGrammarItemIds(supabase: SupabaseClient, libraryId: str
 }
 
 async function getStartedGrammarIds(supabase: SupabaseClient, userId: string) {
-  const startedIds = new Set<string>()
-  const tables = ["user_grammar_items", "grammar_attempts", "user_library_grammar_items"] as const
+  const [reviewedGrammarIds, attemptedGrammarIds] = await Promise.all([
+    collectSidebarGrammarIds(supabase, {
+      table: "user_grammar_items",
+      userId,
+      studiedOnly: true,
+    }),
+    collectSidebarGrammarIds(supabase, {
+      table: "grammar_attempts",
+      userId,
+    }),
+  ])
 
-  for (const table of tables) {
-    for (let from = 0; ; from += SUPABASE_PAGE_SIZE) {
-      const to = from + SUPABASE_PAGE_SIZE - 1
-      const { data, error } = await supabase
-        .from(table)
-        .select("grammar_item_id")
-        .eq("user_id", userId)
-        .range(from, to)
+  return new Set<string>([...reviewedGrammarIds, ...attemptedGrammarIds])
+}
 
-      if (error) {
-        console.error(`Failed to load started grammar ids from ${table}:`, error)
-        break
+async function collectSidebarGrammarIds(
+  supabase: SupabaseClient,
+  params: {
+    table: "user_grammar_items" | "grammar_attempts"
+    userId: string
+    today?: string
+    studiedOnly?: boolean
+  }
+) {
+  const ids = new Set<string>()
+
+  for (let from = 0; ; from += SUPABASE_PAGE_SIZE) {
+    const to = from + SUPABASE_PAGE_SIZE - 1
+    let query = supabase
+      .from(params.table)
+      .select("grammar_item_id")
+      .eq("user_id", params.userId)
+      .range(from, to)
+
+    if (params.table === "user_grammar_items") {
+      if (params.today) {
+        query = query.lte("next_review_date", params.today)
       }
 
-      const rows = (data ?? []) as GrammarIdOnlyRow[]
-      for (const row of rows) {
-        if (typeof row.grammar_item_id === "string") {
-          startedIds.add(row.grammar_item_id)
-        }
+      if (params.studiedOnly) {
+        query = query.or("repetitions.gt.0,last_reviewed_at.not.is.null,last_score.not.is.null")
       }
+    }
 
-      if (rows.length < SUPABASE_PAGE_SIZE) {
-        break
+    const { data, error } = await query
+    if (error) {
+      console.error(`Failed to load sidebar grammar ids from ${params.table}:`, error)
+      break
+    }
+
+    const rows = (data ?? []) as GrammarIdOnlyRow[]
+    for (const row of rows) {
+      if (typeof row.grammar_item_id === "string") {
+        ids.add(row.grammar_item_id)
       }
+    }
+
+    if (rows.length < SUPABASE_PAGE_SIZE) {
+      break
     }
   }
 
-  return startedIds
+  return ids
 }
 
 async function collectSidebarWordIds(
@@ -354,35 +386,12 @@ async function getDueWordIdsForSidebar(supabase: SupabaseClient, userId: string,
 }
 
 async function getDueGrammarIds(supabase: SupabaseClient, userId: string, today: string) {
-  const dueIds = new Set<string>()
-
-  for (let from = 0; ; from += SUPABASE_PAGE_SIZE) {
-    const to = from + SUPABASE_PAGE_SIZE - 1
-    const { data, error } = await supabase
-      .from("user_grammar_items")
-      .select("grammar_item_id")
-      .eq("user_id", userId)
-      .lte("next_review_date", today)
-      .range(from, to)
-
-    if (error) {
-      console.error("Failed to load due grammar ids:", error)
-      break
-    }
-
-    const rows = (data ?? []) as GrammarIdOnlyRow[]
-    for (const row of rows) {
-      if (typeof row.grammar_item_id === "string") {
-        dueIds.add(row.grammar_item_id)
-      }
-    }
-
-    if (rows.length < SUPABASE_PAGE_SIZE) {
-      break
-    }
-  }
-
-  return dueIds
+  return collectSidebarGrammarIds(supabase, {
+    table: "user_grammar_items",
+    userId,
+    today,
+    studiedOnly: true,
+  })
 }
 
 async function getAllWordProfileProgressRows(

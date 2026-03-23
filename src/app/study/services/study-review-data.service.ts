@@ -125,14 +125,15 @@ async function loadDueRowsByCategory({
   >
 }) {
   const startedAt = Date.now()
-  let query = applyDueFilters(
-    supabase
-      .from('user_words')
-      .select('*, words!inner(*)')
-      .eq('user_id', userId)
-      .lte('next_review_date', today) as unknown as DueQueryChain,
-    {
-      tag,
+    let query = applyDueFilters(
+      supabase
+        .from('user_words')
+        .select('*, words!inner(*)')
+        .eq('user_id', userId)
+        .not('last_reviewed_at', 'is', null)
+        .lte('next_review_date', today) as unknown as DueQueryChain,
+      {
+        tag,
       skippedWordIds,
       preferredWordIds,
       studyView,
@@ -222,6 +223,7 @@ export async function loadDueWordCount({
       .from('user_words')
       .select('id, words!inner(id)', { count: 'exact', head: true })
       .eq('user_id', userId)
+      .not('last_reviewed_at', 'is', null)
       .lte('next_review_date', today) as unknown as DueQueryChain,
     {
       tag,
