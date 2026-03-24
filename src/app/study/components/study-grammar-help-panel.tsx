@@ -37,7 +37,7 @@ export function StudyGrammarHelpPanel({
     return (
       <div className="glass-panel rounded-2xl border border-white/[0.08] p-5">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-400">???????????</span>
+          <span className="text-sm text-zinc-400">当前这张句法卡暂时没有可用提示</span>
           <button
             type="button"
             onClick={onClose}
@@ -56,7 +56,7 @@ export function StudyGrammarHelpPanel({
         <div>
           <div className="flex items-center gap-2 text-sm font-medium text-zinc-200">
             <BookOpen className="h-4 w-4 text-amber-400" />
-            ????
+            造句提示
           </div>
           {sourceLabel ? (
             <p className="mt-1 text-[11px] tracking-[0.12em] text-amber-300/70">{sourceLabel}</p>
@@ -73,13 +73,13 @@ export function StudyGrammarHelpPanel({
 
       {state === "loading" ? (
         <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-zinc-400">
-          ????????????????...
+          正在生成更贴合当前句法卡的提示...
         </div>
       ) : null}
 
       {hasAiItems ? (
         <div className="space-y-2">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">AI ??</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">AI 生成</p>
           <div className="space-y-2">
             {aiItems.map((item) => (
               <button
@@ -106,7 +106,7 @@ export function StudyGrammarHelpPanel({
 
       {hasTemplates ? (
         <div className="space-y-2">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">??</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">模板</p>
           <div className="space-y-2">
             {templates.map((template) => (
               <button
@@ -119,7 +119,7 @@ export function StudyGrammarHelpPanel({
                 <div className="min-w-0 space-y-1">
                   <p className="text-sm leading-6 text-zinc-100">{template.template}</p>
                   {template.exampleSentence ? (
-                    <p className="text-xs leading-5 text-zinc-500">??{template.exampleSentence}</p>
+                    <p className="text-xs leading-5 text-zinc-500">例：{template.exampleSentence}</p>
                   ) : null}
                   {template.exampleTranslation ? (
                     <p className="text-xs leading-5 text-zinc-600">{template.exampleTranslation}</p>
@@ -133,7 +133,7 @@ export function StudyGrammarHelpPanel({
 
       {hasExamples ? (
         <div className="space-y-2">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">????</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">参考例句</p>
           <div className="space-y-2">
             {examples.map((example) => (
               <button
@@ -156,7 +156,7 @@ export function StudyGrammarHelpPanel({
       ) : null}
 
       <p className="text-xs leading-5 text-zinc-600">
-        ?????????????????? AI ????????????????
+        点击任意提示可直接填入输入框，建议在此基础上改写成你自己的句子。
       </p>
     </div>
   )

@@ -101,7 +101,7 @@ export function useGrammarHelp({
 
     let cancelled = false
     setGrammarHelpItems([])
-    setGrammarHelpSourceLabel("???????????...")
+    setGrammarHelpSourceLabel("正在生成提示...")
     setGrammarHelpState("loading")
 
     void loadGrammarHelpForItem({
@@ -119,7 +119,7 @@ export function useGrammarHelp({
         console.error(error)
         if (cancelled) return
         setGrammarHelpItems([])
-        setGrammarHelpSourceLabel("???????????")
+        setGrammarHelpSourceLabel("提示暂不可用")
         setGrammarHelpState("ready")
       })
 
