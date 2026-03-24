@@ -667,6 +667,226 @@
       "brief": "Use it to emphasize one part of a sentence as the main focus.",
       "sceneHints": ["emphasis", "correction", "formal-speaking"],
       "contrastHints": ["the reason is that...", "that-clause after think / say / know"]
+    },
+    {
+      "slug": "therefore-result-adverb",
+      "title": "therefore (result adverb)",
+      "pattern": "statement. Therefore, statement.",
+      "family": "reason_result",
+      "subtype": "formal_result_adverb",
+      "anchor": "therefore",
+      "brief": "Use it to present a logical result in a more formal, essay-like way.",
+      "sceneHints": ["formal-writing", "argument", "cause-and-effect"],
+      "contrastHints": ["so + result clause", "thus (result adverb)", "that's why + result"]
+    },
+    {
+      "slug": "thus-result-adverb",
+      "title": "thus (result adverb)",
+      "pattern": "statement; thus, statement",
+      "family": "reason_result",
+      "subtype": "compact_result_adverb",
+      "anchor": "thus",
+      "brief": "Use it to state a concise result, especially in analysis, reports, or formal explanation.",
+      "sceneHints": ["formal-writing", "reports", "analysis"],
+      "contrastHints": ["therefore (result adverb)", "so + result clause"]
+    },
+    {
+      "slug": "but-contrast-connector",
+      "title": "but (contrast connector)",
+      "pattern": "statement, but statement",
+      "family": "concession_contrast",
+      "subtype": "basic_contrast_connector",
+      "anchor": "but",
+      "brief": "Use it for direct, common contrast in everyday speaking and writing.",
+      "sceneHints": ["conversation", "contrast", "everyday-writing"],
+      "contrastHints": ["however (sentence adverb)", "yet (contrast connector)", "though + clause"]
+    },
+    {
+      "slug": "yet-contrast-connector",
+      "title": "yet (contrast connector)",
+      "pattern": "statement, yet statement",
+      "family": "concession_contrast",
+      "subtype": "surprising_contrast_connector",
+      "anchor": "yet",
+      "brief": "Use it when the contrast feels slightly surprising or unexpected, often in a concise written style.",
+      "sceneHints": ["contrast", "writing", "surprise"],
+      "contrastHints": ["but (contrast connector)", "however (sentence adverb)"]
+    },
+    {
+      "slug": "still-contrast-adverb",
+      "title": "still (contrast adverb)",
+      "pattern": "statement. Still, statement.",
+      "family": "concession_contrast",
+      "subtype": "persistence_contrast",
+      "anchor": "still",
+      "brief": "Use it to show that something remains true despite a previous point.",
+      "sceneHints": ["concession", "emotion", "spoken-reflection"],
+      "contrastHints": ["however (sentence adverb)", "yet (contrast connector)", "even though + clause"]
+    },
+    {
+      "slug": "though-clause",
+      "title": "though + clause",
+      "pattern": "though + clause, main clause",
+      "family": "concession_contrast",
+      "subtype": "lighter_concession_clause",
+      "anchor": "though",
+      "brief": "Use it as a slightly lighter, often more spoken alternative to although.",
+      "sceneHints": ["conversation", "contrast", "informal-writing"],
+      "contrastHints": ["although + clause", "even though + clause", "despite + noun / v-ing"]
+    },
+    {
+      "slug": "whereas-clause",
+      "title": "whereas + clause",
+      "pattern": "A, whereas B",
+      "family": "concession_contrast",
+      "subtype": "formal_comparison_contrast",
+      "anchor": "whereas",
+      "brief": "Use it to set two facts or situations against each other in a more formal comparison.",
+      "sceneHints": ["formal-writing", "comparison", "analysis"],
+      "contrastHints": ["while + clause (contrast)", "however (sentence adverb)"]
+    },
+    {
+      "slug": "no-matter-what-clause",
+      "title": "no matter what + clause",
+      "pattern": "no matter what + clause, main clause",
+      "family": "concession_contrast",
+      "subtype": "unlimited_concession",
+      "anchor": "no matter what",
+      "brief": "Use it to say the main result stays the same in every possible case.",
+      "sceneHints": ["determination", "promise", "strong-emphasis"],
+      "contrastHints": ["even if + clause", "whatever-clause"]
+    },
+    {
+      "slug": "provided-that-clause",
+      "title": "provided that + clause",
+      "pattern": "main clause, provided that + clause",
+      "family": "condition",
+      "subtype": "formal_required_condition",
+      "anchor": "provided that",
+      "brief": "Use it for a condition that must be satisfied, especially in rules, agreements, or formal statements.",
+      "sceneHints": ["rules", "agreements", "formal-writing"],
+      "contrastHints": ["as long as + clause", "if + present, will / can + base", "only if + clause"]
+    },
+    {
+      "slug": "only-if-clause",
+      "title": "only if + clause",
+      "pattern": "main clause only if + clause",
+      "family": "condition",
+      "subtype": "restrictive_condition",
+      "anchor": "only if",
+      "brief": "Use it when the condition is restrictive and the result depends on that condition alone.",
+      "sceneHints": ["rules", "requirements", "formal-speaking"],
+      "contrastHints": ["if + present, will / can + base", "unless + clause", "provided that + clause"]
+    },
+    {
+      "slug": "as-soon-as-clause",
+      "title": "as soon as + clause",
+      "pattern": "as soon as + clause, main clause",
+      "family": "time_sequence",
+      "subtype": "immediate_time_sequence",
+      "anchor": "as soon as",
+      "brief": "Use it to show that one action follows another immediately.",
+      "sceneHints": ["plans", "instructions", "daily-life"],
+      "contrastHints": ["when + clause", "once + clause", "after + v-ing / noun"]
+    },
+    {
+      "slug": "by-the-time-clause",
+      "title": "by the time + clause",
+      "pattern": "by the time + clause, main clause",
+      "family": "time_sequence",
+      "subtype": "deadline_time_reference",
+      "anchor": "by the time",
+      "brief": "Use it to refer to a point by which another action will already be completed or true.",
+      "sceneHints": ["planning", "deadlines", "narration"],
+      "contrastHints": ["when + clause", "before + clause", "until + clause"]
+    },
+    {
+      "slug": "whether-or-not-clause",
+      "title": "whether or not + clause",
+      "pattern": "whether or not + clause",
+      "family": "noun_clause",
+      "subtype": "explicit_alternative_clause",
+      "anchor": "whether or not",
+      "brief": "Use it to express that both possibilities are being considered, or that the result does not depend on the answer.",
+      "sceneHints": ["uncertainty", "decision-making", "formal-writing"],
+      "contrastHints": ["whether + clause", "if + clause", "no matter what + clause"]
+    },
+    {
+      "slug": "so-adj-that-clause",
+      "title": "so + adjective / adverb + that + clause",
+      "pattern": "so + adj / adv + that + clause",
+      "family": "purpose_comparison",
+      "subtype": "degree_result_pattern",
+      "anchor": "so",
+      "brief": "Use it when a degree or intensity leads to a result.",
+      "sceneHints": ["results", "description", "storytelling"],
+      "contrastHints": ["such + noun + that + clause", "too + adj + to..."]
+    },
+    {
+      "slug": "such-noun-that-clause",
+      "title": "such + noun + that + clause",
+      "pattern": "such + noun + that + clause",
+      "family": "purpose_comparison",
+      "subtype": "noun_based_result_pattern",
+      "anchor": "such",
+      "brief": "Use it when the result comes from the degree or type of a noun phrase, not just an adjective.",
+      "sceneHints": ["description", "writing", "emphasis"],
+      "contrastHints": ["so + adjective / adverb + that + clause", "too + adj + to..."]
+    },
+    {
+      "slug": "comparative-than",
+      "title": "comparative + than",
+      "pattern": "comparative + than",
+      "family": "purpose_comparison",
+      "subtype": "basic_comparison_pattern",
+      "anchor": "than",
+      "brief": "Use it to compare two people, things, actions, or situations in a direct way.",
+      "sceneHints": ["comparison", "daily-life", "opinions"],
+      "contrastHints": ["as...as...", "the more..., the more..."]
+    },
+    {
+      "slug": "would-rather",
+      "title": "would rather + base",
+      "pattern": "would rather + base (than + base)",
+      "family": "purpose_comparison",
+      "subtype": "preference_pattern",
+      "anchor": "would rather",
+      "brief": "Use it to express personal preference between actions, especially in speaking.",
+      "sceneHints": ["preferences", "conversation", "choices"],
+      "contrastHints": ["prefer A to B", "rather than", "would like to..."]
+    },
+    {
+      "slug": "there-is-no-point-in",
+      "title": "there is no point in + v-ing",
+      "pattern": "there is no point in + v-ing",
+      "family": "functional_pattern",
+      "subtype": "futility_frame",
+      "anchor": "there is no point in",
+      "brief": "Use it to say that an action is not useful, worthwhile, or likely to help.",
+      "sceneHints": ["advice", "argument", "problem-solving"],
+      "contrastHints": ["it is useless to...", "you don't need to..."]
+    },
+    {
+      "slug": "cant-help-ving",
+      "title": "can't help + v-ing",
+      "pattern": "can't help + v-ing",
+      "family": "functional_pattern",
+      "subtype": "uncontrolled_reaction",
+      "anchor": "can't help",
+      "brief": "Use it when a feeling or reaction happens naturally and is hard to control.",
+      "sceneHints": ["emotion", "daily-life", "personal-reaction"],
+      "contrastHints": ["have trouble + v-ing", "be used to + v-ing"]
+    },
+    {
+      "slug": "be-used-to-ving",
+      "title": "be used to + noun / v-ing",
+      "pattern": "be used to + noun / v-ing",
+      "family": "functional_pattern",
+      "subtype": "familiarity_frame",
+      "anchor": "be used to",
+      "brief": "Use it to say someone is already familiar with a situation, habit, or repeated activity.",
+      "sceneHints": ["habits", "adaptation", "daily-life"],
+      "contrastHints": ["used to + base", "get used to + noun / v-ing", "can't help + v-ing"]
     }
   ]
 }
