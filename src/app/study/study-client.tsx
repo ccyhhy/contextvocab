@@ -1,7 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { type ChangeEvent, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   type HistoryReviewContext,
   toggleFavoriteWord,
@@ -106,7 +106,7 @@ export default function StudyClient({
       initialEnrichmentProgress: enrichmentProgress,
     })
 
-  const { popCachedBatch, invalidateLibrary } = useLibraryPrefetch({
+  const { popCachedBatch } = useLibraryPrefetch({
     availableLibraries,
     activeLibrarySlug: librarySlug,
     activeStudyView: studyView,
@@ -255,7 +255,6 @@ export default function StudyClient({
     }
 
     // Cache miss — normal async load with loading indicator
-    clearVisibleBatch()
     await reloadStudyBatch(nextLibrarySlug, nextStudyView, [])
   }
 
@@ -267,10 +266,15 @@ export default function StudyClient({
     setStudyView(normalizedView)
     setHistoryReviewContext(null)
     resetSessionScope()
-    clearVisibleBatch()
     setSubmissionMode("scheduled")
     resetComposerState()
-    await reloadStudyBatch(librarySlug, nextStudyView as StudyView, [])
+    const cached = popCachedBatch(librarySlug, normalizedView)
+    if (cached) {
+      await reloadStudyBatch(librarySlug, normalizedView, [], { initialBatch: cached })
+      return
+    }
+
+    await reloadStudyBatch(librarySlug, normalizedView, [])
   }
 
   const toggleFavorite = async () => {
