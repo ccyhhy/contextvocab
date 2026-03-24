@@ -28,10 +28,11 @@ export default function Nav({ userEmail }: { userEmail?: string | null }) {
     <nav className="sticky top-0 z-40 w-full border-b border-white/[0.06] bg-black/40 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
         <Link href="/study" className="group flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 shadow-inner transition-all group-hover:from-blue-500/30 group-hover:to-purple-500/30">
-            <Sparkles className="h-4 w-4 text-blue-400" />
+          <div className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-blue-400/20 bg-gradient-to-br from-blue-600 to-purple-600 shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.8)] group-hover:scale-105">
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-black/20 to-transparent" />
+            <Sparkles className="relative z-10 h-4 w-4 text-white" />
           </div>
-          <span className="text-sm font-semibold tracking-wide text-zinc-100">ContextVocab</span>
+          <span className="text-sm font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-100 to-white drop-shadow-sm">ContextVocab</span>
         </Link>
 
         <div className="hidden items-center gap-1 sm:flex">

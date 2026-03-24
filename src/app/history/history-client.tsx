@@ -40,16 +40,18 @@ const EMPTY_GRAMMAR_HISTORY: GrammarHistoryResult = {
 }
 
 function ScoreBadge({ score }: { score: number }) {
-  const color =
-    score >= 80
-      ? "border-green-500/20 bg-green-500/10 text-green-400"
-      : score >= 60
-        ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-400"
-        : "border-red-500/20 bg-red-500/10 text-red-400"
+  const isHigh = score >= 80;
+  const isMid = score >= 60 && score < 80;
+  
+  const baseColor = isHigh 
+    ? "from-green-500/20 to-emerald-500/10 border-green-500/30 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.15)]" 
+    : isMid 
+      ? "from-yellow-500/20 to-amber-500/10 border-yellow-500/30 text-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.15)]"
+      : "from-red-500/20 to-rose-500/10 border-red-500/30 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.15)]";
 
   return (
     <span
-      className={`inline-flex h-10 w-14 items-center justify-center rounded-xl border text-sm font-bold ${color}`}
+      className={`inline-flex shrink-0 h-12 w-16 items-center justify-center rounded-2xl border bg-gradient-to-br text-base font-black tracking-tight ${baseColor}`}
     >
       {score}
     </span>
@@ -186,19 +188,19 @@ function WordSentenceCard({ item }: { item: SentenceRecord }) {
                 </span>
               </div>
 
-              <div className="mt-3 rounded-xl border border-white/[0.05] bg-[#09090b]/60 p-4">
-                <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
-                  <MessageSquare className="h-3 w-3" />
+              <div className="mt-4 rounded-2xl border border-indigo-500/10 bg-gradient-to-br from-indigo-500/[0.05] to-purple-500/[0.02] p-5">
+                <div className="mb-3 flex items-center gap-2 text-[11px] font-bold tracking-widest text-indigo-300 uppercase">
+                  <Sparkles className="h-4 w-4 text-indigo-400" />
                   AI 评语
                 </div>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
+                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-indigo-100/90">
                   {item.feedback || "暂无评语。"}
                 </p>
               </div>
 
-              <div className="mt-3 rounded-lg border border-white/[0.04] bg-white/[0.02] p-3">
-                <p className="mb-1 text-xs text-zinc-500">你的造句</p>
-                <p className="text-sm italic text-zinc-200">&quot;{item.sentence}&quot;</p>
+              <div className="mt-3 rounded-xl border border-white/[0.04] bg-black/20 p-4">
+                <p className="mb-2 text-[11px] uppercase tracking-wider text-zinc-500 font-medium">你的造句</p>
+                <p className="text-[15px] italic text-zinc-300 leading-relaxed">&quot;{item.sentence}&quot;</p>
               </div>
 
               <div className="mt-3 flex justify-end">
@@ -275,19 +277,19 @@ function GrammarAttemptCard({ item }: { item: GrammarAttemptRecord }) {
                 <MetricBadge label="自然度" value={item.naturalness} />
               </div>
 
-              <div className="mt-3 rounded-xl border border-white/[0.05] bg-[#09090b]/60 p-4">
-                <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
-                  <MessageSquare className="h-3 w-3" />
-                  AI 评语
+              <div className="mt-4 rounded-2xl border border-indigo-500/10 bg-gradient-to-br from-indigo-500/[0.05] to-purple-500/[0.02] p-5">
+                <div className="mb-3 flex items-center gap-2 text-[11px] font-bold tracking-widest text-indigo-300 uppercase">
+                  <Sparkles className="h-4 w-4 text-indigo-400" />
+                  AI 评鉴
                 </div>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
+                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-indigo-100/90">
                   {item.feedback || "暂无评语。"}
                 </p>
               </div>
 
-              <div className="mt-3 rounded-lg border border-white/[0.04] bg-white/[0.02] p-3">
-                <p className="mb-1 text-xs text-zinc-500">你的练习句子</p>
-                <p className="text-sm italic text-zinc-200">&quot;{item.sentence}&quot;</p>
+              <div className="mt-3 rounded-xl border border-white/[0.04] bg-black/20 p-4">
+                <p className="mb-2 text-[11px] uppercase tracking-wider text-zinc-500 font-medium">你的练习句子</p>
+                <p className="text-[15px] italic text-zinc-300 leading-relaxed">&quot;{item.sentence}&quot;</p>
               </div>
 
               <div className="mt-3 flex justify-end">
