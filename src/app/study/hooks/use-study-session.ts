@@ -87,10 +87,29 @@ export function useStudySession({
     nextLibrarySlug = librarySlug,
     nextStudyView = studyView,
     nextDeferredItems = deferredItems,
-    options?: { restoreDeferredOnEmpty?: boolean }
+    options?: { restoreDeferredOnEmpty?: boolean; initialBatch?: StudyBatchItem[] }
   ) => {
     queueContextRef.current += 1
     const context = queueContextRef.current
+
+    // If a prefetched batch is provided, show it instantly (no loading flash)
+    if (options?.initialBatch && options.initialBatch.length > 0) {
+      applyBatch(options.initialBatch)
+      // Then quietly refresh in background so the full SRS-sorted list replaces it
+      setRefillingQueue(true)
+      try {
+        const freshBatch = await fetchBatch(nextLibrarySlug, nextStudyView, nextDeferredItems, null, [])
+        if (queueContextRef.current === context && freshBatch.length > 0) {
+          applyBatch(freshBatch)
+        }
+      } catch {
+        // silent—user already sees the prefetch batch
+      } finally {
+        if (queueContextRef.current === context) setRefillingQueue(false)
+      }
+      return
+    }
+
     setLoadingNext(true)
 
     try {

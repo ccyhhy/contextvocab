@@ -31,6 +31,7 @@ import {
   useStudySidebarData,
   useStudySubmission,
 } from "./hooks"
+import { useLibraryPrefetch } from "./hooks/use-library-prefetch"
 import { normalizeStudyViewForContentType } from "./study-view"
 
 const StudySpeechSettingsDialog = dynamic(() =>
@@ -104,6 +105,12 @@ export default function StudyClient({
       initialLibraries: libraries,
       initialEnrichmentProgress: enrichmentProgress,
     })
+
+  const { popCachedBatch, invalidateLibrary } = useLibraryPrefetch({
+    availableLibraries,
+    activeLibrarySlug: librarySlug,
+    activeStudyView: studyView,
+  })
   const {
     currentItem,
     queuedItems,
@@ -237,9 +244,18 @@ export default function StudyClient({
     setStudyView(nextStudyView)
     setHistoryReviewContext(null)
     resetSessionScope()
-    clearVisibleBatch()
     setSubmissionMode("scheduled")
     resetComposerState()
+
+    // Check prefetch cache first — if hit, show instantly then quietly re-sync in background
+    const cached = popCachedBatch(nextLibrarySlug, nextStudyView)
+    if (cached) {
+      await reloadStudyBatch(nextLibrarySlug, nextStudyView, [], { initialBatch: cached })
+      return
+    }
+
+    // Cache miss — normal async load with loading indicator
+    clearVisibleBatch()
     await reloadStudyBatch(nextLibrarySlug, nextStudyView, [])
   }
 
