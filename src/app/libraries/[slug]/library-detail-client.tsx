@@ -160,7 +160,7 @@ function GrammarCard({ item }: { item: LibraryDetailGrammarItem }) {
               </span>
             ) : null}
             <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-1 text-[11px] text-blue-100">
-              {item.family}
+              {item.familyLabel}
             </span>
           </div>
           <p className="mt-2 text-sm font-medium text-blue-200/90">{item.pattern}</p>
@@ -716,7 +716,7 @@ export default function LibraryDetailClient({
             ) : (
               <div className="mt-5 rounded-2xl border border-white/8 bg-black/20 px-4 py-5 text-sm leading-7 text-zinc-400">
                 {isGrammarLibrary
-                  ? "这里目前主要用于浏览句法卡片。后续如果要补句法词库编辑能力，可以在不改学习模型的前提下继续加。"
+                  ? "你可以在左侧查阅已收录的句法结构（按阶段性与使用频率排序）。点击上方的「开始学习」可以直接进入这些句法骨架的实战训练。"
                   : "这个官方词库目前在词库页里是只读的。"}
               </div>
             )}

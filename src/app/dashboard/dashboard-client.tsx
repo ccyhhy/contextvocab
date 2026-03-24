@@ -46,7 +46,7 @@ function UsageBadge({
   if (attemptStatus === "needs_help") {
     return (
       <span className="rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-300">
-        Need Help
+        需要帮助
       </span>
     )
   }
@@ -54,7 +54,7 @@ function UsageBadge({
   if (usageQuality === "meta") {
     return (
       <span className="rounded-full border border-orange-500/20 bg-orange-500/10 px-2 py-0.5 text-[10px] font-medium text-orange-300">
-        Meta
+        元句子
       </span>
     )
   }
@@ -62,14 +62,14 @@ function UsageBadge({
   if (usageQuality === "weak") {
     return (
       <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-[10px] font-medium text-yellow-300">
-        Weak
+        用法偏弱
       </span>
     )
   }
 
   return (
     <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-      In Context
+      用法到位
     </span>
   )
 }
@@ -195,19 +195,19 @@ export default function DashboardClient({
         className="grid grid-cols-2 gap-3 sm:grid-cols-4"
       >
         <div className="glass-panel rounded-2xl p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">In Context</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">用法到位</p>
           <p className="mt-2 text-2xl font-black text-emerald-300">{stats.contextualUsageCount}</p>
         </div>
         <div className="glass-panel rounded-2xl p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Weak</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">用法偏弱</p>
           <p className="mt-2 text-2xl font-black text-yellow-300">{stats.weakUsageCount}</p>
         </div>
         <div className="glass-panel rounded-2xl p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Meta</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">含元句子</p>
           <p className="mt-2 text-2xl font-black text-orange-300">{stats.metaSentenceCount}</p>
         </div>
         <div className="glass-panel rounded-2xl p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Need Help</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">需要帮助</p>
           <p className="mt-2 text-2xl font-black text-red-300">{stats.needsHelpCount}</p>
         </div>
       </motion.div>
@@ -224,7 +224,7 @@ export default function DashboardClient({
         >
           <div>
             <p className="text-sm font-semibold text-white">继续学习</p>
-            <p className="mt-0.5 text-xs text-zinc-500">还有 {stats.dueToday} 个单词待复习</p>
+            <p className="mt-0.5 text-xs text-zinc-500">还有 {stats.dueToday} 个条目待复习</p>
           </div>
           <ArrowRight className="h-5 w-5 text-zinc-500 transition-all group-hover:translate-x-1 group-hover:text-blue-400" />
         </Link>

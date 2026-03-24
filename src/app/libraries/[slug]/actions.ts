@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { requireActionSession } from '@/lib/supabase/user'
 import { getTodayDateString } from '@/lib/app-date'
+import { getGrammarFamilyLabel } from '@/lib/grammar-family'
 import { normalizeStudyContentType, type StudyContentType } from '@/lib/study-content'
 
 const LIBRARY_WORD_PAGE_SIZE = 100
@@ -54,6 +55,7 @@ export interface LibraryDetailGrammarItem {
   title: string
   pattern: string
   family: string
+  familyLabel: string
   subtype: string | null
   anchor: string | null
   coreExplanation: string
@@ -749,14 +751,15 @@ async function getLibraryGrammarItemsByIds(
         .sort((left, right) => (left.position ?? 0) - (right.position ?? 0))[0] ?? null
 
     return {
-      grammarItemId: row.grammarItemId,
-      slug: row.grammar.slug,
-      title: row.grammar.title,
-      pattern: row.grammar.pattern,
-      family: row.grammar.family,
-      subtype: row.grammar.subtype ?? null,
-      anchor: row.grammar.anchor ?? null,
-      coreExplanation: row.grammar.core_explanation,
+        grammarItemId: row.grammarItemId,
+        slug: row.grammar.slug,
+        title: row.grammar.title,
+        pattern: row.grammar.pattern,
+        family: row.grammar.family,
+        familyLabel: getGrammarFamilyLabel(row.grammar.family),
+        subtype: row.grammar.subtype ?? null,
+        anchor: row.grammar.anchor ?? null,
+        coreExplanation: row.grammar.core_explanation,
       usageNote: row.grammar.usage_note ?? null,
       usageRegister: row.grammar.usage_register ?? null,
       sceneTags: Array.isArray(row.grammar.scene_tags)

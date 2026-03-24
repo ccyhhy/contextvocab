@@ -30,6 +30,7 @@ import {
   useStudySidebarData,
   useStudySubmission,
 } from "./hooks"
+import { normalizeStudyViewForContentType } from "./study-view"
 
 const StudySpeechSettingsDialog = dynamic(() =>
   import("./components/study-speech-settings-dialog").then(
@@ -159,6 +160,12 @@ export default function StudyClient({
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (initialStudyView) {
+      setStudyView(initialStudyView)
+    }
+  }, [initialStudyView])
 
   const resetComposerState = (options?: {
     preserveSentence?: boolean
@@ -496,15 +503,4 @@ export default function StudyClient({
       ) : null}
     </div>
   )
-}
-
-function normalizeStudyViewForContentType(
-  contentType: StudyLibrary["contentType"] | null | undefined,
-  studyView: StudyView
-) {
-  if (contentType === "grammar" && studyView === "favorites") {
-    return "all"
-  }
-
-  return studyView
 }

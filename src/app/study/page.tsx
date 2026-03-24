@@ -7,6 +7,8 @@ import {
 } from './actions'
 import { requirePageUser } from '@/lib/supabase/user'
 import StudyClient from './study-client'
+import { isStudyBatchGrammarItem } from './study-batch-item'
+import { normalizeStudyViewForContentType } from './study-view'
 
 const STUDY_PAGE_LOG_THRESHOLD_MS = 150
 
@@ -83,7 +85,23 @@ async function renderStudyPage(
     historyReviewTarget?.preferredLibrarySlug?.trim().toLowerCase() ||
     requestedLibrarySlug
   const reviewBatchItem = historyReviewTarget?.batchItem ?? null
-  const initialBatch = reviewBatchItem ? [reviewBatchItem] : initialBatchForRegularEntry
+  const initialLibraryContentType =
+    reviewBatchItem && isStudyBatchGrammarItem(reviewBatchItem)
+      ? 'grammar'
+      : libraries.find((item) => item.slug === initialLibrarySlug)?.contentType ?? null
+  const effectiveStudyView = normalizeStudyViewForContentType(
+    initialLibraryContentType,
+    requestedStudyView
+  )
+  const initialBatch =
+    reviewBatchItem != null
+      ? [reviewBatchItem]
+      : effectiveStudyView === requestedStudyView
+        ? initialBatchForRegularEntry
+        : await getStudyBatch({
+            librarySlug: requestedLibrarySlug,
+            studyView: effectiveStudyView,
+          })
 
   logStudyPagePerformance(startedAt, {
     librarySlug: initialLibrarySlug,
@@ -93,7 +111,8 @@ async function renderStudyPage(
     initialBatch: initialBatch.length,
     libraries: libraries.length,
     favorites: initialFavoriteWordIds.length,
-    studyView: requestedStudyView,
+    requestedStudyView,
+    effectiveStudyView,
   })
 
   return (
@@ -104,7 +123,7 @@ async function renderStudyPage(
         enrichmentProgress={[]}
         libraries={libraries}
         initialLibrarySlug={initialLibrarySlug}
-        initialStudyView={requestedStudyView}
+        initialStudyView={effectiveStudyView}
         initialHistoryReview={historyReviewTarget?.review ?? null}
         initialSentenceDraft={historyReviewTarget?.review?.sentence ?? ''}
       />

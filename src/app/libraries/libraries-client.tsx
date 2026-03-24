@@ -226,7 +226,7 @@ export default function LibrariesClient({
             <div className="flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-zinc-400">
                 <Layers3 className="h-3.5 w-3.5" />
-                {library.sourceType === "official" ? "官方官方" : "自定义"}
+                {library.sourceType === "official" ? "官方" : "自定义"}
               </div>
               <div className="inline-flex items-center rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-blue-100">
                 {getContentTypeLabel(library.contentType)}

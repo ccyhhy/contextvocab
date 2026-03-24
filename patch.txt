@@ -1,0 +1,173 @@
+diff --git a/src/app/libraries/[slug]/actions.ts b/src/app/libraries/[slug]/actions.ts
+index a61bb09..3b037cc 100644
+--- a/src/app/libraries/[slug]/actions.ts
++++ b/src/app/libraries/[slug]/actions.ts
+@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
+ import { revalidatePath } from 'next/cache'
+ import { requireActionSession } from '@/lib/supabase/user'
+ import { getTodayDateString } from '@/lib/app-date'
++import { getGrammarFamilyLabel } from '@/lib/grammar-family'
+ import { normalizeStudyContentType, type StudyContentType } from '@/lib/study-content'
+ 
+ const LIBRARY_WORD_PAGE_SIZE = 100
+@@ -54,6 +55,7 @@ export interface LibraryDetailGrammarItem {
+   title: string
+   pattern: string
+   family: string
++  familyLabel: string
+   subtype: string | null
+   anchor: string | null
+   coreExplanation: string
+@@ -749,14 +751,15 @@ async function getLibraryGrammarItemsByIds(
+         .sort((left, right) => (left.position ?? 0) - (right.position ?? 0))[0] ?? null
+ 
+     return {
+-      grammarItemId: row.grammarItemId,
+-      slug: row.grammar.slug,
+-      title: row.grammar.title,
+-      pattern: row.grammar.pattern,
+-      family: row.grammar.family,
+-      subtype: row.grammar.subtype ?? null,
+-      anchor: row.grammar.anchor ?? null,
+-      coreExplanation: row.grammar.core_explanation,
++        grammarItemId: row.grammarItemId,
++        slug: row.grammar.slug,
++        title: row.grammar.title,
++        pattern: row.grammar.pattern,
++        family: row.grammar.family,
++        familyLabel: getGrammarFamilyLabel(row.grammar.family),
++        subtype: row.grammar.subtype ?? null,
++        anchor: row.grammar.anchor ?? null,
++        coreExplanation: row.grammar.core_explanation,
+       usageNote: row.grammar.usage_note ?? null,
+       usageRegister: row.grammar.usage_register ?? null,
+       sceneTags: Array.isArray(row.grammar.scene_tags)
+diff --git a/src/app/libraries/[slug]/library-detail-client.tsx b/src/app/libraries/[slug]/library-detail-client.tsx
+index eabc23d..8ef0aa6 100644
+--- a/src/app/libraries/[slug]/library-detail-client.tsx
++++ b/src/app/libraries/[slug]/library-detail-client.tsx
+@@ -160,7 +160,7 @@ function GrammarCard({ item }: { item: LibraryDetailGrammarItem }) {
+               </span>
+             ) : null}
+             <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-1 text-[11px] text-blue-100">
+-              {item.family}
++              {item.familyLabel}
+             </span>
+           </div>
+           <p className="mt-2 text-sm font-medium text-blue-200/90">{item.pattern}</p>
+diff --git a/src/app/study/actions.ts b/src/app/study/actions.ts
+index 529f3b7..a41de8e 100644
+--- a/src/app/study/actions.ts
++++ b/src/app/study/actions.ts
+@@ -24,6 +24,7 @@ import type {
+ } from '@/lib/study-content'
+ import { normalizeStudyContentType } from '@/lib/study-content'
+ import { isLearnerFriendlyExampleSentence } from '@/lib/example-safety'
++import { getGrammarFamilyLabel } from '@/lib/grammar-family'
+ import { type ReviewBucket, type SRSData } from '@/lib/srs'
+ import { type StudyPriorityReason } from '@/lib/study-scheduler'
+ import { requireActionSession } from '@/lib/supabase/user'
+@@ -1709,6 +1710,7 @@ function buildGrammarStudyInfo(
+     shortLabel: row.short_label ?? null,
+     pattern: row.pattern,
+     family: row.family,
++    familyLabel: getGrammarFamilyLabel(row.family),
+     subtype: row.subtype ?? null,
+     anchor: row.anchor ?? null,
+     coreExplanation: row.core_explanation,
+diff --git a/src/app/study/page.tsx b/src/app/study/page.tsx
+index 8126c23..a35c547 100644
+--- a/src/app/study/page.tsx
++++ b/src/app/study/page.tsx
+@@ -7,6 +7,8 @@ import {
+ } from './actions'
+ import { requirePageUser } from '@/lib/supabase/user'
+ import StudyClient from './study-client'
++import { isStudyBatchGrammarItem } from './study-batch-item'
++import { normalizeStudyViewForContentType } from './study-view'
+ 
+ const STUDY_PAGE_LOG_THRESHOLD_MS = 150
+ 
+@@ -83,7 +85,23 @@ async function renderStudyPage(
+     historyReviewTarget?.preferredLibrarySlug?.trim().toLowerCase() ||
+     requestedLibrarySlug
+   const reviewBatchItem = historyReviewTarget?.batchItem ?? null
+-  const initialBatch = reviewBatchItem ? [reviewBatchItem] : initialBatchForRegularEntry
++  const initialLibraryContentType =
++    reviewBatchItem && isStudyBatchGrammarItem(reviewBatchItem)
++      ? 'grammar'
++      : libraries.find((item) => item.slug === initialLibrarySlug)?.contentType ?? null
++  const effectiveStudyView = normalizeStudyViewForContentType(
++    initialLibraryContentType,
++    requestedStudyView
++  )
++  const initialBatch =
++    reviewBatchItem != null
++      ? [reviewBatchItem]
++      : effectiveStudyView === requestedStudyView
++        ? initialBatchForRegularEntry
++        : await getStudyBatch({
++            librarySlug: requestedLibrarySlug,
++            studyView: effectiveStudyView,
++          })
+ 
+   logStudyPagePerformance(startedAt, {
+     librarySlug: initialLibrarySlug,
+@@ -93,7 +111,8 @@ async function renderStudyPage(
+     initialBatch: initialBatch.length,
+     libraries: libraries.length,
+     favorites: initialFavoriteWordIds.length,
+-    studyView: requestedStudyView,
++    requestedStudyView,
++    effectiveStudyView,
+   })
+ 
+   return (
+@@ -104,7 +123,7 @@ async function renderStudyPage(
+         enrichmentProgress={[]}
+         libraries={libraries}
+         initialLibrarySlug={initialLibrarySlug}
+-        initialStudyView={requestedStudyView}
++        initialStudyView={effectiveStudyView}
+         initialHistoryReview={historyReviewTarget?.review ?? null}
+         initialSentenceDraft={historyReviewTarget?.review?.sentence ?? ''}
+       />
+diff --git a/src/app/study/study-client.tsx b/src/app/study/study-client.tsx
+index de2f116..03543e6 100644
+--- a/src/app/study/study-client.tsx
++++ b/src/app/study/study-client.tsx
+@@ -30,6 +30,7 @@ import {
+   useStudySidebarData,
+   useStudySubmission,
+ } from "./hooks"
++import { normalizeStudyViewForContentType } from "./study-view"
+ 
+ const StudySpeechSettingsDialog = dynamic(() =>
+   import("./components/study-speech-settings-dialog").then(
+@@ -497,14 +498,3 @@ export default function StudyClient({
+     </div>
+   )
+ }
+-
+-function normalizeStudyViewForContentType(
+-  contentType: StudyLibrary["contentType"] | null | undefined,
+-  studyView: StudyView
+-) {
+-  if (contentType === "grammar" && studyView === "favorites") {
+-    return "all"
+-  }
+-
+-  return studyView
+-}
+diff --git a/src/lib/study-content.ts b/src/lib/study-content.ts
+index 16d3dd8..3f07f3e 100644
+--- a/src/lib/study-content.ts
++++ b/src/lib/study-content.ts
+@@ -51,6 +51,7 @@ export interface GrammarStudyInfo {
+   shortLabel?: string | null
+   pattern: string
+   family: string
++  familyLabel: string
+   subtype?: string | null
+   anchor?: string | null
+   coreExplanation: string

@@ -24,6 +24,7 @@ import type {
 } from '@/lib/study-content'
 import { normalizeStudyContentType } from '@/lib/study-content'
 import { isLearnerFriendlyExampleSentence } from '@/lib/example-safety'
+import { getGrammarFamilyLabel } from '@/lib/grammar-family'
 import { type ReviewBucket, type SRSData } from '@/lib/srs'
 import { type StudyPriorityReason } from '@/lib/study-scheduler'
 import { requireActionSession } from '@/lib/supabase/user'
@@ -1709,6 +1710,7 @@ function buildGrammarStudyInfo(
     shortLabel: row.short_label ?? null,
     pattern: row.pattern,
     family: row.family,
+    familyLabel: getGrammarFamilyLabel(row.family),
     subtype: row.subtype ?? null,
     anchor: row.anchor ?? null,
     coreExplanation: row.core_explanation,

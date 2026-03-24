@@ -51,6 +51,7 @@ export interface GrammarStudyInfo {
   shortLabel?: string | null
   pattern: string
   family: string
+  familyLabel: string
   subtype?: string | null
   anchor?: string | null
   coreExplanation: string
