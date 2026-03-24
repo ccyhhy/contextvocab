@@ -1,0 +1,3969 @@
+{
+  "library": {
+    "slug": "basic-writing-frames",
+    "name": "Basic Writing Frames",
+    "description": "Foundational writing-oriented sentence frames for giving opinions, organizing ideas, adding examples, and making clear academic-style statements.",
+    "sourceType": "official",
+    "language": "en",
+    "isPublic": true
+  },
+  "generatedAt": "2026-03-24T08:03:01.496Z",
+  "source": "E:\\codework\\words\\data\\grammar\\basic-writing-frames.seed.json",
+  "model": "gpt-5.4",
+  "items": [
+    {
+      "slug": "i-think-that",
+      "title": "I think that...",
+      "shortLabel": "state an opinion",
+      "pattern": "I think (that) + clause",
+      "family": "functional_pattern",
+      "subtype": "opinion_frame",
+      "anchor": "I think",
+      "coreExplanation": "I think (that) + 从句 用来直接表达“我认为……”。that后面要接完整句子，至少有主语和谓语，如I think (that) he is right. 它通常放在句首先说观点，也可插入句中作较柔和的评论，如He is, I think, ready.",
+      "usageNote": "语气中性、很常用，适合日常对话、课堂发言、邮件里表达个人看法。比很正式的书面表达更自然，但在学术写作中反复用会显得单一。它说的是“个人判断”，不适合拿来表示明确证据来源。that常可省略，但初学者先保留更稳。放句首最安全；若插入句中，前后通常用逗号隔开。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "opinions",
+        "writing",
+        "conversation",
+        "课堂表达观点",
+        "聊天讨论想法",
+        "邮件提出建议",
+        "写短文表态",
+        "回应别人问题"
+      ],
+      "slotSchema": [
+        {
+          "key": "subject",
+          "label": "speaker",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "通常固定用I think。不要误换成I am think。例：I think ..."
+        },
+        {
+          "key": "that",
+          "label": "connector",
+          "type": "fixed_chunk",
+          "required": false,
+          "hint": "可用that，也可省略；后面必须接完整句子。常错：that后只接名词。例：I think that she is busy."
+        },
+        {
+          "key": "clause",
+          "label": "opinion clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "放你认为的内容，要有主语+谓语。常错：只说a good idea。应说it is a good idea。例：he will come soon."
+        }
+      ],
+      "commonErrors": [
+        "I think him is right.｜错因：think后面不能直接接宾语+谓语残缺结构；这里需要that从句。｜改法：I think (that) he is right.",
+        "I think that a good idea.｜错因：that后面必须是完整句子，不是单独名词短语。｜改法：I think that it is a good idea.",
+        "I am think that this is useful.｜错因：think表示状态/观点时这里不用be。｜改法：I think that this is useful.",
+        "I think will rain.｜错因：从句缺主语。｜改法：I think it will rain.",
+        "According to me, this plan is better.｜错因：想表达个人意见时不用according to me，太不自然。｜改法：I think this plan is better. / In my opinion, this plan is better.",
+        "I think, he is right.｜错因：句首主句后一般不单独用逗号隔开完整宾语从句。｜改法：I think he is right."
+      ],
+      "contrasts": [
+        {
+          "slug": "in-my-opinion",
+          "title": "I think vs. In my opinion",
+          "note": "结构上，I think后要接完整从句；In my opinion通常作状语放句首/句中，后面直接接整句。语气上，In my opinion更像正式表态，I think更口语自然。对比：I think this is unfair. / In my opinion, this is unfair."
+        },
+        {
+          "slug": "from-my-point-of-view",
+          "title": "I think vs. From my point of view",
+          "note": "结构上，From my point of view是介词短语，不带that从句；I think是主句+从句。语域上，From my point of view更正式、更强调“立场角度”。对比：I think we need more time. / From my point of view, we need more time."
+        },
+        {
+          "slug": "it-seems-that",
+          "title": "I think vs. It seems that",
+          "note": "结构上两者都可接that从句，但I think强调“我的看法”，It seems that强调“根据现象看起来”。语气上，It seems that更客观、更不直接。对比：I think she is tired. / It seems that she is tired."
+        },
+        {
+          "slug": "it-appears-that",
+          "title": "I think vs. It appears that",
+          "note": "结构上都能接完整从句；但It appears that更书面、更正式，常用于报告或较客观判断。I think更适合口语和一般写作。对比：I think the plan failed. / It appears that the plan failed."
+        },
+        {
+          "slug": "according-to",
+          "title": "I think vs. according to",
+          "note": "结构上，according to后接来源，如a report, my teacher，不接个人主观看法；I think直接表达自己的意见。场景上，according to用于引用信息，I think用于表态。对比：According to the report, sales fell. / I think sales will improve."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I think (that) this book is interesting.",
+          "translation": "我觉得这本书很有趣。",
+          "note": "最基础、安全的用法；that可省略。",
+          "scene": "课堂表达观点",
+          "isPrimary": true
+        },
+        {
+          "sentence": "He is, I think, the best person for the job.",
+          "translation": "我认为他是这份工作最合适的人。",
+          "note": "句中插入位置，语气稍柔和；前后常用逗号。",
+          "scene": "讨论人选",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I think that the results show a clear improvement.",
+          "translation": "我认为结果显示出明显的提升。",
+          "note": "较适合说明性写作或报告。",
+          "scene": "写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I think she is tired, but it seems that she wants to keep working.",
+          "translation": "我觉得她累了，但看起来她还想继续工作。",
+          "note": "和it seems that对比：前者是主观看法，后者像依据现象的判断。",
+          "scene": "比较表达",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I think we should leave now.",
+          "translation": "我觉得我们现在该走了。",
+          "note": "日常对话中常用来提出建议，语气比直接命令更缓和。",
+          "scene": "聊天讨论想法",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Do you think that this answer is correct?",
+          "translation": "你觉得这个答案对吗？",
+          "note": "同一结构也常用于询问对方看法。",
+          "scene": "回应别人问题",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "安全入门模板",
+          "template": "I think (that) + [clause].",
+          "slotHints": [
+            "[clause]写完整句子：主语+谓语，如 it is useful / he will come。不要只写名词短语。"
+          ],
+          "exampleSentence": "I think that it is a good idea.",
+          "exampleTranslation": "我认为这是个好主意。",
+          "position": 1
+        },
+        {
+          "label": "句中插入模板",
+          "template": "[sentence part], I think, + [rest].",
+          "slotHints": [
+            "前后都是同一句内容，I think像插入语；注意前后通常用逗号。"
+          ],
+          "exampleSentence": "This plan is, I think, too expensive.",
+          "exampleTranslation": "我认为这个计划太贵了。",
+          "position": 2
+        },
+        {
+          "label": "写作表态模板",
+          "template": "I think that + [subject] + [verb] + ...",
+          "slotHints": [
+            "适合短文或邮件先表态；that保留会更清楚。"
+          ],
+          "exampleSentence": "I think that our team needs more time.",
+          "exampleTranslation": "我认为我们团队需要更多时间。",
+          "position": 3
+        },
+        {
+          "label": "提建议模板",
+          "template": "I think + [subject] should + [verb] ...",
+          "slotHints": [
+            "用should给出较委婉的建议；[subject]可用we/you/he等。"
+          ],
+          "exampleSentence": "I think we should check the answer again.",
+          "exampleTranslation": "我觉得我们应该再检查一次答案。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "in-my-opinion-from-my-point-of-view",
+      "title": "in my opinion / from my point of view",
+      "shortLabel": "Opinion marker",
+      "pattern": "In my opinion, ... / From my point of view, ...",
+      "family": "functional_pattern",
+      "subtype": "opinion_marker_contrast",
+      "anchor": "in my opinion",
+      "coreExplanation": "这个结构用来先明确“下面是我的个人看法”，语气比 I think 更书面、更有组织。后面通常接完整句子，不直接接名词。它最常放在句首并常加逗号：In my opinion, + 句子；From my point of view, + 句子。也可放句中或句尾，但初学者先固定放句首最安全。",
+      "usageNote": "语气多为中性到较正式，常见于作文、讨论、课堂发言、邮件或需要礼貌表达观点的场景。日常随口聊天更常用 I think。它不适合用来引用事实来源，那要用 according to。放句首时后面通常加逗号；若放句中，要用逗号与主句隔开。初学者建议先用“固定开头+完整句子”，避免后面只接一个名词短语。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "opinions",
+        "essay-writing",
+        "formal-speaking",
+        "英语作文表达观点",
+        "课堂讨论发言",
+        "邮件里礼貌表态",
+        "口语辩论说明立场",
+        "比较两种看法"
+      ],
+      "slotSchema": [
+        {
+          "key": "marker",
+          "label": "opinion marker",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "固定用 In my opinion 或 From my point of view。常见错误是写成 In my opinion I think... 双重表态。例：In my opinion, this plan is better."
+        },
+        {
+          "key": "opinion_clause",
+          "label": "full opinion clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里放完整句子，要有主语和谓语；不要只放名词。常见错误：In my opinion, this idea. 应改为 In my opinion, this idea is useful."
+        },
+        {
+          "key": "position_chunk",
+          "label": "optional position",
+          "type": "custom",
+          "required": true,
+          "hint": "最安全放句首；也可放句中或句尾，但要注意逗号。常见错误是句中不加逗号。例：This plan, in my opinion, will work."
+        }
+      ],
+      "commonErrors": [
+        "In my opinion, my school policy.｜错在后面只有名词短语，不是完整句子。｜改为：In my opinion, my school policy is too strict.",
+        "In my opinion I think this is unfair.｜错在重复表达“我认为”，显得累赘。｜改为：In my opinion, this is unfair. 或 I think this is unfair.",
+        "According to me, this movie is boring.｜错在 according to 通常接信息来源，不自然地表示个人意见。｜改为：In my opinion, this movie is boring.",
+        "From my point of view this rule is necessary.｜句首后少逗号，书写上不够规范。｜改为：From my point of view, this rule is necessary.",
+        "In my opinion, to study abroad.｜错在后面不是完整判断句。｜改为：In my opinion, studying abroad is a good choice.",
+        "This plan in my opinion will save money.｜句中插入时缺少逗号，读起来不清楚。｜改为：This plan, in my opinion, will save money."
+      ],
+      "contrasts": [
+        {
+          "slug": "i-think-that",
+          "title": "vs I think (that)",
+          "note": "结构上，I think 后面直接接从句；In my opinion 常作插入语放句首并加逗号。语气上，I think 更日常口语；In my opinion 更适合作文和正式讨论。对比：I think it’s too expensive. / In my opinion, it’s too expensive."
+        },
+        {
+          "slug": "according-to",
+          "title": "vs according to",
+          "note": "结构上，according to 后接来源、人或材料，不接“我的判断句”来表示立场；In my opinion 后接完整观点句。语义上，according to 是“根据……”，不是“我认为”。对比：According to the report, sales fell. / In my opinion, the plan failed because of poor timing."
+        },
+        {
+          "slug": "from-my-point-of-view",
+          "title": "In my opinion vs From my point of view",
+          "note": "两者都能引出个人看法，但 From my point of view 更强调“从我的角度看”，稍长、更分析型；In my opinion 更直接、常用。结构上都常放句首加逗号。对比：In my opinion, it’s unfair. / From my point of view, it’s unfair."
+        },
+        {
+          "slug": "it-seems-that",
+          "title": "vs It seems that",
+          "note": "结构上，It seems that 表示“看起来/似乎”，是在根据迹象作判断；In my opinion 是明确表个人立场。语气上，It seems that 更保留、更不强势。对比：It seems that he is upset. / In my opinion, he is upset because of the result."
+        },
+        {
+          "slug": "as-for-me",
+          "title": "vs As for me",
+          "note": "结构上，As for me 更像转到“至于我”，后面常继续补充态度；In my opinion 直接标记观点。语气上，As for me 较口语、有时偏话题转换；In my opinion 更稳妥。对比：As for me, I prefer tea. / In my opinion, tea is the healthier choice."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "In my opinion, English is easier than math.",
+          "translation": "在我看来，英语比数学更容易。",
+          "note": "最基础安全用法：句首标记观点，后接完整比较句。",
+          "scene": "学习观点",
+          "isPrimary": true
+        },
+        {
+          "sentence": "This restaurant, in my opinion, is too expensive.",
+          "translation": "依我看，这家餐厅太贵了。",
+          "note": "展示句中位置；前后都要用逗号隔开。",
+          "scene": "外出就餐",
+          "isPrimary": false
+        },
+        {
+          "sentence": "From my point of view, governments should invest more in public transport.",
+          "translation": "从我的角度看，政府应该更多投资公共交通。",
+          "note": "较适合写作或正式讨论。",
+          "scene": "作文/公共议题",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I think the test was hard, but in my opinion, the listening part was the hardest.",
+          "translation": "我觉得这次考试很难，但在我看来，听力部分最难。",
+          "note": "用于比较多个看法时，第二句用该结构更清楚地标出立场。",
+          "scene": "考试讨论",
+          "isPrimary": false
+        },
+        {
+          "sentence": "From my point of view, working from home saves time.",
+          "translation": "从我的角度看，居家办公能节省时间。",
+          "note": "强调“从某个角度看”的分析感。",
+          "scene": "工作方式讨论",
+          "isPrimary": false
+        },
+        {
+          "sentence": "In my opinion, we should leave earlier to avoid traffic.",
+          "translation": "我认为我们应该早点出发，避开交通拥堵。",
+          "note": "日常生活中也能用，但比 I think 稍正式。",
+          "scene": "出行安排",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Safest beginner template",
+          "template": "In my opinion, [opinion_clause].",
+          "slotHints": [
+            "[opinion_clause] 放完整句子，如主语+谓语；不要只放名词"
+          ],
+          "exampleSentence": "In my opinion, this app is very useful.",
+          "exampleTranslation": "在我看来，这个应用很有用。",
+          "position": 1
+        },
+        {
+          "label": "Alternate-position template",
+          "template": "[main_clause], in my opinion, [rest].",
+          "slotHints": [
+            "[main_clause] 先说主题；插入 in my opinion 时前后都加逗号",
+            "[rest] 继续完成主句，不要断成碎片"
+          ],
+          "exampleSentence": "This plan, in my opinion, needs more time.",
+          "exampleTranslation": "依我看，这个计划需要更多时间。",
+          "position": 2
+        },
+        {
+          "label": "Writing-oriented template",
+          "template": "From my point of view, [opinion_clause].",
+          "slotHints": [
+            "适合作文、讨论、演讲；[opinion_clause] 仍然要是完整判断句"
+          ],
+          "exampleSentence": "From my point of view, online classes should remain available.",
+          "exampleTranslation": "从我的角度看，线上课程应该继续保留。",
+          "position": 1
+        },
+        {
+          "label": "Comparison template",
+          "template": "In my opinion, [A] is [comparative] than [B].",
+          "slotHints": [
+            "适合初学者表达比较观点；[comparative] 用 easier/better/more useful 等"
+          ],
+          "exampleSentence": "In my opinion, trains are more convenient than buses.",
+          "exampleTranslation": "在我看来，火车比公交车更方便。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "it-seems-that-it-appears-that",
+      "title": "it seems that / it appears that",
+      "shortLabel": "soft judgment",
+      "pattern": "it seems that... / it appears that...",
+      "family": "functional_pattern",
+      "subtype": "tentative_judgment_frame",
+      "anchor": "it seems that",
+      "coreExplanation": "it seems that... / it appears that... 用来把判断说得更谨慎，表示“看起来/似乎……”。后面必须接完整句子，不是单个名词。它常放在句首作引入，也可放在逗号后插入。appears 比 seems 更书面、更客观一些。",
+      "usageNote": "语气较委婉，适合根据现象做判断、写作中提出谨慎结论、工作学习里的保守表述。seems 更常见于日常和中性表达，appears 常见于书面、报告、说明。不适合你非常确定、已有直接证据、或只是单纯表达个人喜好时。that 后面接完整句子；放句首后常直接继续主句，不要乱断句。初学者先稳用 It seems that + 完整句子。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "observations",
+        "formal-writing",
+        "careful-claims",
+        "根据现象做判断",
+        "课堂或作文写作",
+        "邮件里委婉表达",
+        "讨论问题时保留余地",
+        "描述看起来发生的情况"
+      ],
+      "slotSchema": [
+        {
+          "key": "frame",
+          "label": "judgment frame",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "固定用 It seems that / It appears that。不要说 It seems me that。例：It seems that he's busy."
+        },
+        {
+          "key": "clause",
+          "label": "following clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里要放完整陈述句，要有主语和谓语。不要只放名词。例：the train is late / she forgot the key。"
+        },
+        {
+          "key": "position",
+          "label": "sentence position",
+          "type": "custom",
+          "required": false,
+          "hint": "通常放句首；也可放在较长句前作引入。不要把 that 从句单独切成碎片。例：It appears that the plan will cost more."
+        }
+      ],
+      "commonErrors": [
+        "Wrong: It seems that his idea. 原因：that 后面不是完整句子。改为：It seems that his idea is practical.",
+        "Wrong: It seems me that he is angry. 原因：seem 后不能直接加 me。改为：It seems that he is angry. / It seems to me that he is angry.",
+        "Wrong: Seems that he is tired. 原因：正式完整句里通常需要 It。改为：It seems that he is tired.",
+        "Wrong: It appears he tired. 原因：后面缺少完整谓语结构。改为：It appears that he is tired.",
+        "Wrong: There is no doubt that he may be wrong. 原因：前面绝对肯定，后面却用 may，语气冲突；若想保留判断应改用：It seems that he may be wrong.",
+        "Wrong: I like coffee, it seems that. 原因：这个框架不能这样句尾悬空。改为：It seems that I like stronger coffee now. / I like coffee, it seems, because..."
+      ],
+      "contrasts": [
+        {
+          "slug": "i-think-that",
+          "title": "vs I think (that)...",
+          "note": "结构上，I think 后面也接完整句，但主语是“我”，更像个人观点；it seems/appears 更像根据迹象做判断，语气更客观、更保守。对比：I think he is wrong.（我认为）/ It seems that he is wrong.（看起来）"
+        },
+        {
+          "slug": "there-is-no-doubt-that",
+          "title": "vs There is no doubt that...",
+          "note": "结构上两者都接 that 从句；there is no doubt that 表示非常确定，语气强，常用于有把握的结论。it seems/appears 表示不完全确定。对比：There is no doubt that she won. / It seems that she won."
+        },
+        {
+          "slug": "according-to",
+          "title": "vs according to...",
+          "note": "according to 后面接来源，如人、报告、数据；it seems/appears 后面直接接判断内容。according to 强调信息出处，it seems/appears 强调说话人的观察推断。对比：According to the report, sales fell. / It appears that sales fell."
+        },
+        {
+          "slug": "seem-to",
+          "title": "vs seem to + verb",
+          "note": "结构上，it seems that + 完整句；主语 + seems to + 动词原形。后者更紧凑，前者更适合整句判断。语气都较委婉。对比：It seems that he knows the answer. / He seems to know the answer."
+        },
+        {
+          "slug": "in-my-opinion",
+          "title": "vs In my opinion,...",
+          "note": "in my opinion 后面直接接你的看法，主观色彩更明显；it appears/seems 更像从现象出发，不一定强调“我的意见”。写作里若想少一点主观感，可用 it appears that。对比：In my opinion, the rule is unfair. / It appears that the rule is unfair."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "It seems that Tom is busy.",
+          "translation": "汤姆似乎很忙。",
+          "note": "最安全基础句型：It seems that + 完整句子。",
+          "scene": "日常观察",
+          "isPrimary": true
+        },
+        {
+          "sentence": "It seems that we need more time.",
+          "translation": "看来我们需要更多时间。",
+          "note": "常用于讨论中委婉提出判断。",
+          "scene": "会议讨论",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It appears that the results were affected by the weather.",
+          "translation": "结果似乎受到了天气影响。",
+          "note": "appears 更像书面或分析性表达。",
+          "scene": "报告写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I think he is tired, but it seems that he is also upset.",
+          "translation": "我觉得他累了，但看起来他也心情不好。",
+          "note": "和 I think 对比：后半句更像根据表情现象推断。",
+          "scene": "人物状态判断",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It seems that the bus has already left.",
+          "translation": "看来公交车已经开走了。",
+          "note": "适合根据眼前情况作出推测。",
+          "scene": "出行日常",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It appears that this method is more effective than the old one.",
+          "translation": "这种方法似乎比旧方法更有效。",
+          "note": "带比较时也保持谨慎，不说得过满。",
+          "scene": "学术或工作比较",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最稳妥初学者模板",
+          "template": "It seems that + [clause].",
+          "slotHints": [
+            "[clause] 放完整句子，如 somebody is..., we need..., the bus has left；不要只放名词"
+          ],
+          "exampleSentence": "It seems that she is right.",
+          "exampleTranslation": "看来她是对的。",
+          "position": 1
+        },
+        {
+          "label": "书面表达模板",
+          "template": "It appears that + [clause].",
+          "slotHints": [
+            "[clause] 放较客观的判断内容，适合结果、数据、情况"
+          ],
+          "exampleSentence": "It appears that the problem is more serious than we expected.",
+          "exampleTranslation": "这个问题似乎比我们预想的更严重。",
+          "position": 1
+        },
+        {
+          "label": "对比判断模板",
+          "template": "..., but it seems that + [clause].",
+          "slotHints": [
+            "前半句给背景，后半句给根据现象得出的较软判断"
+          ],
+          "exampleSentence": "He said he was fine, but it seems that he needs help.",
+          "exampleTranslation": "他说他没事，但看起来他需要帮助。",
+          "position": 2
+        },
+        {
+          "label": "写作引入模板",
+          "template": "It appears that + [clause], based on + [noun_phrase].",
+          "slotHints": [
+            "[clause] 放结论；[noun_phrase] 放依据，如 the data, the survey, recent evidence"
+          ],
+          "exampleSentence": "It appears that sales are falling, based on recent data.",
+          "exampleTranslation": "根据最近的数据，销售额似乎在下降。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "according-to",
+      "title": "according to...",
+      "shortLabel": "source intro",
+      "pattern": "according to + source",
+      "family": "functional_pattern",
+      "subtype": "source_frame",
+      "anchor": "according to",
+      "coreExplanation": "according to 用来说明“信息来源”，表示这不是你自己的判断，而是来自某人、某机构、某文件或数据。后面通常接名词短语，如 a report, the news, my teacher，不直接接完整句子。它常放在句首作信息框架，也可放在句末补充来源。",
+      "usageNote": "语气多为中性到较正式，最自然的场景是报道信息、写作引用、课堂转述、讨论数据。口语里也能用，但如果只是说个人看法，不要用 according to。它后面一般不接逗号内的完整句子来源内容；若放句首，according to + 来源 后常接逗号。初学者最安全的做法是先用“According to + source, + sentence”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "reporting",
+        "source-based-writing",
+        "formal-writing",
+        "新闻与报道",
+        "学术或说明文写作",
+        "课堂转述老师的话",
+        "根据数据描述趋势",
+        "日常转述消息来源"
+      ],
+      "slotSchema": [
+        {
+          "key": "source",
+          "label": "信息来源",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "放人、机构、文件、报道、数据等名词短语，如 my teacher, the report, the news。常见错误是放完整句子。例：According to the report, sales rose."
+        },
+        {
+          "key": "main_clause",
+          "label": "主要信息",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "放你要转述的内容，用完整陈述句。常见错误是只写短语不成句。例：According to my doctor, I need more sleep."
+        },
+        {
+          "key": "alt_position",
+          "label": "句末来源位置",
+          "type": "fixed_chunk",
+          "required": false,
+          "hint": "也可把 according to + 来源 放句末，补充来源。常见错误是位置太靠近所修饰词导致歧义。例：The meeting starts at nine, according to the email."
+        }
+      ],
+      "commonErrors": [
+        "wrong: According to he, we are late.｜why: according to 后面要接名词宾格或名词短语，不能用主格 he。｜fix: According to him, we are late.",
+        "wrong: According to she said, we should wait.｜why: according to 后不能直接接完整从句或“某人说”。｜fix: According to her, we should wait. / She said that we should wait.",
+        "wrong: According to, the train is delayed.｜why: according to 后面必须有明确来源，不能省略。｜fix: According to the station staff, the train is delayed.",
+        "wrong: I think according to the report sales fell.｜why: 把个人看法和客观来源硬拼在一起，中心不清楚。｜fix: According to the report, sales fell. / I think sales fell.",
+        "wrong: According to my opinion, this is wrong.｜why: opinion 不是外部信息来源，这里应表达个人观点。｜fix: In my opinion, this is wrong.",
+        "wrong: According to the weather tomorrow will rain.｜why: source 和主句之间缺少清楚边界，且 the weather 不是自然来源表达。｜fix: According to the weather report, it will rain tomorrow."
+      ],
+      "contrasts": [
+        {
+          "slug": "i-think-that",
+          "title": "vs I think (that)...",
+          "note": "结构上，according to + 来源 + 句子；I think (that) + 句子。前者强调“消息来自哪里”，后者强调“这是我的看法”。场景上，according to 更适合转述和写作；I think 更适合表达意见。对比：According to the report, prices rose. / I think prices will rise."
+        },
+        {
+          "slug": "in-my-opinion",
+          "title": "vs in my opinion",
+          "note": "结构上，according to 后接来源名词；in my opinion 是固定短语，直接表示个人观点。语气上，according to 较客观；in my opinion 主观明显。不要说 according to my opinion。对比：In my opinion, this plan is risky. / According to the report, this plan is risky."
+        },
+        {
+          "slug": "it-seems-that",
+          "title": "vs it seems that...",
+          "note": "结构上，it seems that + 从句；according to + 来源。前者表示“看起来、似乎”，来源不明确；后者明确指出信息出处。语气上，it seems 更不确定。对比：It seems that he is tired. / According to his doctor, he is tired."
+        },
+        {
+          "slug": "the-fact-is-that",
+          "title": "vs the fact is that...",
+          "note": "结构上，the fact is that + 从句，用来强调说话人认定的事实；according to + 来源 + 从句，只是标明来源。语气上，the fact is that 更强、更像辩论；according to 更克制。对比：The fact is that we are late. / According to the schedule, we are late."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "According to my teacher, this answer is correct.",
+          "translation": "根据我老师的说法，这个答案是对的。",
+          "note": "最安全基础句型：句首放来源。",
+          "scene": "课堂转述",
+          "isPrimary": true
+        },
+        {
+          "sentence": "The museum is closed on Monday, according to the website.",
+          "translation": "根据网站上的信息，这家博物馆周一闭馆。",
+          "note": "句末位置也自然，常用于补充来源。",
+          "scene": "查询信息",
+          "isPrimary": false
+        },
+        {
+          "sentence": "According to the report, unemployment fell slightly last year.",
+          "translation": "根据这份报告，去年的失业率略有下降。",
+          "note": "较常见于说明文、报道、写作。",
+          "scene": "正式写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "According to the map, the station is nearby, but I think we should ask someone.",
+          "translation": "根据地图，车站就在附近，但我觉得我们还是该问一下别人。",
+          "note": "和 I think 对比：前半句是来源，后半句是个人意见。",
+          "scene": "比较用法",
+          "isPrimary": false
+        },
+        {
+          "sentence": "According to the news, a storm is coming tonight.",
+          "translation": "根据新闻报道，今晚有暴风雨要来。",
+          "note": "日常口语里也很常用。",
+          "scene": "日常聊天",
+          "isPrimary": false
+        },
+        {
+          "sentence": "According to the instructions, you should press this button first.",
+          "translation": "按照说明书，你应该先按这个按钮。",
+          "note": "来源也可以是 instructions、rules 等文本。",
+          "scene": "操作说明",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "According to + source, + main_clause.",
+          "slotHints": [
+            "source 放人、机构、报道、文件等名词短语",
+            "main_clause 写完整陈述句，不要只写短语"
+          ],
+          "exampleSentence": "According to my doctor, I need more exercise.",
+          "exampleTranslation": "根据我医生的建议，我需要多运动。",
+          "position": 1
+        },
+        {
+          "label": "句末补充来源模板",
+          "template": "+ main_clause, according to + source.",
+          "slotHints": [
+            "先说主要信息，再在句末补充来源",
+            "source 仍然用名词短语，不接完整句子"
+          ],
+          "exampleSentence": "The train will leave at six, according to the timetable.",
+          "exampleTranslation": "根据时刻表，火车六点发车。",
+          "position": 2
+        },
+        {
+          "label": "写作用模板",
+          "template": "According to + source, + subject + verb + detail.",
+          "slotHints": [
+            "source 常用 the report, the data, the survey 等",
+            "detail 可放数字、变化、结果，使句子更像正式写作"
+          ],
+          "exampleSentence": "According to the survey, most students use their phones before bed.",
+          "exampleTranslation": "根据这项调查，大多数学生会在睡前使用手机。",
+          "position": 3
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "for-example-for-instance-such-as",
+      "title": "for example / for instance / such as",
+      "shortLabel": "giving examples",
+      "pattern": "for example / for instance / such as",
+      "family": "functional_pattern",
+      "subtype": "example_marker_contrast",
+      "anchor": "for example",
+      "coreExplanation": "这个组表示“举例说明”，但用法不同：for example和for instance通常引出整个例子，常放句首后加逗号，也可插在句中；such as放在名词后面，后面接一个或几个具体名词，不直接接完整句子。先判断你要补充“整句例子”还是“名词例子”。",
+      "usageNote": "语气中性，口语和写作都常用，其中for instance稍微更书面一点。适合解释观点、补充说明、写作文、做展示。不适合用来表示顺序（别当成first）或表示递进（别当成besides）。for example/for instance放句首时后面通常加逗号；such as一般直接跟在被说明的名词后，不单独成句。初学者最安全：整句用For example, ...；列举名词用... such as A and B。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "examples",
+        "explanations",
+        "essay-writing",
+        "课堂举例",
+        "英语作文",
+        "口语解释",
+        "做展示说明",
+        "列举类别成员"
+      ],
+      "slotSchema": [
+        {
+          "key": "marker_clause",
+          "label": "整句例子标记",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "可用for example或for instance，后面接完整句子。常见错误：后面只接一个孤立名词。例：For example, I study at night."
+        },
+        {
+          "key": "example_clause",
+          "label": "完整例句",
+          "type": "clause",
+          "required": true,
+          "hint": "放一个能独立成句的内容。常见错误：写成不完整片段。例：many students study late ✗；Many students study late. ✓"
+        },
+        {
+          "key": "head_noun",
+          "label": "被举例的名词",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "such as前面要先有类别名词。常见错误：句子一开始直接Such as books...。例：I like outdoor activities such as hiking."
+        },
+        {
+          "key": "example_items",
+          "label": "具体例子",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "接一个或多个名词/名词短语。常见错误：such as后接完整句子。例：such as apples and oranges"
+        }
+      ],
+      "commonErrors": [
+        "Such as many fruits are cheap.｜错因：such as后面不直接接完整句子。｜改法：用For example, many fruits are cheap. 或在前面先放名词：fruits such as apples are cheap.",
+        "I like such as tennis and swimming.｜错因：such as前面缺少被说明的类别名词。｜改法：I like sports such as tennis and swimming.",
+        "For example sports are important.｜错因：句首用for example时通常后面要有逗号，便于看出它是插入性的举例标记。｜改法：For example, sports are important.",
+        "I want to improve my skills, such as I practice every day.｜错因：such as不能引出完整分句。｜改法：I want to improve my skills. For example, I practice every day.",
+        "First of all, I like cats, for example dogs.｜错因：for example不适合直接挂一个裸名词来列举同类成员；这里应在名词后用such as。｜改法：I like animals such as cats and dogs.",
+        "Besides, reading helps us learn. For example means it is first.｜错因：把for example误当顺序标记。｜改法：表示顺序用First/First of all；表示举例用For example, reading helps us learn."
+      ],
+      "contrasts": [
+        {
+          "slug": "for-example-vs-such-as",
+          "title": "for example / such as",
+          "note": "结构上，for example常接完整句子或独立例子；such as接名词短语。语气都中性，但such as更像“列举成员”。对比：For example, I read at night. / I read books such as novels."
+        },
+        {
+          "slug": "for-example-vs-first-of-all",
+          "title": "for example / first of all",
+          "note": "结构上，两者都可放句首，但for example表示“举例”，first of all表示“首先”。场景上，一个是说明，一个是排序。对比：For example, plants need water. / First of all, we need water."
+        },
+        {
+          "slug": "for-example-vs-besides",
+          "title": "for example / besides",
+          "note": "结构上都能放句首加逗号，但for example引出例子，besides添加新信息。语气上，besides有递进补充感。对比：Many fruits are healthy. For example, apples are rich in fiber. / Besides, they are cheap."
+        },
+        {
+          "slug": "for-instance-vs-for-example",
+          "title": "for instance / for example",
+          "note": "结构几乎一样，都可放句首或句中接例子；语气上for instance稍微更书面一点。多数场景可互换。对比：For example, this plan works. / For instance, this plan works."
+        },
+        {
+          "slug": "such-as-vs-like",
+          "title": "such as / like",
+          "note": "结构上都可接名词，但such as更明确表示“例如、列举”，写作里更正式；like在口语里常见，有时也像“像”。对比：subjects such as math and history / subjects like math and history"
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "For example, I study English for thirty minutes every night.",
+          "translation": "例如，我每晚学三十分钟英语。",
+          "note": "最安全的基础用法：句首举整句例子，后加逗号。",
+          "scene": "课堂举例",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Many students, for instance, review new words on the bus.",
+          "translation": "比如，很多学生会在公交车上复习生词。",
+          "note": "句中插入也可以，前后常用逗号隔开。",
+          "scene": "口语解释",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Some healthy snacks, such as nuts and yogurt, are easy to prepare.",
+          "translation": "一些健康零食，比如坚果和酸奶，很容易准备。",
+          "note": "such as放在名词后，列举具体成员。",
+          "scene": "日常建议",
+          "isPrimary": false
+        },
+        {
+          "sentence": "There are many ways to reduce stress. For instance, taking a short walk can help.",
+          "translation": "有很多减压的方法。比如，短暂散步就有帮助。",
+          "note": "for instance比for example稍微更书面，适合写作。",
+          "scene": "英语作文",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Good apps such as dictionaries and flashcard tools can support your learning.",
+          "translation": "像词典和抽认卡工具这样的好应用可以帮助你的学习。",
+          "note": "这一句能看出such as只能接名词短语，不能换成完整从句。",
+          "scene": "学习工具",
+          "isPrimary": false
+        },
+        {
+          "sentence": "We should save money. For example, we can cook at home more often.",
+          "translation": "我们应该省钱。比如，我们可以更常在家做饭。",
+          "note": "先说观点，再用for example补具体做法。",
+          "scene": "日常生活",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "For example, [example_clause].",
+          "slotHints": [
+            "[example_clause]放完整句子，如I read before bed."
+          ],
+          "exampleSentence": "For example, I read English news in the morning.",
+          "exampleTranslation": "例如，我早上读英语新闻。",
+          "position": 1
+        },
+        {
+          "label": "句中插入模板",
+          "template": "[main_clause], for instance, [example_detail].",
+          "slotHints": [
+            "前后都是句子成分；for instance作插入语，前后常加逗号。"
+          ],
+          "exampleSentence": "Many learners, for instance, practice speaking with friends online.",
+          "exampleTranslation": "比如，很多学习者会和网友练口语。",
+          "position": 2
+        },
+        {
+          "label": "名词后列举模板",
+          "template": "[head_noun] such as [example_items]",
+          "slotHints": [
+            "[head_noun]先给类别名词；[example_items]放一个或多个名词，如books and magazines."
+          ],
+          "exampleSentence": "Free activities such as walking and reading can reduce stress.",
+          "exampleTranslation": "像散步和阅读这样的免费活动可以减压。",
+          "position": 3
+        },
+        {
+          "label": "写作展开模板",
+          "template": "[general_statement]. For instance, [supporting_example].",
+          "slotHints": [
+            "第一句写总观点；第二句用具体例子支持。"
+          ],
+          "exampleSentence": "Online learning is flexible. For instance, students can study at their own pace.",
+          "exampleTranslation": "线上学习很灵活。比如，学生可以按自己的节奏学习。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "for-one-thing-for-another",
+      "title": "for one thing... for another...",
+      "shortLabel": "two reasons frame",
+      "pattern": "for one thing..., for another...",
+      "family": "functional_pattern",
+      "subtype": "multiple_reasons_frame",
+      "anchor": "for one thing",
+      "coreExplanation": "for one thing..., for another... 用来把两个不同理由或考虑点清楚地并列出来，意思接近“一个原因是……，另一个原因是……”。两个部分后面通常都接完整句，常放在句首作插入提示，也可放在句中逗号后，帮助读者跟上你的论证。",
+      "usageNote": "这个结构多见于中性到稍正式的口语和写作，特别适合解释选择、提出反对意见、写短文论点。它自然用于“列出两个理由”，不适合只说一个理由，也不适合强烈对立的两面比较。通常两个提示语后都加逗号；放句中时前后也要注意逗号。初学者最安全的做法是：for one thing, 完整句子; for another, 完整句子。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "reasoning",
+        "essay-writing",
+        "arguments",
+        "表达两个理由",
+        "英语作文论证",
+        "解释决定",
+        "提出反对意见",
+        "日常说明原因"
+      ],
+      "slotSchema": [
+        {
+          "key": "reason1",
+          "label": "First reason",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里放第一个完整理由句，最好有主语+谓语。常见错误：只放一个名词短语。例：the job pays well→更自然：it pays well"
+        },
+        {
+          "key": "reason2",
+          "label": "Second reason",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里放第二个完整理由句，和前面应是不同的理由。常见错误：重复同一意思。例：it is close to home"
+        },
+        {
+          "key": "host",
+          "label": "Main claim or decision",
+          "type": "statement_clause",
+          "required": false,
+          "hint": "可在前面或后面加总观点，如I don’t want to move. 常见错误：只列理由却不知道在支持什么。例：I chose this school"
+        }
+      ],
+      "commonErrors": [
+        "Wrong: For one thing, because it is cheap, for another, because it is convenient.——错因：because从句单独放这里不完整，两个槽位更适合完整句。改：For one thing, it is cheap; for another, it is convenient.",
+        "Wrong: For one thing... for another thing...——错因：固定搭配不是for another thing。改：for one thing..., for another...",
+        "Wrong: For one thing, I like it.——错因：只给了一个理由，读者会等待第二点。改：补上for another, ...；或改用first/also等别的连接方式。",
+        "Wrong: On the one hand, it is cheap; for another, it is reliable.——错因：混用了两套结构。改：On the one hand..., on the other hand... 或 For one thing..., for another...",
+        "Wrong: For one thing I was tired for another I had no time.——错因：缺少逗号，层次不清。改：For one thing, I was tired; for another, I had no time.",
+        "Wrong: For one thing, it is cheap; for another, it is very cheap.——错因：第二点只是重复，不是新理由。改：For one thing, it is cheap; for another, it is durable."
+      ],
+      "contrasts": [
+        {
+          "slug": "first-of-all",
+          "title": "first of all / to begin with",
+          "note": "结构上，first of all / to begin with 常用于开始列点，后面还能接second, third；for one thing / for another 专门强调“两条理由”。语气上前者更像普通顺序，后者更像论证理由。对比：First of all, it’s cheap. Second, it’s durable. / For one thing, it’s cheap; for another, it’s durable."
+        },
+        {
+          "slug": "on-the-one-hand",
+          "title": "on the one hand / on the other hand",
+          "note": "结构上，两者都成对出现，但 on the one hand / on the other hand 常呈现两面、利弊或对立看法；for one thing / for another 常是同方向补充理由。语气上前者对比更强。对比：On the one hand, it’s cheap; on the other hand, it breaks easily. / For one thing, it’s cheap; for another, it’s easy to use."
+        },
+        {
+          "slug": "because",
+          "title": "because",
+          "note": "结构上 because 直接引出原因从句，通常只连接一个原因；for one thing / for another 用来有条理地列出两个原因。场景上，because 更口语直接；本结构更适合解释和写作。对比：I stayed home because I was sick. / I stayed home, for one thing, I was sick, and for another, the weather was terrible."
+        },
+        {
+          "slug": "also",
+          "title": "also / besides",
+          "note": "结构上 also / besides 只是“再加一点”，不要求成对；for one thing / for another 是明显的双理由框架。语气上 also 更随意，论证组织感较弱。对比：It’s cheap and also reliable. / For one thing, it’s cheap; for another, it’s reliable."
+        },
+        {
+          "slug": "for-one-thing-mid",
+          "title": "sentence-initial vs mid-sentence",
+          "note": "结构上本表达最常见在句首：For one thing, ...; for another, ...。也可插入主句后，用逗号隔开。场景上句首更清楚，适合初学者；句中更像自然说明。对比：For one thing, I was busy. / I couldn’t go, for one thing, I was busy."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I don’t want to buy this car. For one thing, it’s too expensive; for another, it uses too much gas.",
+          "translation": "我不想买这辆车。一个原因是它太贵，另一个原因是它太费油。",
+          "note": "最安全的核心用法：先说结论，再列两个完整理由。",
+          "scene": "购物决定",
+          "isPrimary": true
+        },
+        {
+          "sentence": "For one thing, the apartment is close to my office; for another, the rent is reasonable.",
+          "translation": "一个原因是这套公寓离我办公室近，另一个原因是房租合理。",
+          "note": "句首直接列理由，常用于回答“为什么选它”。",
+          "scene": "租房选择",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The plan should be revised: for one thing, the budget is unrealistic; for another, the timeline is too short.",
+          "translation": "这个方案应该修改：一是预算不现实，二是时间安排太短。",
+          "note": "较书面，冒号后列出两点理由很自然。",
+          "scene": "正式写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "On the one hand, the job pays well; on the other hand, it is stressful. But I’m still considering it, for one thing, I need the money, and for another, it offers good training.",
+          "translation": "一方面，这份工作薪水高；另一方面，它压力大。但我仍在考虑它，一个原因是我需要钱，另一个原因是它能提供很好的培训。",
+          "note": "同句展示与on the one hand/on the other hand的区别：前者讲两面，后者讲支持同一决定的两条理由。",
+          "scene": "工作选择",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I skipped the party. For one thing, I had an exam the next day; for another, I wasn’t feeling well.",
+          "translation": "我没去聚会。一个原因是我第二天有考试，另一个原因是我身体不太舒服。",
+          "note": "日常口语中解释决定很自然。",
+          "scene": "日常解释",
+          "isPrimary": false
+        },
+        {
+          "sentence": "We chose this school because, for one thing, its teachers are excellent, and, for another, it has a strong music program.",
+          "translation": "我们选择这所学校是因为，一方面它的老师很优秀，另一方面它的音乐项目很强。",
+          "note": "句中插入也可以，但逗号位置要清楚。",
+          "scene": "家庭讨论",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Safest beginner template",
+          "template": "[claim]. For one thing, [reason1]; for another, [reason2].",
+          "slotHints": [
+            "先写你的结论或决定",
+            "第一个完整理由句",
+            "第二个完整理由句，和第一个不同"
+          ],
+          "exampleSentence": "I won’t join the club. For one thing, I’m too busy; for another, the meetings are late.",
+          "exampleTranslation": "我不会加入这个社团。一个原因是我太忙，另一个原因是会议时间太晚。",
+          "position": 1
+        },
+        {
+          "label": "Reason-first template",
+          "template": "For one thing, [reason1]; for another, [reason2].",
+          "slotHints": [
+            "完整理由句",
+            "另一个完整理由句"
+          ],
+          "exampleSentence": "For one thing, the hotel is clean; for another, it’s near the station.",
+          "exampleTranslation": "一个原因是这家酒店很干净，另一个原因是它离车站近。",
+          "position": 2
+        },
+        {
+          "label": "Writing-oriented template",
+          "template": "[claim]: for one thing, [reason1]; for another, [reason2].",
+          "slotHints": [
+            "适合论文、报告里的主张",
+            "第一个书面化理由",
+            "第二个书面化理由"
+          ],
+          "exampleSentence": "The policy needs revision: for one thing, it is too vague; for another, it is difficult to enforce.",
+          "exampleTranslation": "这项政策需要修订：一是它太模糊，二是它很难执行。",
+          "position": 3
+        },
+        {
+          "label": "Mid-sentence template",
+          "template": "[claim], for one thing, [reason1], and, for another, [reason2].",
+          "slotHints": [
+            "先写主句",
+            "第一个完整理由句",
+            "第二个完整理由句"
+          ],
+          "exampleSentence": "I chose the train, for one thing, it was cheaper, and, for another, it was more comfortable.",
+          "exampleTranslation": "我选择了火车，一个原因是它更便宜，另一个原因是它更舒服。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "first-of-all-to-begin-with",
+      "title": "first of all / to begin with",
+      "shortLabel": "opening the first point",
+      "pattern": "first of all, ... / to begin with, ...",
+      "family": "functional_pattern",
+      "subtype": "opening_organizer_contrast",
+      "anchor": "first of all",
+      "coreExplanation": "first of all 和 to begin with 都用来把“第一点”先说出来，帮助听者或读者跟上你的结构。它们通常放在句首，后面接完整句子，后面常加逗号。最自然的用法是先开头，再继续列出 next, also, finally 等后续内容。",
+      "usageNote": "语气一般是中性；口语、课堂发言、演讲、说明步骤、邮件和作文里都很常见。它适合用来组织观点或理由，不适合只是随便寒暄时硬加一句。通常放在句首并与主句用逗号隔开；句中偶尔也可用，但初学者先固定用“First of all, + 完整句子”最安全。如果后面没有第二点、第三点，也能用，但最好确实是在强调“先说最重要的第一点”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "organization",
+        "essay-writing",
+        "presentations",
+        "作文分点陈述",
+        "课堂展示开头",
+        "口头说明理由",
+        "写邮件列事项",
+        "介绍步骤或建议"
+      ],
+      "slotSchema": [
+        {
+          "key": "opener",
+          "label": "opening phrase",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "可填 first of all 或 to begin with。常见错误是写成 at first（表示“起初”，不是列第一点）。例：First of all, we need a plan."
+        },
+        {
+          "key": "main_clause",
+          "label": "main clause",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "后面接完整句子，要有主语和谓语。常见错误是只接名词短语。例：First of all, the room is too small."
+        },
+        {
+          "key": "follow_up",
+          "label": "optional next point",
+          "type": "statement_clause",
+          "required": false,
+          "hint": "可继续补充下一点，常和 next, also, finally 连用。常见错误是第一点后完全没有结构呼应却连续堆信息。例：Next, we should check the budget."
+        }
+      ],
+      "commonErrors": [
+        "Wrong: At first, we need to solve the cost problem. 原因：at first 多指“起初/一开始当时”，不是列举第一点。改法：First of all, we need to solve the cost problem.",
+        "Wrong: First of all the price too high. 原因：后面不是完整句子，缺少系动词 is。改法：First of all, the price is too high.",
+        "Wrong: To begin with I agree and secondly no. 原因：标点和结构混乱，两个分句直接硬连。改法：To begin with, I agree with the goal. Secondly, I don't like the method.",
+        "Wrong: First of all of all, we should wait. 原因：固定搭配重复，结构错误。改法：First of all, we should wait.",
+        "Wrong: I first of all think this is useful. 原因：放在动词前很别扭，初学者易误用位置。改法：First of all, I think this is useful.",
+        "Wrong: To begin with, the first reason is because it's cheap. 原因：the reason is because 搭配累赘。改法：To begin with, it's cheap. / The first reason is that it's cheap."
+      ],
+      "contrasts": [
+        {
+          "slug": "in-addition",
+          "title": "vs. in addition / moreover / besides",
+          "note": "结构上，first of all/to begin with 负责“开第一点”，而 in addition/moreover/besides 负责“再补充一点”。语气上，moreover 更书面。对比：First of all, it is affordable. In addition, it is easy to use."
+        },
+        {
+          "slug": "for-one-thing",
+          "title": "vs. for one thing ... for another ...",
+          "note": "结构上，for one thing 常要和 for another 连成一组；first of all 可以单独开头。语气上，for one thing 更像口头列理由。对比：For one thing, it's cheap; for another, it's durable. / First of all, it's cheap."
+        },
+        {
+          "slug": "at-first",
+          "title": "vs. at first",
+          "note": "结构上都常放句首，但意思不同。at first 表示时间上的“起初”，first of all 表示顺序上的“首先”。场景上，一个讲过程变化，一个讲组织条理。对比：At first, I was nervous. / First of all, let's check the schedule."
+        },
+        {
+          "slug": "firstly",
+          "title": "vs. firstly",
+          "note": "结构上，两者都能引出第一点；firstly 常和 secondly, thirdly 成套出现。语气上，firstly 略偏书面、列表感更强；first of all 更自然常用。对比：Firstly, we need data. / First of all, we need data."
+        },
+        {
+          "slug": "to-start-with",
+          "title": "vs. to start with",
+          "note": "结构相近，都可放句首接完整句。语气上，to start with 比 to begin with 更口语一点；to begin with 在口语和写作里都稳妥。对比：To start with, this app is free. / To begin with, this app is free."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "First of all, we need more time.",
+          "translation": "首先，我们需要更多时间。",
+          "note": "最安全、最通用的基础句型。",
+          "scene": "口头说明",
+          "isPrimary": true
+        },
+        {
+          "sentence": "We need more time, first of all, to test the product properly.",
+          "translation": "我们首先需要更多时间，来好好测试产品。",
+          "note": "句中位置可以用，但不如句首常见；初学者以句首为主。",
+          "scene": "会议讨论",
+          "isPrimary": false
+        },
+        {
+          "sentence": "To begin with, this report explains the main problem clearly.",
+          "translation": "首先，这份报告把主要问题解释得很清楚。",
+          "note": "较适合说明文、报告或演讲开头。",
+          "scene": "写作/展示",
+          "isPrimary": false
+        },
+        {
+          "sentence": "At first, I didn't like the idea. First of all, though, let's look at the facts.",
+          "translation": "起初，我不喜欢这个想法。不过首先，我们先看看事实。",
+          "note": "用来对比 at first 和 first of all 的不同。",
+          "scene": "对比辨析",
+          "isPrimary": false
+        },
+        {
+          "sentence": "First of all, turn off the power.",
+          "translation": "首先，把电源关掉。",
+          "note": "用于步骤说明时很自然，后面通常还有 next/then。",
+          "scene": "操作说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "To begin with, I'd like to thank everyone for coming today.",
+          "translation": "首先，我想感谢今天到场的各位。",
+          "note": "常见于演讲或正式发言的开头。",
+          "scene": "演讲开场",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Safest beginner template",
+          "template": "First of all, + main_clause.",
+          "slotHints": [
+            "main_clause 填完整句子，如 we need a plan / the room is too small"
+          ],
+          "exampleSentence": "First of all, we need a clear plan.",
+          "exampleTranslation": "首先，我们需要一个清晰的计划。",
+          "position": 1
+        },
+        {
+          "label": "Alternate opener template",
+          "template": "To begin with, + main_clause.",
+          "slotHints": [
+            "main_clause 填完整句子，适合演讲、作文、解释理由"
+          ],
+          "exampleSentence": "To begin with, this method is easy to use.",
+          "exampleTranslation": "首先，这个方法很容易使用。",
+          "position": 1
+        },
+        {
+          "label": "List-building template",
+          "template": "First of all, + first_point. Next, + second_point. Finally, + last_point.",
+          "slotHints": [
+            "first_point / second_point / last_point 都填完整句子，帮助你清楚列点"
+          ],
+          "exampleSentence": "First of all, we need to set a budget. Next, we should compare prices. Finally, we can make a decision.",
+          "exampleTranslation": "首先，我们需要定预算。接着，我们应该比较价格。最后，我们可以作出决定。",
+          "position": 1
+        },
+        {
+          "label": "Writing-oriented template",
+          "template": "To begin with, + topic_clause. In addition, + support_clause.",
+          "slotHints": [
+            "topic_clause 先写第一点；support_clause 再补充另一点，不要把 in addition 放在第一句"
+          ],
+          "exampleSentence": "To begin with, public transport is cheaper. In addition, it is better for the environment.",
+          "exampleTranslation": "首先，公共交通更便宜。此外，它对环境更好。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "in-addition-moreover-besides",
+      "title": "in addition / moreover / besides",
+      "shortLabel": "adding another point",
+      "pattern": "in addition / moreover / besides",
+      "family": "functional_pattern",
+      "subtype": "addition_marker_contrast",
+      "anchor": "in addition",
+      "coreExplanation": "这个模式用来“再补充一点”。常见形式有In addition, / Moreover, / Besides, 后面接完整句子；也可用in addition to + 名词/动名词。它们通常放在句首并后接逗号，也可放句中作插入语，但初学者先稳妥地放句首最自然。",
+      "usageNote": "语气上，moreover最正式，常见于论文、说明文、正式发言；in addition最中性，口语和写作都安全；besides较口语，还常带“而且/再说”意味。适合列举理由、补充优点、推进论证；不适合拿来举例或表示先后步骤。放句首时通常加逗号；句中插入时前后也要注意标点。初学者先用“In addition, + 完整句子”最不容易错。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "essay-writing",
+        "arguments",
+        "organization",
+        "论文补充理由",
+        "口语继续说明",
+        "正式报告加一点",
+        "邮件中补充信息",
+        "比较多个优点"
+      ],
+      "slotSchema": [
+        {
+          "key": "marker",
+          "label": "连接补充词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "可放In addition, Moreover, Besides。常见错误是把正式写作里随便用Besides。例：In addition, the plan is affordable."
+        },
+        {
+          "key": "clause",
+          "label": "完整句子",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "后面通常接主语+谓语的完整句。常见错误是只接一个名词。例：Moreover, it saves time."
+        },
+        {
+          "key": "addedObject",
+          "label": "被补充的对象",
+          "type": "noun_phrase",
+          "required": false,
+          "hint": "如果用in addition to，后面接名词或动名词，不接完整句。常见错误：in addition to it is cheap。例：In addition to the price, we considered quality."
+        }
+      ],
+      "commonErrors": [
+        "Wrong: In addition the product is cheap. 原因：句首作连接副词时通常要加逗号。改法：In addition, the product is cheap.",
+        "Wrong: Moreover to save money, we walked. 原因：moreover后通常直接接完整句，不接to不定式作主句内容。改法：Moreover, we saved money by walking.",
+        "Wrong: In addition to, the product is useful. 原因：in addition to后面必须接名词、代词或动名词，不能直接停住再接完整句。改法：In addition to being useful, the product is cheap.",
+        "Wrong: Besides many students like it. 原因：句首连接词后少逗号，书面上不规范。改法：Besides, many students like it.",
+        "Wrong: For example, it is cheap. Moreover, such as easy to use. 原因：such as不是独立连接整个句子的补充词。改法：Moreover, it is easy to use. / It has many advantages, such as easy setup.",
+        "Wrong: To begin with, it is cheap. In addition, for example, students can afford it. 原因：把“补充点”和“举例”混成一层连接，句子杂乱。改法：In addition, it is affordable. For example, students can buy it easily."
+      ],
+      "contrasts": [
+        {
+          "slug": "in-addition-vs-in-addition-to",
+          "title": "in addition vs in addition to",
+          "note": "结构不同：in addition后常接完整句；in addition to后接名词/动名词。语气上都中性，但后者更像“除……之外还”。对比：In addition, it is fast. / In addition to speed, it is cheap."
+        },
+        {
+          "slug": "moreover",
+          "title": "moreover",
+          "note": "结构上也常放句首+逗号+完整句。语体比in addition更正式，常用于论文、报告，不太像轻松聊天。对比：In addition, it is practical. / Moreover, it is practical."
+        },
+        {
+          "slug": "besides",
+          "title": "besides",
+          "note": "结构上也能放句首接完整句，但语气更口语，还常带“再说、况且”来加强说服。正式论文里不如moreover稳重。对比：Besides, it’s too expensive. / Moreover, it is too expensive."
+        },
+        {
+          "slug": "first-of-all",
+          "title": "first of all / to begin with",
+          "note": "结构上它们常用来开始第一点，不是单纯“再加一点”。语篇功能是开头列点；in addition是继续补充。对比：First of all, we need data. / In addition, we need time."
+        },
+        {
+          "slug": "for-example",
+          "title": "for example / for instance / such as",
+          "note": "结构和功能都不同：这些是“举例”，不是“新增论点”。语气上可与补充词连用，但不要互相替代。对比：In addition, it is cheap. / For example, students can afford it."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "In addition, the course is easy to follow.",
+          "translation": "此外，这门课程很容易跟上。",
+          "note": "最安全的基础用法：句首连接词 + 逗号 + 完整句。",
+          "scene": "补充优点",
+          "isPrimary": true
+        },
+        {
+          "sentence": "The course is, in addition, easy to follow.",
+          "translation": "这门课程另外也很容易跟上。",
+          "note": "句中插入也可以，但比句首少见，初学者不必优先模仿。",
+          "scene": "句中补充",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Moreover, the results suggest that early training is effective.",
+          "translation": "此外，结果表明早期训练是有效的。",
+          "note": "更正式，适合论文或报告。",
+          "scene": "学术写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Besides, it’s cheaper than the other one.",
+          "translation": "而且，它比另一个更便宜。",
+          "note": "较口语，带一点“再说”的说服感。",
+          "scene": "日常比较",
+          "isPrimary": false
+        },
+        {
+          "sentence": "In addition to the price, we considered safety.",
+          "translation": "除了价格之外，我们还考虑了安全性。",
+          "note": "这里必须用in addition to + 名词，不是完整句。",
+          "scene": "列出考虑因素",
+          "isPrimary": false
+        },
+        {
+          "sentence": "In addition, I can work on weekends.",
+          "translation": "另外，我周末也能上班。",
+          "note": "日常沟通中补充个人条件，很自然。",
+          "scene": "求职或排班",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "In addition, + clause",
+          "slotHints": [
+            "先说完前一点，再用这个模板补充新信息；clause要是完整句，如it is useful / we need more time。"
+          ],
+          "exampleSentence": "In addition, we need more time.",
+          "exampleTranslation": "另外，我们还需要更多时间。",
+          "position": 1
+        },
+        {
+          "label": "句中插入模板",
+          "template": "Subject + be/aux, in addition, + complement",
+          "slotHints": [
+            "适合已经有主句骨架时插入补充；注意前后逗号。"
+          ],
+          "exampleSentence": "The plan is, in addition, affordable.",
+          "exampleTranslation": "这个计划另外也负担得起。",
+          "position": 2
+        },
+        {
+          "label": "名词补充模板",
+          "template": "In addition to + noun/doing, + clause",
+          "slotHints": [
+            "to后面放名词、代词或动名词，不放完整句。"
+          ],
+          "exampleSentence": "In addition to saving money, we reduced waste.",
+          "exampleTranslation": "除了省钱之外，我们还减少了浪费。",
+          "position": 1
+        },
+        {
+          "label": "正式写作模板",
+          "template": "Moreover, + clause",
+          "slotHints": [
+            "用于正式补充论点，语气比In addition更书面。"
+          ],
+          "exampleSentence": "Moreover, the policy benefits small businesses.",
+          "exampleTranslation": "此外，这项政策有利于小企业。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "finally-in-conclusion-to-sum-up",
+      "title": "finally / in conclusion / to sum up",
+      "shortLabel": "Conclusion markers",
+      "pattern": "finally / in conclusion / to sum up",
+      "family": "functional_pattern",
+      "subtype": "closing_marker_contrast",
+      "anchor": "in conclusion",
+      "coreExplanation": "finally、in conclusion、to sum up都可用来引出结尾或总结。它们通常放在句首，后面接完整句子，并常用逗号隔开：In conclusion, + 句子。finally也可表示“最后一步/最后发生”，不一定是全文总结，所以写结论时要注意功能是否真是“收束全文”。",
+      "usageNote": "语气上，in conclusion最正式，常见于作文、报告、演讲结尾；to sum up稍口语一点，也适合总结观点；finally最常见、最直接，但既可表示“最后一点”，也可表示“终于”，所以在正式写作里若要明确“总结全文”，优先用in conclusion。通常放句首，后面加逗号。初学者最安全写法是：In conclusion, + your main point.",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "conclusion",
+        "essay-writing",
+        "summaries",
+        "作文结尾",
+        "口头总结",
+        "演讲收尾",
+        "段落收束",
+        "考试写作"
+      ],
+      "slotSchema": [
+        {
+          "key": "marker",
+          "label": "结尾标记语",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "可用In conclusion, / To sum up, / Finally,. 常见错误：漏逗号或把finally误当“总结全文”万能词。例：In conclusion, we should act now."
+        },
+        {
+          "key": "main_point",
+          "label": "总结句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里放完整句子，概括你的最终观点。常见错误：只放名词短语，不成句。例：it is important to protect the environment."
+        },
+        {
+          "key": "support",
+          "label": "补充结果或建议",
+          "type": "statement_clause",
+          "required": false,
+          "hint": "可再接一句结果、建议或呼吁。常见错误：一句里塞太多新信息，反而不像总结。例：We must start with small daily changes."
+        }
+      ],
+      "commonErrors": [
+        "Wrong: In conclusion we should study harder.｜问题：句首结尾标记后通常要加逗号，书面英语更自然。｜修改：In conclusion, we should study harder.",
+        "Wrong: In conclusion, the advantages.｜问题：后面只接名词短语，不是完整句子。｜修改：In conclusion, the advantages are clear.",
+        "Wrong: Finally, this essay shows social media has risks.｜问题：finally可能更像“最后一点”，不一定明确表示“全文结论”。｜修改：In conclusion, this essay shows that social media has risks.",
+        "Wrong: To sum up I think smoking should be banned in public places.｜问题：缺少逗号，书面感不足。｜修改：To sum up, I think smoking should be banned in public places.",
+        "Wrong: In conclusion, firstly, students need sleep.｜问题：结论标记后又接首先，逻辑冲突。｜修改：In conclusion, students need enough sleep to learn well.",
+        "Wrong: Finally, I arrived at the station.｜问题：这里finally表示“终于/最后发生”，不是总结，不适合当作文结尾模板记忆。｜修改：若表达总结，用In conclusion, ...；若表达“终于”，保留Finally但别当结论句型。"
+      ],
+      "contrasts": [
+        {
+          "slug": "first-of-all",
+          "title": "vs first of all / to begin with",
+          "note": "结构上，first of all / to begin with用于开头列出第一点；in conclusion / to sum up用于结尾收束。语篇位置完全不同。比较：First of all, we need a plan. / In conclusion, we need action."
+        },
+        {
+          "slug": "in-addition",
+          "title": "vs in addition / moreover / besides",
+          "note": "结构上，这些连接词后也常接完整句，但作用是“继续加信息”；in conclusion是“结束并概括”。前者多在中间展开，后者在最后。比较：Moreover, it saves time. / In conclusion, it is worth trying."
+        },
+        {
+          "slug": "finally-sequencing",
+          "title": "vs finally as sequence marker",
+          "note": "finally既可作顺序词“最后”，也可作结尾标记；in conclusion只表示总结。写步骤、流程时用finally更自然；写文章总结时in conclusion更明确。比较：Finally, add some salt. / In conclusion, home cooking is healthier."
+        },
+        {
+          "slug": "to-sum-up",
+          "title": "vs in conclusion",
+          "note": "结构上两者都常放句首加逗号接完整句。语气上，in conclusion更正式、更像作文结尾；to sum up稍口语，像把前文压缩成一句。比较：In conclusion, the policy should continue. / To sum up, the policy works well."
+        },
+        {
+          "slug": "all-in-all",
+          "title": "vs all in all",
+          "note": "结构上都可句首接逗号，但all in all更口语、更像日常总结；in conclusion更适合学校写作或正式发言。比较：All in all, the trip was great. / In conclusion, the project was successful."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "In conclusion, exercise is essential for a healthy life.",
+          "translation": "总之，锻炼对健康生活至关重要。",
+          "note": "最安全的基础结论句型：结尾标记放句首，后接完整观点句。",
+          "scene": "作文结尾",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Exercise is essential for a healthy life. To sum up, everyone should make time for it.",
+          "translation": "锻炼对健康生活至关重要。总的来说，每个人都应该为此安排时间。",
+          "note": "前一句先陈述，后一句再单独总结，适合段落收尾。",
+          "scene": "段落总结",
+          "isPrimary": false
+        },
+        {
+          "sentence": "In conclusion, this report suggests that public transport should be improved.",
+          "translation": "总之，本报告认为应该改善公共交通。",
+          "note": "较正式，适合报告、演讲稿、说明文。",
+          "scene": "正式写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Finally, online classes are useful, but face-to-face learning is still important.",
+          "translation": "最后，网课很有用，但面对面学习仍然重要。",
+          "note": "这里finally更像“最后一点”，不是强烈的全文总结，和in conclusion语气不同。",
+          "scene": "论点列举",
+          "isPrimary": false
+        },
+        {
+          "sentence": "To sum up, we had some problems, but the event was a success.",
+          "translation": "总的来说，我们遇到了一些问题，但活动还是成功的。",
+          "note": "口头总结和非正式展示中很自然。",
+          "scene": "口头汇报",
+          "isPrimary": false
+        },
+        {
+          "sentence": "All in all, it was an expensive trip. In conclusion, however, it was worth it.",
+          "translation": "总的来说，这趟旅行很贵。不过最后可以说，它还是值得的。",
+          "note": "展示口语总结与正式书面收尾的语气差别。",
+          "scene": "比较语气",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "In conclusion, {main_point}.",
+          "slotHints": [
+            "{main_point}放你的最终观点完整句，如it is important to save time"
+          ],
+          "exampleSentence": "In conclusion, it is important to protect wild animals.",
+          "exampleTranslation": "总之，保护野生动物很重要。",
+          "position": 1
+        },
+        {
+          "label": "替代结尾模板",
+          "template": "To sum up, {main_point}.",
+          "slotHints": [
+            "{main_point}放压缩后的总观点，避免加入太多新细节"
+          ],
+          "exampleSentence": "To sum up, regular exercise benefits both body and mind.",
+          "exampleTranslation": "总的来说，规律运动对身心都有好处。",
+          "position": 1
+        },
+        {
+          "label": "写作型双句模板",
+          "template": "In conclusion, {main_point}. {support}.",
+          "slotHints": [
+            "{main_point}放核心结论句",
+            "{support}放建议、结果或呼吁句"
+          ],
+          "exampleSentence": "In conclusion, school uniforms are useful. They can reduce pressure on students.",
+          "exampleTranslation": "总之，校服是有用的。它们可以减少学生的压力。",
+          "position": 1
+        },
+        {
+          "label": "列点后的最后一点模板",
+          "template": "Finally, {main_point}.",
+          "slotHints": [
+            "{main_point}放“最后一点”而非全文总括，常用于列举时的最后一条"
+          ],
+          "exampleSentence": "Finally, students need enough sleep to study well.",
+          "exampleTranslation": "最后，学生需要充足睡眠才能学好。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "on-the-one-hand-on-the-other-hand",
+      "title": "on the one hand... on the other hand...",
+      "shortLabel": "two-sided contrast",
+      "pattern": "on the one hand..., on the other hand...",
+      "family": "functional_pattern",
+      "subtype": "balanced_contrast_frame",
+      "anchor": "on the one hand",
+      "coreExplanation": "on the one hand..., on the other hand... 用来把同一件事的两个相对面并列说清，帮助表达“有利也有不利/一方面也另一方面”。两部分后面通常都接完整分句，常放在句首并用逗号隔开，也可放在句中作插入对比。",
+      "usageNote": "语气中性偏书面，最自然于作文、报告、讨论优缺点、做平衡判断时。日常口语也能用，但若只是简单转折，常用 but 更自然。不适合列三个以上要点，也不适合前后不是同一主题的内容。写作时通常两边都保留，后面常加逗号；初学者先稳妥地写成“On the one hand, S+V. On the other hand, S+V.”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "comparison",
+        "balanced-arguments",
+        "essay-writing",
+        "作文分析优缺点",
+        "课堂讨论两面性",
+        "口语说明难选择",
+        "报告中平衡观点",
+        "比较方案利弊"
+      ],
+      "slotSchema": [
+        {
+          "key": "sideA",
+          "label": "first side",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "填一个完整分句，说明第一面，如优点、原因或支持点。常错：只放名词短语。应写成完整句。例：it saves time"
+        },
+        {
+          "key": "sideB",
+          "label": "second side",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "填一个完整分句，说明相对的另一面，内容要和第一面围绕同一主题。常错：写成无关新话题。例：it can be expensive"
+        },
+        {
+          "key": "topicLink",
+          "label": "shared topic (optional)",
+          "type": "custom",
+          "required": true,
+          "hint": "两边默认谈同一对象，可在前句先点明主题。常错：两边主语完全换掉导致不平衡。例：As for online learning, ..."
+        }
+      ],
+      "commonErrors": [
+        "On the one hand, the price. On the other hand, it is convenient.——前半边只是名词短语，不是完整分句，结构不平衡。改为：On the one hand, the price is low. On the other hand, it is convenient.",
+        "On one hand, ..., on the other hand, ...——固定搭配通常说 on the one hand，不要漏掉 the。改为：On the one hand, ..., on the other hand, ...",
+        "On the one hand, it is cheap. But on the other hand, it is slow.——中间再加 but 往往重复，框架本身已表示对比。改为：On the one hand, it is cheap. On the other hand, it is slow.",
+        "On the one hand, I like tea. On the other hand, my brother lives in Beijing.——前后不是同一议题，听起来像硬拼。改为围绕同一主题：On the one hand, I like tea. On the other hand, coffee keeps me awake longer.",
+        "On the one hand, studying abroad is exciting, on the other hand, difficult.——后半边省略过头，不够完整，初学者容易出错。改为：On the one hand, studying abroad is exciting. On the other hand, it is difficult.",
+        "On the one hand, ..., on the other hand, ..., on the third hand, ...——这个框架通常只用于两面，不自然地继续列第三面。改为用 first, second, third 或 another point is ..."
+      ],
+      "contrasts": [
+        {
+          "slug": "for-one-thing-for-another",
+          "title": "for one thing... for another...",
+          "note": "结构上两边也成对，但更常列举两个理由，不一定形成正反对照；语气更口语、较轻。on the one hand...on the other hand... 更强调同一问题的两面。对比：For one thing, it’s cheap; for another, it’s easy to use. / On the one hand, it’s cheap; on the other hand, it breaks easily."
+        },
+        {
+          "slug": "but-however",
+          "title": "but / however",
+          "note": "结构上 but/however 只表示单次转折，不要求成对框架；语气更灵活，口语里更常见。on the one hand...on the other hand... 更有“有条理地权衡”感觉。对比：It’s cheap, but it’s unreliable. / On the one hand, it’s cheap; on the other hand, it’s unreliable."
+        },
+        {
+          "slug": "while-whereas",
+          "title": "while / whereas",
+          "note": "结构上 while/whereas 常直接连接两个分句；whereas 更书面。它们重在并列对比，不一定带“权衡利弊”的语气。on the one hand...on the other hand... 更像主动摆出两面。对比：This plan is cheap, whereas that one is faster. / On the one hand, this plan is cheap; on the other hand, it is slower."
+        },
+        {
+          "slug": "in-my-opinion",
+          "title": "in my opinion",
+          "note": "结构上 in my opinion 只是引出个人看法，后面仍需自己组织内容；它不自带两面框架。可与本结构连用，但功能不同。对比：In my opinion, the plan is risky. / In my opinion, on the one hand, it saves money; on the other hand, it takes more time."
+        },
+        {
+          "slug": "on-the-contrary",
+          "title": "on the contrary",
+          "note": "结构上 on the contrary 用来反驳前面的否定或错误看法，不是简单列出另一面；语气更强。很多学习者会误拿它代替 on the other hand。对比：It isn’t expensive. On the contrary, it’s quite affordable. / On the one hand, it’s affordable; on the other hand, maintenance costs are high."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "On the one hand, this app is easy to use. On the other hand, it lacks some important features.",
+          "translation": "一方面，这个应用很容易使用；另一方面，它缺少一些重要功能。",
+          "note": "最稳妥的基础写法：两边都用完整句。",
+          "scene": "比较产品优缺点",
+          "isPrimary": true
+        },
+        {
+          "sentence": "This job, on the one hand, offers a high salary; on the other hand, it requires long hours.",
+          "translation": "这份工作一方面工资高；另一方面，它要求工作时间很长。",
+          "note": "也可放在句中作插入语，常用分号帮助分清两部分。",
+          "scene": "讨论工作选择",
+          "isPrimary": false
+        },
+        {
+          "sentence": "On the one hand, online learning increases access to education; on the other hand, it may reduce face-to-face interaction.",
+          "translation": "一方面，线上学习扩大了受教育机会；另一方面，它可能减少面对面互动。",
+          "note": "较适合作文和报告中的书面表达。",
+          "scene": "学术写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "On the one hand, living in the city is convenient. On the other hand, living in the countryside is quieter.",
+          "translation": "一方面，住在城市更方便；另一方面，住在乡村更安静。",
+          "note": "这是“比较两种选择”的用法，不是同一对象的优缺点，但两边仍需围绕同一话题。",
+          "scene": "比较生活方式",
+          "isPrimary": false
+        },
+        {
+          "sentence": "On the one hand, I want to save money. On the other hand, I really need a new laptop.",
+          "translation": "一方面，我想省钱；另一方面，我确实需要一台新笔记本电脑。",
+          "note": "很常见的日常“内心两难”表达。",
+          "scene": "日常决策",
+          "isPrimary": false
+        },
+        {
+          "sentence": "On the one hand, the policy could boost growth; on the other hand, it might widen inequality.",
+          "translation": "一方面，这项政策可能促进增长；另一方面，它也可能扩大不平等。",
+          "note": "适合新闻评论、报告、议论文中的平衡判断。",
+          "scene": "政策分析",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Safest beginner template",
+          "template": "On the one hand, {sideA}. On the other hand, {sideB}.",
+          "slotHints": [
+            "{sideA}=完整分句，写第一面，如 it is convenient",
+            "{sideB}=完整分句，写相对另一面，如 it is expensive"
+          ],
+          "exampleSentence": "On the one hand, the course is interesting. On the other hand, it is very demanding.",
+          "exampleTranslation": "一方面，这门课很有趣；另一方面，它要求很高。",
+          "position": 1
+        },
+        {
+          "label": "Alternate-position template",
+          "template": "{topic}, on the one hand, {sideA}; on the other hand, {sideB}.",
+          "slotHints": [
+            "{topic}=先点明主题，如 This plan",
+            "{sideA}/{sideB}=围绕同一主题的两面，尽量结构平行"
+          ],
+          "exampleSentence": "This plan, on the one hand, saves time; on the other hand, it costs more.",
+          "exampleTranslation": "这个方案一方面节省时间；另一方面，成本更高。",
+          "position": 2
+        },
+        {
+          "label": "Writing-oriented template",
+          "template": "On the one hand, {sideA}; on the other hand, {sideB}. Therefore, {result}.",
+          "slotHints": [
+            "前两槽写两面权衡",
+            "{result}=你的总结或结论，如 we should be cautious"
+          ],
+          "exampleSentence": "On the one hand, tourism creates jobs; on the other hand, it can damage the environment. Therefore, local governments should manage it carefully.",
+          "exampleTranslation": "一方面，旅游业创造就业；另一方面，它也可能破坏环境。因此，地方政府应谨慎管理。",
+          "position": 3
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "as-a-result",
+      "title": "as a result, ...",
+      "shortLabel": "result summary",
+      "pattern": "as a result, statement",
+      "family": "functional_pattern",
+      "subtype": "result_summary_frame",
+      "anchor": "as a result",
+      "coreExplanation": "as a result 用来把前面已经说过的原因、过程或情况，清楚地总结成“结果是……”。后面必须接完整句子，不能只接一个名词。它最常放在句首，后面通常加逗号：As a result, + 完整句子。也可放句中连接前后信息。",
+      "usageNote": "这个表达偏书面、说明性，比 so 更正式，常见于作文、报告、分析、新闻说明等需要明确因果的场合。日常聊天能用，但会稍显正式；随口对话里常更自然地说 so 或 that’s why。不适合拿来举例，也不要放在一句话末尾单独悬空。初学者最安全的做法是：先说原因句，再另起一句写 As a result, + 完整句子。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "cause-and-effect",
+        "essay-writing",
+        "reports",
+        "因果说明",
+        "英语作文",
+        "报告总结",
+        "学术写作",
+        "日常解释"
+      ],
+      "slotSchema": [
+        {
+          "key": "result_clause",
+          "label": "结果分句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里必须放完整句子，要有主语和谓语。常见错误：只放名词或短语。例：As a result, sales increased."
+        },
+        {
+          "key": "prior_context",
+          "label": "前文原因/背景",
+          "type": "statement_clause",
+          "required": false,
+          "hint": "通常前一句先交代原因、变化或背景，再用 as a result 引出结果。常见错误：前文没有可推导的原因。例：It rained all night. As a result, the road flooded."
+        },
+        {
+          "key": "mid_position_link",
+          "label": "句中位置",
+          "type": "fixed_chunk",
+          "required": false,
+          "hint": "也可放在句中，前后都要和完整分句搭配。常见错误：直接夹在主谓之间。例：The store closed early and, as a result, many customers left."
+        }
+      ],
+      "commonErrors": [
+        "As a result of, the match was canceled.｜错因：把 as a result 和 as a result of 混用了；前者后面接完整句子，后者后面接名词短语。｜改法：As a result, the match was canceled. / As a result of the rain, the match was canceled.",
+        "As a result the heavy rain.｜错因：后面只接名词短语，不是完整句子。｜改法：As a result, it rained heavily 是错的思路；应说 As a result, the game was canceled. 或 As a result of the heavy rain, the game was canceled.",
+        "He was late. So as a result, he missed the train.｜错因：so 和 as a result 都在表达结果，叠加显得重复累赘。｜改法：He was late. As a result, he missed the train. / He was late, so he missed the train.",
+        "I forgot my key, as a result I couldn't get in.｜错因：连接成分前后标点不规范，书面语里通常要在 as a result 后加逗号。｜改法：I forgot my key. As a result, I couldn't get in. / I forgot my key, and as a result, I couldn't get in.",
+        "As a result, of the delay, we arrived late.｜错因：错误地把 of 拆开插进 as a result 结构。｜改法：As a result of the delay, we arrived late. / There was a delay. As a result, we arrived late.",
+        "For example, many workers left the company. As a result means this.｜错因：把 as a result 当成“比如”来解释，功能混淆。｜改法：for example 用于举例；as a result 用于说结果。例：Many workers left the company. As a result, the project slowed down."
+      ],
+      "contrasts": [
+        {
+          "slug": "therefore",
+          "title": "as a result vs therefore",
+          "note": "结构上，两者后面都接完整句子；therefore 更像正式逻辑连接词，常见于论证，语气更书面。as a result 更强调“由前文情况导致的结果”。对比：The cost rose. As a result, profits fell. / The cost rose; therefore, profits fell."
+        },
+        {
+          "slug": "so",
+          "title": "as a result vs so",
+          "note": "结构上，so 常直接放在两个分句之间，口语很常见；as a result 常放句首并带逗号。语体上，so 更口语，as a result 更说明文。对比：It was raining, so we stayed home. / It was raining. As a result, we stayed home."
+        },
+        {
+          "slug": "thats-why",
+          "title": "as a result vs that's why",
+          "note": "结构上，that's why 后面常接完整句子或结果说明，主语带有“那就是为什么”；as a result 是纯连接框架。语气上，that's why 更口语、更解释性。对比：I was sick. That's why I missed class. / I was sick. As a result, I missed class."
+        },
+        {
+          "slug": "for-example",
+          "title": "as a result vs for example",
+          "note": "结构上，for example 用来引出例子，不表示因果结果；as a result 专门引出结果。场景上，一个是举例，一个是总结后果。对比：Many cities face pollution. For example, Delhi has severe smog. / Many factories closed. As a result, unemployment rose."
+        },
+        {
+          "slug": "as-a-result-of",
+          "title": "as a result vs as a result of",
+          "note": "结构差别最重要：as a result + 完整句子；as a result of + 名词短语。语气都偏书面，但后者更适合把“原因”压缩成短语。对比：The flight was delayed. As a result, we arrived late. / As a result of the delay, we arrived late."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The road was icy. As a result, several schools closed.",
+          "translation": "路面结冰了。结果，几所学校停课了。",
+          "note": "最基础用法：前一句给原因，后一句用 as a result 引出结果。",
+          "scene": "因果说明",
+          "isPrimary": true
+        },
+        {
+          "sentence": "The company lost a major client and, as a result, had to cut costs.",
+          "translation": "公司失去了一个大客户，因此不得不削减成本。",
+          "note": "句中位置也可以，但前后仍要连接完整信息。",
+          "scene": "报告总结",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The survey response rate was low. As a result, the findings should be interpreted with caution.",
+          "translation": "问卷回收率很低。因此，调查结果应谨慎解读。",
+          "note": "很适合写作和报告中的正式说明。",
+          "scene": "学术写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It rained all weekend. As a result, we canceled the picnic.",
+          "translation": "整个周末都在下雨。结果，我们取消了野餐。",
+          "note": "和 so 相比更书面；在作文里更稳妥。",
+          "scene": "日常解释",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Many workers left the factory. As a result, production fell sharply.",
+          "translation": "许多工人离开了工厂。结果，产量大幅下降。",
+          "note": "突出前因后果，不是举例。",
+          "scene": "英语作文",
+          "isPrimary": false
+        },
+        {
+          "sentence": "He didn't back up the file. As a result, he lost all his work.",
+          "translation": "他没有备份文件。结果，他丢失了所有工作内容。",
+          "note": "日常也能用，但口语里可换成 so。",
+          "scene": "日常解释",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "安全初学者模板",
+          "template": "[原因句]. As a result, [结果分句].",
+          "slotHints": [
+            "先写一个清楚的原因句",
+            "结果部分必须是完整句子，有主语和谓语"
+          ],
+          "exampleSentence": "The bus was late. As a result, I missed the meeting.",
+          "exampleTranslation": "公交车晚点了。结果，我错过了会议。",
+          "position": 1
+        },
+        {
+          "label": "句中连接模板",
+          "template": "[分句1], and as a result, [分句2].",
+          "slotHints": [
+            "前半句说明变化或事件",
+            "后半句写由此产生的结果"
+          ],
+          "exampleSentence": "The store closed early, and as a result, many customers went elsewhere.",
+          "exampleTranslation": "商店提前关门了，因此很多顾客去了别处。",
+          "position": 2
+        },
+        {
+          "label": "写作用正式模板",
+          "template": "[背景/数据句]. As a result, [结论或影响分句].",
+          "slotHints": [
+            "前句适合写事实、调查、变化",
+            "后句适合写影响、后果、建议"
+          ],
+          "exampleSentence": "Energy prices increased significantly. As a result, household costs rose.",
+          "exampleTranslation": "能源价格显著上涨。因此，家庭开支增加了。",
+          "position": 3
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "the-fact-is-that",
+      "title": "the fact is that...",
+      "shortLabel": "stating the key reality",
+      "pattern": "the fact is that + clause",
+      "family": "functional_pattern",
+      "subtype": "clarifying_statement_frame",
+      "anchor": "the fact is that",
+      "coreExplanation": "the fact is that + 从句 用来把“真正重要的情况/核心事实”明确说出来，常带有澄清、纠正或收束争论的作用。that 后面必须接完整陈述句，不能只接名词。整个结构通常放在句首单独引出观点，也可放在逗号后作插入说明。",
+      "usageNote": "语气偏正式到中性，常见于议论、解释、课堂发言、邮件和作文中，适合强调“关键点其实是……”。不太适合非常随意的闲聊中反复使用，否则会显得生硬或像在辩论。后面通常直接接完整句子；放句首时后面常不停顿直接说，也可写成 The fact is, ... 但初学者最稳妥是保留 that。想安全使用时，把它当成“先亮出核心事实，再补充理由”的开头框架。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "clarifying",
+        "arguments",
+        "essay-writing",
+        "澄清误会",
+        "表达争论中的关键点",
+        "英语作文论述",
+        "邮件中解释原因",
+        "课堂讨论发言"
+      ],
+      "slotSchema": [
+        {
+          "key": "fact_frame",
+          "label": "固定开头",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "用 The fact is that。常见错误是漏掉 is 或写成 the fact that is。例：The fact is that we need more time."
+        },
+        {
+          "key": "main_clause",
+          "label": "完整从句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里放完整陈述句，要有主语和谓语。不要只放名词短语。例：the project is too expensive."
+        },
+        {
+          "key": "follow_up",
+          "label": "后续补充",
+          "type": "custom",
+          "required": false,
+          "hint": "可在后面再补原因、对比或结果。常见错误是前面说完就接不完整碎片。例：The fact is that he was ill, so he stayed home."
+        }
+      ],
+      "commonErrors": [
+        "× The fact is that the high cost. 错因：that 后面不是完整句子，只是名词短语。改为：The fact is that the cost is high.",
+        "× The fact that is we are late. 错因：is 放错位置，固定结构应是 the fact is that... 改为：The fact is that we are late.",
+        "× The fact is that to finish on time. 错因：that 后面不能只接不定式短语。改为：The fact is that we cannot finish on time.",
+        "× The fact is that, we need help. 错因：that 后面一般不立刻加逗号，逗号把从句切断了。改为：The fact is that we need help.",
+        "× The fact is he is busy. 错因：口语里可省 that，但初学者容易结构不稳。更安全：The fact is that he is busy.",
+        "× The fact is that because it rained. 错因：because 从句不能单独充当完整主句内容。改为：The fact is that it rained heavily, so the game was canceled."
+      ],
+      "contrasts": [
+        {
+          "slug": "i-think-that",
+          "title": "vs I think (that)...",
+          "note": "结构上，I think that 后面也是从句，但它强调“我的看法”；the fact is that 强调“关键现实”。语气上前者更主观、更日常，后者更像在澄清或定调。对比：I think that he is wrong. / The fact is that he is wrong."
+        },
+        {
+          "slug": "in-my-opinion",
+          "title": "vs In my opinion, ...",
+          "note": "结构上，In my opinion 是介词短语，后面直接接完整句；the fact is that 是完整主句框架。语气上前者明确标记个人意见，后者把内容包装成核心事实，更有论证感。对比：In my opinion, this plan is risky. / The fact is that this plan is risky."
+        },
+        {
+          "slug": "it-seems-that",
+          "title": "vs It seems that...",
+          "note": "结构上两者都接从句；但 it seems that 表示根据现象做推测，不完全确定，the fact is that 表示说话人认为情况很明确。场景上前者适合委婉观察，后者适合直接澄清。对比：It seems that she forgot. / The fact is that she forgot."
+        },
+        {
+          "slug": "there-is-no-doubt-that",
+          "title": "vs There is no doubt that...",
+          "note": "结构上都可接 that 从句；there is no doubt that 语气更强，表示“毫无疑问”，常见于更正式、更强硬的论证。the fact is that 虽强调现实，但不一定带绝对判断。对比：There is no doubt that he is talented. / The fact is that he is talented."
+        },
+        {
+          "slug": "according-to",
+          "title": "vs according to + source",
+          "note": "结构上 according to 后接信息来源，不直接接完整事实从句；the fact is that 直接引出说话人要强调的内容。场景上 according to 用于引用来源，the fact is that 用于自己总结关键点。对比：According to the report, sales fell. / The fact is that sales fell."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The fact is that I don't have enough money.",
+          "translation": "事实是我没有足够的钱。",
+          "note": "最基础、最安全的用法：后面直接接完整句。",
+          "scene": "日常解释",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I wanted to go; the fact is that I was too tired.",
+          "translation": "我本来想去；但事实是我太累了。",
+          "note": "可放在分号后，用来补出真正原因。",
+          "scene": "口语说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The fact is that many students need more time to develop writing skills.",
+          "translation": "事实是，很多学生需要更多时间来培养写作能力。",
+          "note": "适合作文和课堂讨论，语气较中性正式。",
+          "scene": "学术写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It seems that he is careless, but the fact is that he is just inexperienced.",
+          "translation": "看起来他很粗心，但事实是他只是缺乏经验。",
+          "note": "用于和较弱判断对比，突出“真实情况”。",
+          "scene": "比较与纠正",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The fact is that we can't finish this today.",
+          "translation": "事实是我们今天做不完这个。",
+          "note": "常用于团队沟通，直接说明限制。",
+          "scene": "工作沟通",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The fact is that she never received my message.",
+          "translation": "事实是她从来没收到我的消息。",
+          "note": "适合澄清误会。",
+          "scene": "解释误会",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全基础模板",
+          "template": "The fact is that + 完整句子.",
+          "slotHints": [
+            "后面放有主语和谓语的完整陈述句，如 I am busy / we need more time，不要只放名词或 because 短语"
+          ],
+          "exampleSentence": "The fact is that we need more time.",
+          "exampleTranslation": "事实是我们需要更多时间。",
+          "position": 1
+        },
+        {
+          "label": "对比澄清模板",
+          "template": "... , but the fact is that + 完整句子.",
+          "slotHints": [
+            "前半句先写别人以为的情况或表面现象，后半句写你要纠正的真实情况"
+          ],
+          "exampleSentence": "People think it is easy, but the fact is that it takes years of practice.",
+          "exampleTranslation": "人们觉得这很容易，但事实是这需要多年的练习。",
+          "position": 2
+        },
+        {
+          "label": "插入解释模板",
+          "template": "... ; the fact is that + 完整句子.",
+          "slotHints": [
+            "前面先说结果或表面决定，分号后补充真正原因；书面语里很自然"
+          ],
+          "exampleSentence": "I can't join the meeting; the fact is that I have a doctor's appointment.",
+          "exampleTranslation": "我不能参加会议；事实是我约了医生。",
+          "position": 2
+        },
+        {
+          "label": "写作用论点模板",
+          "template": "The fact is that + 完整句子, and this means + 完整句子.",
+          "slotHints": [
+            "第一部分写核心事实，第二部分写由此带来的结论，适合作文论述"
+          ],
+          "exampleSentence": "The fact is that many children sleep too little, and this means schools should educate parents about healthy routines.",
+          "exampleTranslation": "事实是很多孩子睡眠不足，这意味着学校应该教育家长建立健康作息。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "there-is-no-doubt-that",
+      "title": "there is no doubt that...",
+      "shortLabel": "strong certainty",
+      "pattern": "there is no doubt that + clause",
+      "family": "functional_pattern",
+      "subtype": "certainty_frame",
+      "anchor": "there is no doubt that",
+      "coreExplanation": "there is no doubt that... 用来先搭一个“毫无疑问”的框架，再接完整陈述句，表示说话人非常确定。that 后面通常放主语+谓语的从句，不能只放名词。这个结构常放在句首引出观点，也可放在较长句中作主句，语气比 I think 强得多。",
+      "usageNote": "这是偏正式、偏书面的肯定表达，常见于议论文、报告、演讲、评论和较郑重的讨论。适合强调“结论很明确”时使用；不适合证据不足、只是猜测，或很随便的聊天中频繁使用，否则会显得过重。that 后面要接完整句子；前面通常单独成主句，后面不用再加重复的主观标记。初学者最安全的用法是句首直接说：There is no doubt that + 完整句子。",
+      "usageRegister": "formal",
+      "sceneTags": [
+        "strong-claims",
+        "formal-writing",
+        "arguments",
+        "议论文下结论",
+        "正式演讲强调观点",
+        "书面评论判断",
+        "考试写作论证",
+        "较郑重的口头讨论"
+      ],
+      "slotSchema": [
+        {
+          "key": "certaintyFrame",
+          "label": "固定框架",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "固定写 There is no doubt that。常见错误是漏掉 that 或写成 There has no doubt。例：There is no doubt that..."
+        },
+        {
+          "key": "contentClause",
+          "label": "后面的完整句子",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "放完整陈述句，要有主语和谓语。不要只放名词或短语。例：the plan will succeed"
+        },
+        {
+          "key": "evidenceTail",
+          "label": "补充依据（可选）",
+          "type": "custom",
+          "required": true,
+          "hint": "可在后面继续补充原因、数据或时间状语。常见错误是把依据塞进 that 前面打断结构。例：..., given the recent data"
+        }
+      ],
+      "commonErrors": [
+        "There is no doubt the plan will work.｜错误在于正式基础用法里 that 不应省掉，少了连接词结构不完整。｜改为：There is no doubt that the plan will work.",
+        "There is no doubt about that he is right.｜错误在于把 about 和 that 从句混用了。about 后面接名词/动名词，不接完整从句。｜改为：There is no doubt that he is right. / There is no doubt about his ability.",
+        "There is no doubt that his success.｜错误在于 that 后面不是完整句子，只有名词短语。｜改为：There is no doubt that he will succeed. / There is no doubt about his success.",
+        "I think there is no doubt maybe he will come.｜错误在于确定表达和 maybe 冲突，语气自相矛盾。｜改为：There is no doubt that he will come. 或 It seems that he may come.",
+        "There are no doubt that students need sleep.｜错误在于固定表达应为 There is no doubt，不用复数 are。｜改为：There is no doubt that students need sleep.",
+        "There is no doubt that, he made a mistake.｜错误在于 that 后面不直接加逗号，逗号把从句拆开了。｜改为：There is no doubt that he made a mistake."
+      ],
+      "contrasts": [
+        {
+          "slug": "i-think-that",
+          "title": "vs I think (that)...",
+          "note": "结构上，I think 后也接从句；但 I think 明确是个人看法，语气较软、日常更常见。There is no doubt that 更像强结论，正式度更高。对比：I think he is right.（我觉得）/ There is no doubt that he is right.（几乎确定）"
+        },
+        {
+          "slug": "in-my-opinion",
+          "title": "vs In my opinion,...",
+          "note": "结构上，In my opinion 是插入短语，后面直接接完整句；There is no doubt that 是完整主句+that从句。前者强调“这是我的观点”，后者强调“这点很确定”。对比：In my opinion, this policy is useful. / There is no doubt that this policy is useful."
+        },
+        {
+          "slug": "it-seems-that",
+          "title": "vs It seems that...",
+          "note": "结构上两者都可接 that 从句；但 it seems that 表示根据现象作推测，语气不确定。There is no doubt that 表示几乎没有怀疑。对比：It seems that he is tired. / There is no doubt that he is tired."
+        },
+        {
+          "slug": "the-fact-is-that",
+          "title": "vs The fact is that...",
+          "note": "结构上都接 that 从句；The fact is that 常用来引出真实情况、纠正误解，语气是“事实是……”。There is no doubt that 重点不是揭示事实，而是强调确定性。对比：The fact is that we are late. / There is no doubt that we are late."
+        },
+        {
+          "slug": "according-to",
+          "title": "vs according to + source",
+          "note": "结构上 according to 后接来源，不直接表达说话人确信；There is no doubt that 后接完整判断句。前者像“依据某来源”，后者像“我明确下结论”。对比：According to the report, sales rose. / There is no doubt that sales rose."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "There is no doubt that exercise is good for your health.",
+          "translation": "毫无疑问，锻炼对你的健康有好处。",
+          "note": "最基础、最安全的句首模板。",
+          "scene": "一般事实陈述",
+          "isPrimary": true
+        },
+        {
+          "sentence": "After seeing the results, there is no doubt that our team made the right decision.",
+          "translation": "看到结果后，毫无疑问，我们团队做出了正确的决定。",
+          "note": "放在时间状语后，属于句中主句位置变化。",
+          "scene": "工作复盘",
+          "isPrimary": false
+        },
+        {
+          "sentence": "There is no doubt that climate change requires immediate action.",
+          "translation": "毫无疑问，气候变化需要立即采取行动。",
+          "note": "典型正式写作句。",
+          "scene": "议论文写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It seems that the plan is useful, but there is no doubt that it will cost more.",
+          "translation": "这个计划似乎有用，但毫无疑问，它会花费更多。",
+          "note": "和 it seems that 对比，突出确定与不确定。",
+          "scene": "方案讨论",
+          "isPrimary": false
+        },
+        {
+          "sentence": "There is no doubt that she will pass the exam if she keeps studying like this.",
+          "translation": "如果她继续这样学习，毫无疑问她会通过考试。",
+          "note": "日常也能用，但语气比普通聊天更郑重。",
+          "scene": "谈论考试",
+          "isPrimary": false
+        },
+        {
+          "sentence": "There is no doubt that the policy has improved access to education.",
+          "translation": "毫无疑问，这项政策改善了受教育机会。",
+          "note": "适合报告、评论、书面分析。",
+          "scene": "政策评论",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "There is no doubt that + [完整句子].",
+          "slotHints": [
+            "[完整句子]放主语+谓语，如: he is right / the plan will work"
+          ],
+          "exampleSentence": "There is no doubt that the plan will work.",
+          "exampleTranslation": "毫无疑问，这个计划会奏效。",
+          "position": 1
+        },
+        {
+          "label": "带前置信息模板",
+          "template": "After/From/Given + [信息], there is no doubt that + [完整句子].",
+          "slotHints": [
+            "前面放时间、依据或背景；后面仍然必须是完整句子"
+          ],
+          "exampleSentence": "Given these numbers, there is no doubt that sales have increased.",
+          "exampleTranslation": "从这些数字来看，毫无疑问，销售额已经增长了。",
+          "position": 2
+        },
+        {
+          "label": "写作用对比模板",
+          "template": "It seems that + [较弱判断], but there is no doubt that + [较强结论].",
+          "slotHints": [
+            "前半句写表面现象，后半句写你更确定的结论"
+          ],
+          "exampleSentence": "It seems that the process is slow, but there is no doubt that it is effective.",
+          "exampleTranslation": "这个过程看起来很慢，但毫无疑问它是有效的。",
+          "position": 3
+        },
+        {
+          "label": "书面论证模板",
+          "template": "There is no doubt that + [结论], because + [原因].",
+          "slotHints": [
+            "先下明确结论，再补充原因；because 后不要重复 that 框架"
+          ],
+          "exampleSentence": "There is no doubt that public transport matters, because it reduces traffic and pollution.",
+          "exampleTranslation": "毫无疑问，公共交通很重要，因为它能减少交通拥堵和污染。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "it-is-important-to-it-is-necessary-to",
+      "title": "it is important to / it is necessary to",
+      "shortLabel": "importance / necessity",
+      "pattern": "it is important to... / it is necessary to...",
+      "family": "functional_pattern",
+      "subtype": "importance_frame_contrast",
+      "anchor": "it is important to",
+      "coreExplanation": "这个句型用来客观说明“做某事很重要/有必要”。基本结构是 It is important to + 动词原形 或 It is necessary to + 动词原形。it放句首作形式主语，真正内容是后面的to do，常见于句首，后面可接for短语说明对象。",
+      "usageNote": "语气中性偏书面，常见于建议、说明、课堂写作、邮件和正式表达。important to 表示“重要、值得重视”，necessary to 表示“有必要、必须做”，语气更强。不太适合表达很强的个人情绪，也少用于非常随便的聊天。常单独成句，或后接 for sb. to do。初学者先安全使用“It is important to learn English.”这类简单结构。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "advice",
+        "essay-writing",
+        "formal-writing",
+        "提出建议",
+        "英语作文",
+        "课堂说明",
+        "邮件写作",
+        "日常提醒"
+      ],
+      "slotSchema": [
+        {
+          "key": "adj",
+          "label": "adjective",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "这里通常放important或necessary。常见错误是后面直接接动词原形而不用to。例：It is important to rest."
+        },
+        {
+          "key": "action",
+          "label": "action",
+          "type": "to_infinitive",
+          "required": true,
+          "hint": "放to+动词原形，表示要做的事。不要用doing或过去式。例：to get enough sleep"
+        },
+        {
+          "key": "target",
+          "label": "person affected",
+          "type": "noun_phrase",
+          "required": false,
+          "hint": "可放for+人，表示“对谁来说做这件事”。常见错误是用of sb.。例：It is necessary for students to ask questions."
+        }
+      ],
+      "commonErrors": [
+        "It is important study English.｜错在important后面必须接to do，不可直接接动词原形。应改为：It is important to study English.",
+        "It is necessary doing exercise every day.｜错在这里要用to do，不用doing。应改为：It is necessary to do exercise every day.",
+        "It is important for improve your pronunciation.｜错在for后面不能直接接动词；for后应接人，再接to do。应改为：It is important to improve your pronunciation. 或 It is important for learners to improve their pronunciation.",
+        "Is important to be careful.｜错在英语句子通常需要形式主语it。应改为：It is important to be careful.",
+        "It is necessary to not worry.｜语法不算绝对错误，但初学者更自然的否定位置是not to do。应改为：It is necessary not to worry.",
+        "It is important that to arrive early.｜错在that从句和to do结构混用了。应改为：It is important to arrive early. 或 It is important that you arrive early."
+      ],
+      "contrasts": [
+        {
+          "slug": "important-vs-necessary",
+          "title": "important to vs necessary to",
+          "note": "结构都可用 It is + 形容词 + to do，但语气不同。important表示“重要”，necessary表示“有必要、必须”，更强、更正式。比较：It is important to rest.（休息很重要）/ It is necessary to rest now.（现在有必要休息）"
+        },
+        {
+          "slug": "helpful-useful",
+          "title": "vs it is helpful/useful to",
+          "note": "结构一样，都是 It is + adjective + to do。区别在于 helpful/useful 强调“有帮助/有用”，语气较轻；important/necessary 强调“重要性/必要性”。比较：It is helpful to take notes. / It is important to take notes."
+        },
+        {
+          "slug": "there-is-no-need-to",
+          "title": "vs there is no need to",
+          "note": "前者表示“应该重视/有必要做”，后者表示“没有必要做”。结构也不同：It is important to do...；There is no need to do...。比较：It is necessary to call him. / There is no need to call him now."
+        },
+        {
+          "slug": "i-think",
+          "title": "vs I think...",
+          "note": "I think + 从句更主观，更像个人意见；It is important/necessary to... 更客观、更适合作文和正式说明。比较：I think we should save water. / It is important to save water."
+        },
+        {
+          "slug": "it-is-important-that",
+          "title": "vs it is important that + clause",
+          "note": "to do后面接动作本身，更短更基础；that从句后面接完整主语，更适合明确谁去做。比较：It is important to arrive on time. / It is important that everyone arrive on time."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "It is important to drink enough water.",
+          "translation": "喝足够的水很重要。",
+          "note": "最基础、最安全的to do用法。",
+          "scene": "健康建议",
+          "isPrimary": true
+        },
+        {
+          "sentence": "To protect the environment, it is important to reduce plastic use.",
+          "translation": "为了保护环境，减少塑料使用很重要。",
+          "note": "前面可先放目的状语，核心句型仍在主句中。",
+          "scene": "作文写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It is necessary for students to review their notes after class.",
+          "translation": "学生有必要在课后复习笔记。",
+          "note": "加入for+人，明确“对谁来说”有必要。",
+          "scene": "课堂说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It is important to be on time, but it is not always necessary to arrive very early.",
+          "translation": "准时很重要，但不一定有必要到得非常早。",
+          "note": "同句对比important与necessary的语气差别。",
+          "scene": "比较说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "In academic writing, it is important to use clear topic sentences.",
+          "translation": "在学术写作中，使用清晰的主题句很重要。",
+          "note": "偏书面、说明性强。",
+          "scene": "正式写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It is necessary to turn off your phone during the meeting.",
+          "translation": "开会时有必要关掉手机。",
+          "note": "日常规则或提醒中很自然。",
+          "scene": "会议提醒",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "Safest beginner template",
+          "template": "It is important to + 动词原形",
+          "slotHints": [
+            "直接放一个常见动作，如 study, rest, drink water；不要忘记to"
+          ],
+          "exampleSentence": "It is important to get enough sleep.",
+          "exampleTranslation": "得到充足睡眠很重要。",
+          "position": 1
+        },
+        {
+          "label": "Necessity template",
+          "template": "It is necessary to + 动词原形",
+          "slotHints": [
+            "用于“有必要、必须做”的事情，语气比important更强"
+          ],
+          "exampleSentence": "It is necessary to check your email every day.",
+          "exampleTranslation": "每天查看邮件是有必要的。",
+          "position": 1
+        },
+        {
+          "label": "Alternate-position template",
+          "template": "It is important for + 人 + to + 动词原形",
+          "slotHints": [
+            "先说“对谁来说”，再说动作；for后接人，不接动词"
+          ],
+          "exampleSentence": "It is important for children to read every day.",
+          "exampleTranslation": "孩子们每天阅读很重要。",
+          "position": 1
+        },
+        {
+          "label": "Writing-oriented template",
+          "template": "In + 领域/场景, it is important to + 动词原形",
+          "slotHints": [
+            "前面先交代场景，逗号后接主句；适合作文和说明文"
+          ],
+          "exampleSentence": "In job interviews, it is important to be polite.",
+          "exampleTranslation": "在求职面试中，礼貌很重要。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "it-is-helpful-to-it-is-useful-to",
+      "title": "it is helpful to / it is useful to",
+      "shortLabel": "practical advice frame",
+      "pattern": "it is helpful to... / it is useful to...",
+      "family": "functional_pattern",
+      "subtype": "practical_value_frame",
+      "anchor": "it is helpful to",
+      "coreExplanation": "这个句型用来说明“做某事有帮助/有用”，语气像温和建议，不像important或necessary那么强。基本结构是It is helpful to + 动词原形 / It is useful to + 动词原形。it作形式主语，真正内容放在to后面，常放在句首；后面也常接for + 人，说明“对谁有帮助”。",
+      "usageNote": "语气中性，常见于学习建议、说明书、邮件、课堂发言和实用写作。helpful更偏“有帮助”，useful更偏“有实际用处”。不太适合表达强制、规则或紧急义务，那时用important/necessary更自然。句首最常见，后面常直接接to do；若加对象，多放在helpful/useful后：It is helpful for students to... 初学者先稳用“it is helpful/useful to + 动词原形”即可。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "advice",
+        "study-strategies",
+        "practical-writing",
+        "学习建议",
+        "写邮件提建议",
+        "课堂说明",
+        "考试准备",
+        "日常效率建议"
+      ],
+      "slotSchema": [
+        {
+          "key": "adj",
+          "label": "形容词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "只能用helpful或useful。常见错误是和importance混用成*it is helpful that... 例：It is useful to review notes."
+        },
+        {
+          "key": "action",
+          "label": "动作",
+          "type": "to_infinitive",
+          "required": true,
+          "hint": "这里放to + 动词原形，表示具体行动。不要用动名词*to reviewing或完整从句*to you review。例：to make a list"
+        },
+        {
+          "key": "beneficiary",
+          "label": "对象",
+          "type": "noun_phrase",
+          "required": false,
+          "hint": "可用for + 人，放在helpful/useful后面。常见错误是用*to students。例：It is helpful for beginners to ask questions."
+        }
+      ],
+      "commonErrors": [
+        "*It is helpful that review your notes.——错在helpful后面通常接to do，不直接接that从句。应改为It is helpful to review your notes.",
+        "*It is useful for review notes.——错在for后面不能直接接动词短语。应改为It is useful to review notes. 或 It is useful for students to review notes.",
+        "*It is helpful to reviewing new words.——错在to后要用动词原形，不用-ing。应改为It is helpful to review new words.",
+        "*It helpful to make a plan.——错在缺少be动词is。应改为It is helpful to make a plan.",
+        "*It is useful to students review before class.——错在对象和动作顺序不对。应改为It is useful for students to review before class.",
+        "*Is helpful to take notes.——正式句子里需要形式主语it。应改为It is helpful to take notes."
+      ],
+      "contrasts": [
+        {
+          "slug": "important-necessary",
+          "title": "it is important/necessary to",
+          "note": "结构上都接to do，但important/necessary语气更强，常表示义务、关键性；helpful/useful只是建议或实用价值。比较：It is helpful to arrive early.＝早点到会更有帮助；It is necessary to arrive early.＝必须早点到。"
+        },
+        {
+          "slug": "no-need-to",
+          "title": "there is no need to",
+          "note": "结构不同：there is no need to表示“没必要做”，意思相反；helpful/useful表示“做了有帮助/有用”。语气上前者是在减轻要求，后者是在给建议。比较：There is no need to print it. / It is useful to save a copy."
+        },
+        {
+          "slug": "good-to",
+          "title": "it is good to",
+          "note": "两者都可接to do，但good范围更宽，常带一般积极评价；helpful/useful更强调实际效果。场景上给学习方法或步骤建议时，helpful/useful更具体。比较：It is good to read. / It is helpful to read the instructions first."
+        },
+        {
+          "slug": "helps-to",
+          "title": "it helps to",
+          "note": "结构上it helps to + 动词原形更口语、更直接；it is helpful to更书面、更完整。意思接近，但前者像经验总结，后者像中性建议。比较：It helps to take breaks. / It is helpful to take breaks."
+        },
+        {
+          "slug": "for-beneficiary",
+          "title": "with / without for + person",
+          "note": "结构差别在是否点明对象：It is helpful to ask questions. 只说行为本身；It is helpful for beginners to ask questions. 明确“对初学者有帮助”。写作中若想更清楚指出受益人，加for + 人更自然。"
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "It is helpful to review your notes after class.",
+          "translation": "课后复习笔记是有帮助的。",
+          "note": "最安全的基础用法：句首 + to do。",
+          "scene": "学习建议",
+          "isPrimary": true
+        },
+        {
+          "sentence": "To avoid mistakes, it is useful to check your work twice.",
+          "translation": "为了避免错误，检查两遍作业是有用的。",
+          "note": "前面可先放目的短语，主句里仍用it is useful to。",
+          "scene": "考试准备",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It is helpful for new students to keep a vocabulary notebook.",
+          "translation": "对新生来说，准备一个词汇本是有帮助的。",
+          "note": "加入for + 人，明确谁受益。",
+          "scene": "课堂说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "In report writing, it is useful to use clear headings.",
+          "translation": "在报告写作中，使用清晰的小标题很有用。",
+          "note": "较像说明文或写作指导语气。",
+          "scene": "实用写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It is helpful to arrive early, but it is not necessary.",
+          "translation": "早点到会有帮助，但不是必须的。",
+          "note": "和necessary形成清楚对比。",
+          "scene": "安排与建议",
+          "isPrimary": false
+        },
+        {
+          "sentence": "When you study at home, it is useful to turn off your phone.",
+          "translation": "在家学习时，把手机关掉很有用。",
+          "note": "日常场景里很自然，表达实用建议。",
+          "scene": "日常效率建议",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最稳妥初学者模板",
+          "template": "It is helpful/useful to + 动词原形.",
+          "slotHints": [
+            "先选helpful或useful；后面直接接to do，不要加that，不要用-ing。"
+          ],
+          "exampleSentence": "It is helpful to make a study plan.",
+          "exampleTranslation": "制订学习计划是有帮助的。",
+          "position": 1
+        },
+        {
+          "label": "带对象模板",
+          "template": "It is helpful/useful for + 人 + to + 动词原形.",
+          "slotHints": [
+            "想说“对谁有帮助”时加for + 人；不要误用to + 人。"
+          ],
+          "exampleSentence": "It is useful for beginners to practice every day.",
+          "exampleTranslation": "对初学者来说，每天练习很有用。",
+          "position": 2
+        },
+        {
+          "label": "前置场景模板",
+          "template": "In/When + 场景, it is helpful/useful to + 动词原形.",
+          "slotHints": [
+            "先交代场景，再给建议；逗号后接完整主句。"
+          ],
+          "exampleSentence": "In group work, it is helpful to share roles clearly.",
+          "exampleTranslation": "在小组合作中，明确分工是有帮助的。",
+          "position": 3
+        },
+        {
+          "label": "写作说明模板",
+          "template": "To + 目的, it is useful to + 动词原形.",
+          "slotHints": [
+            "前面用To + 目的说明“为了……”，后面给出实用做法。"
+          ],
+          "exampleSentence": "To save time, it is useful to prepare the materials early.",
+          "exampleTranslation": "为了节省时间，提前准备材料很有用。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "it-is-hard-to-it-is-easy-to",
+      "title": "it is hard to / it is easy to",
+      "shortLabel": "difficulty with to-infinitive",
+      "pattern": "it is hard to... / it is easy to...",
+      "family": "functional_pattern",
+      "subtype": "difficulty_frame_contrast",
+      "anchor": "it is hard to",
+      "coreExplanation": "这个句型用来评价“做某事”容易还是困难：It is hard to... / It is easy to...。真正要做的动作放在to后面，用动词原形；it只是形式主语。最常见放在句首先给出判断，后面可接for人说明“对谁来说”。",
+      "usageNote": "语气中性，口语、课堂表达、说明文和基础议论文都很常用，适合谈学习、生活技能、理解规则等。它强调“某动作本身难/易”，不适合直接表达“我做得很吃力”的个人经历，那时常用have trouble + -ing。句首最自然；若前面已有长主语，也可后置但初学者优先用“It is hard/easy to...”安全模板。句号前直接结束，不要在to后再接完整从句。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "judgment",
+        "essay-writing",
+        "daily-life",
+        "评价任务难度",
+        "写作表达观点",
+        "学习与考试",
+        "日常技能说明",
+        "给建议前铺垫"
+      ],
+      "slotSchema": [
+        {
+          "key": "difficulty",
+          "label": "difficulty word",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "通常放hard或easy，也可换成difficult等近义词。常见错误是写成hardly；hard是“困难的”，hardly是“几乎不”。例：It is hard to choose."
+        },
+        {
+          "key": "action",
+          "label": "action after to",
+          "type": "custom",
+          "required": true,
+          "hint": "这里放to + 动词原形，可带宾语，如to understand this rule。常见错误是用to understanding或to understands。例：It is easy to make mistakes."
+        },
+        {
+          "key": "person",
+          "label": "optional for + person",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "需要说明“对谁来说”时，用for + 人，通常放hard/easy后、to前。常见错误是用of + 人；这里评价难度通常用for。例：It is hard for beginners to remember them."
+        }
+      ],
+      "commonErrors": [
+        "Wrong: It is hard understand this rule.｜错因：to后缺少动词不定式标记。｜改法：It is hard to understand this rule.",
+        "Wrong: It is hard to understanding this rule.｜错因：to后要用动词原形，不用-ing。｜改法：It is hard to understand this rule.",
+        "Wrong: It is easy that learn English.｜错因：easy/hard后这里不接that从句来表示动作难易。｜改法：It is easy to learn English.",
+        "Wrong: I am hard to finish this work.｜错因：hard描述“人”会变成别的意思，这里应评价“做这件事”本身。｜改法：It is hard to finish this work.",
+        "Wrong: It is hard of me to answer.｜错因：表示“对某人来说难”通常用for，不用of。｜改法：It is hard for me to answer.",
+        "Wrong: It is hardly to see the screen.｜错因：hardly意为“几乎不”，不能替代hard。｜改法：It is hard to see the screen."
+      ],
+      "contrasts": [
+        {
+          "slug": "have-trouble-v-ing",
+          "title": "have trouble + -ing",
+          "note": "结构不同：have trouble后接动词-ing；it is hard to后接to + 动词原形。语气上，have trouble更像说“实际遇到困难”，更个人、更经历化；it is hard to更像一般判断。对比：I have trouble sleeping. / It is hard to sleep here."
+        },
+        {
+          "slug": "it-is-important-to",
+          "title": "it is important to / it is necessary to",
+          "note": "结构相似，都是It is + 形容词 + to...；但important/necessary是在说“重要、必要”，不是“难易”。场景上前者常用于建议、规则、正式写作；hard/easy用于能力、任务难度。对比：It is important to practice. / It is hard to practice every day."
+        },
+        {
+          "slug": "easy-for-vs-kind-of",
+          "title": "for + person vs of + person",
+          "note": "结构区别：It is hard/easy for + 人 + to...；而It is kind/smart of + 人 + to...。for强调“对谁来说难/易”，of评价人的性格或品质。不要混用。对比：It is hard for me to say no. / It is kind of you to help me."
+        },
+        {
+          "slug": "too-adj-to",
+          "title": "too...to...",
+          "note": "too + 形容词 + to...表示“太……而不能……”，结果更强、更消极；it is hard to只是说“难”，不一定做不到。场景上too...to更强调程度。对比：It is hard to read this. / It is too small to read."
+        },
+        {
+          "slug": "hard-vs-hardly",
+          "title": "hard vs hardly",
+          "note": "形式接近但意义完全不同：hard是“困难的/努力地”，hardly是“几乎不”。在本句型里只能用hard，不用hardly。最小对比：It is hard to hear. / I can hardly hear you."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "It is hard to learn a new language.",
+          "translation": "学习一门新语言是困难的。",
+          "note": "最基础、安全的核心句型。",
+          "scene": "学习与一般判断",
+          "isPrimary": true
+        },
+        {
+          "sentence": "It is easy for children to pick up new words.",
+          "translation": "对孩子来说，学会新单词很容易。",
+          "note": "展示for + 人的位置：easy后，to前。",
+          "scene": "教育讨论",
+          "isPrimary": false
+        },
+        {
+          "sentence": "For many students, it is hard to stay focused for a long time.",
+          "translation": "对许多学生来说，长时间保持专注很难。",
+          "note": "前面先放背景短语，主句仍用it is hard to。",
+          "scene": "说明情况",
+          "isPrimary": false
+        },
+        {
+          "sentence": "In modern life, it is easy to get information but hard to judge whether it is reliable.",
+          "translation": "在现代生活中，获取信息容易，但判断它是否可靠很难。",
+          "note": "适合写作中的对比表达。",
+          "scene": "议论文写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It is hard to say which plan is better.",
+          "translation": "很难说哪个计划更好。",
+          "note": "常见固定用法，后面可接间接问句。",
+          "scene": "讨论选择",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It is easy to make this mistake when you are tired.",
+          "translation": "你累的时候很容易犯这个错误。",
+          "note": "日常提醒中很自然。",
+          "scene": "生活交流",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "It is hard/easy to + 动词原形 + 其他.",
+          "slotHints": [
+            "先选hard或easy；to后放动作，如 learn English / find the answer。不要用-ing。"
+          ],
+          "exampleSentence": "It is easy to find this station.",
+          "exampleTranslation": "找到这个车站很容易。",
+          "position": 1
+        },
+        {
+          "label": "带对象模板",
+          "template": "It is hard/easy for + 人 + to + 动词原形 + 其他.",
+          "slotHints": [
+            "for后放对谁来说，如 for me / for beginners；不要换成of。"
+          ],
+          "exampleSentence": "It is hard for beginners to remember all these words.",
+          "exampleTranslation": "对初学者来说，记住所有这些单词很难。",
+          "position": 2
+        },
+        {
+          "label": "前置场景模板",
+          "template": "In/For + 场景, it is hard/easy to + 动词原形 + 其他.",
+          "slotHints": [
+            "前面先交代范围或场景，如 In daily life, For many people；逗号后接主句。"
+          ],
+          "exampleSentence": "In daily life, it is hard to avoid stress.",
+          "exampleTranslation": "在日常生活中，很难避免压力。",
+          "position": 3
+        },
+        {
+          "label": "写作对比模板",
+          "template": "It is easy to + A, but hard to + B.",
+          "slotHints": [
+            "A和B用两个可比较的动作，形成清楚对比。"
+          ],
+          "exampleSentence": "It is easy to copy information, but hard to understand it deeply.",
+          "exampleTranslation": "复制信息很容易，但深入理解它很难。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "it-is-common-for-to",
+      "title": "it is common for... to...",
+      "shortLabel": "general observation",
+      "pattern": "it is common for + noun + to + base",
+      "family": "functional_pattern",
+      "subtype": "general_observation_frame",
+      "anchor": "it is common for",
+      "coreExplanation": "It is common for + 名词/人群 + to do... 用来客观说明“某人或某类事物常常会做某事”。for 后面通常放人、群体或事物，to 后面接动词原形。整句常放在句首作总体判断，后面可接具体说明。",
+      "usageNote": "语气较中性偏书面，常见于说明文、分析、课堂写作、报告中，用来讲“普遍现象”而不是个人意见。日常聊天也能用，但会比 people often... 更正式。若只说一次、偶然情况，或你不确定真假，不宜用它。通常整句放句首，后面可加逗号再补充细节。初学者最安全的做法是先写 It is common for people/students/parents to...",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "generalizations",
+        "formal-writing",
+        "analysis",
+        "课堂写作",
+        "社会现象描述",
+        "学习习惯分析",
+        "图表作文",
+        "日常规律说明"
+      ],
+      "slotSchema": [
+        {
+          "key": "subjectGroup",
+          "label": "for后面的对象",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "放人、群体或事物，如 people, students, parents, children。不要直接放动词或完整句子。误：for study hard；正：for students to study hard."
+        },
+        {
+          "key": "action",
+          "label": "to后面的动作",
+          "type": "custom",
+          "required": true,
+          "hint": "用 to + 动词原形，如 to make mistakes, to feel tired。不要用动名词或三单。误：to making / to makes；正：to make."
+        },
+        {
+          "key": "context",
+          "label": "补充情境",
+          "type": "prepositional_phrase",
+          "required": false,
+          "hint": "可加时间、地点、条件等短语，如 in big cities, during exams。不要把它插进 for 和 to 中间。正：It is common for students to feel stressed during exams."
+        }
+      ],
+      "commonErrors": [
+        "误：It is common for students study late. 原因：to 不可省略，后面必须接动词原形。改：It is common for students to study late.",
+        "误：It is common for students to studying late. 原因：to 后不能接 -ing。改：It is common for students to study late.",
+        "误：It is common that students to study late. 原因：这个句型不用 common that... to...。改：It is common for students to study late. 或 It is common that students study late（但前者更常见、更自然）。",
+        "误：It is common for study late. 原因：for 后需要名词性对象，说明“谁/什么常这样”。改：It is common for students to study late.",
+        "误：Students are common to study late. 原因：common 不能这样直接描述“学生做某事”。改：It is common for students to study late.",
+        "误：In big cities, it is common for people often to eat out. 原因：often 与 common 都表示频率，容易重复且位置别扭。改：In big cities, it is common for people to eat out. 或 People in big cities often eat out."
+      ],
+      "contrasts": [
+        {
+          "slug": "people-often",
+          "title": "people often...",
+          "note": "结构上是主语 + often + 动词，更口语直接；it is common for... to... 是形式主语结构，更客观、更书面。日常聊天更常说 People often eat out.；写分析更自然：It is common for people to eat out in big cities."
+        },
+        {
+          "slug": "it-seems-that",
+          "title": "it seems that...",
+          "note": "结构上 seems 后接 that 从句；common for... to... 后接 for + 名词 + to do。语气上 seems 表示“看起来、推测”，common 表示“普遍现象”。对比：It seems that he is tired.（看起来）/ It is common for students to feel tired during finals.（普遍）"
+        },
+        {
+          "slug": "one-of-the-most",
+          "title": "one of the most ... is ...",
+          "note": "one of the most... 用来指出“最……之一”，强调突出项目；common for... to... 讲常见行为，不强调排名。对比：One of the most common problems is stress. / It is common for students to feel stressed."
+        },
+        {
+          "slug": "it-is-normal-for-to",
+          "title": "it is normal for... to...",
+          "note": "两者结构接近，都是 for + 名词 + to do；但 normal 更像“正常、合理”，带评价色彩，common 只说“常见”。对比：It is normal for babies to cry.（正常）/ It is common for tourists to take photos here.（常见）"
+        },
+        {
+          "slug": "according-to",
+          "title": "according to...",
+          "note": "according to + 来源，表示“根据……”；it is common for... to... 不需要信息来源，直接陈述一般规律。正式写作中若有依据，可连用：According to the survey, it is common for young people to shop online."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "It is common for students to make mistakes.",
+          "translation": "学生犯错是很常见的。",
+          "note": "最安全的基础句型：for 后放群体，to 后放动作。",
+          "scene": "课堂写作",
+          "isPrimary": true
+        },
+        {
+          "sentence": "In big cities, it is common for people to eat out.",
+          "translation": "在大城市里，人们在外面吃饭很常见。",
+          "note": "前面先放地点短语，是常见的变体位置。",
+          "scene": "日常规律说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It is common for consumers to compare prices before buying.",
+          "translation": "消费者在购买前比较价格是很常见的。",
+          "note": "较适合说明文、报告、图表作文。",
+          "scene": "图表作文",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It is common for new learners to feel nervous, but it is normal for them to improve slowly.",
+          "translation": "新学习者感到紧张很常见，但他们进步较慢也是正常的。",
+          "note": "这一句可帮助区分 common 与 normal。",
+          "scene": "学习习惯分析",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It is common for parents to worry about their children.",
+          "translation": "父母为孩子担心是很常见的。",
+          "note": "日常交流也能用，只是语气比口语稍正式。",
+          "scene": "日常规律说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "According to the report, it is common for young adults to change jobs in their twenties.",
+          "translation": "根据这份报告，二十多岁的年轻人换工作是很常见的。",
+          "note": "和 according to 连用时很自然，适合正式写作。",
+          "scene": "社会现象描述",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "基础安全模板",
+          "template": "It is common for [群体] to [动词原形].",
+          "slotHints": [
+            "[群体] 放 people/students/parents 等名词短语",
+            "[动词原形] 用 study, worry, make mistakes 等原形"
+          ],
+          "exampleSentence": "It is common for children to ask questions.",
+          "exampleTranslation": "孩子提问是很常见的。",
+          "position": 1
+        },
+        {
+          "label": "前置情境模板",
+          "template": "[时间/地点], it is common for [群体] to [动词原形].",
+          "slotHints": [
+            "前面放 in big cities, during exams, in winter 等情境",
+            "主句仍保持 for + 名词 + to + 动词原形"
+          ],
+          "exampleSentence": "During exams, it is common for students to feel stressed.",
+          "exampleTranslation": "考试期间，学生感到有压力是很常见的。",
+          "position": 1
+        },
+        {
+          "label": "写作说明模板",
+          "template": "According to [来源], it is common for [群体] to [动词原形].",
+          "slotHints": [
+            "[来源] 可用 the report, the survey, the data",
+            "适合说明文、议论文，不适合随便编造来源"
+          ],
+          "exampleSentence": "According to the survey, it is common for commuters to spend over an hour on the road.",
+          "exampleTranslation": "根据调查，通勤者在路上花一个多小时是很常见的。",
+          "position": 1
+        },
+        {
+          "label": "对比补充模板",
+          "template": "It is common for [群体] to [动词原形], especially [情境].",
+          "slotHints": [
+            "especially 后补充更具体的场景",
+            "不要把 especially 放到 for 和 to 中间"
+          ],
+          "exampleSentence": "It is common for office workers to skip breakfast, especially on busy weekdays.",
+          "exampleTranslation": "上班族不吃早餐很常见，尤其是在忙碌的工作日。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "one-of-the-most-is",
+      "title": "one of the most ... is ...",
+      "shortLabel": "ranking importance",
+      "pattern": "one of the most + adjective + nouns is...",
+      "family": "functional_pattern",
+      "subtype": "ranking_frame",
+      "anchor": "one of the most",
+      "coreExplanation": "这个结构用来把某个事物放进“最……的……之一”这个大类里，再指出它是什么或为什么重要，表示“它是其中非常突出的一个”。基本形式是 one of the most + 形容词 + 复数名词 + is + 名词/短语/that从句。它常放在句首作主语，后面接 is。",
+      "usageNote": "语气中性，常见于作文、介绍、演讲、说明重要原因或特点时，听起来比 very important 更有层次。适合写“教育、环境、健康、城市问题”等主题。不太适合随口聊天里反复使用，否则会显得书面、笨重。one 前面一般不加 the；most 后面要接形容词，名词必须用复数。整串通常在句首，后面直接接 is，不要随便拆开。初学者先安全套用“one of the most important + 复数名词 + is + 名词”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "importance",
+        "essay-writing",
+        "introductions",
+        "英语作文开头",
+        "说明重要原因",
+        "课堂演讲",
+        "话题介绍",
+        "写作观点展开"
+      ],
+      "slotSchema": [
+        {
+          "key": "adj",
+          "label": "形容词",
+          "type": "custom",
+          "required": true,
+          "hint": "放表示评价的形容词，如 important, serious, useful。常见错误是把副词放这里，如 very importance；应说 most important。例：most important"
+        },
+        {
+          "key": "pluralNoun",
+          "label": "复数名词",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "放可数复数名词，表示“大类”，如 problems, reasons, skills。常见错误是用单数，如 reason；应说 reasons。例：the most important reasons"
+        },
+        {
+          "key": "complement",
+          "label": "is后内容",
+          "type": "custom",
+          "required": true,
+          "hint": "可放名词短语、疑问词短语或 that 从句，如 is education / is how we use time / is that... 常见错误是 is 后只放动词原形。例：is communication"
+        }
+      ],
+      "commonErrors": [
+        "one of the most important reason is...：reason 用了单数。one of 后面通常接复数名词。应改为 one of the most important reasons is...",
+        "one of most important reasons is...：缺少 the。固定说法是 one of the most + 形容词 + 复数名词。应改为 one of the most important reasons is...",
+        "one of the most importantly reasons is...：important 误写成副词 importantly。most 后面这里要接形容词。应改为 one of the most important reasons is...",
+        "one of the most important reasons are...：主语中心是 one，所以谓语通常用单数 is，不用 are。应改为 one of the most important reasons is...",
+        "the one of the most important reasons is...：一般不用 the one of。若表示其中之一，直接说 one of the most...；若特指某一个，可重写整句。应改为 one of the most important reasons is...",
+        "one of the most important reasons is protect the environment：is 后面直接接动词原形不自然。应改为 is to protect the environment，或更自然地说 is environmental protection / is that we should protect the environment"
+      ],
+      "contrasts": [
+        {
+          "slug": "very-important",
+          "title": "very important vs one of the most...",
+          "note": "结构不同：very important 只是普通评价；one of the most + 复数名词 是“在一类中排名很高的一个”。语气上前者更口语，后者更适合作文和正式说明。对比：Exercise is very important. / Exercise is one of the most important habits."
+        },
+        {
+          "slug": "the-most",
+          "title": "the most ... vs one of the most ...",
+          "note": "结构不同：the most 表示“最……的那一个”；one of the most 表示“最……的一类中的一个”，语气更稳妥。场景上，前者更绝对，后者更适合避免说得太满。对比：This is the most important reason. / This is one of the most important reasons."
+        },
+        {
+          "slug": "what-matters-is",
+          "title": "what matters is...",
+          "note": "结构不同：what matters is + 内容，直接指出“关键在于什么”；one of the most ... is... 先建立一个类别，再举出其中一个重要项。前者更聚焦结论，后者更适合分类展开。对比：What matters is practice. / One of the most important skills is practice."
+        },
+        {
+          "slug": "it-is-common-for-to",
+          "title": "it is common for... to...",
+          "note": "结构不同：it is common for A to do B 说“某事常见”；one of the most ... is... 说“某项很重要/很突出”。语义和场景不同，不能互换。对比：It is common for students to feel stressed. / One of the most serious problems is stress."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "One of the most important reasons is education.",
+          "translation": "最重要的原因之一是教育。",
+          "note": "最安全的入门句型：is 后接名词。",
+          "scene": "英语作文开头",
+          "isPrimary": true
+        },
+        {
+          "sentence": "For many students, one of the most useful skills is time management.",
+          "translation": "对许多学生来说，最有用的技能之一是时间管理。",
+          "note": "前面可先加范围短语，核心结构仍保持完整。",
+          "scene": "课堂演讲",
+          "isPrimary": false
+        },
+        {
+          "sentence": "One of the most serious problems in modern cities is air pollution.",
+          "translation": "现代城市中最严重的问题之一是空气污染。",
+          "note": "常用于书面说明社会话题。",
+          "scene": "写作观点展开",
+          "isPrimary": false
+        },
+        {
+          "sentence": "One of the most important differences is how people use their free time.",
+          "translation": "最重要的差异之一是人们如何使用空闲时间。",
+          "note": "is 后也可以接疑问词引导的内容。",
+          "scene": "比较类作文",
+          "isPrimary": false
+        },
+        {
+          "sentence": "One of the most effective ways to stay healthy is regular exercise.",
+          "translation": "保持健康最有效的方法之一是规律运动。",
+          "note": "说明“方法”时很自然。",
+          "scene": "健康建议",
+          "isPrimary": false
+        },
+        {
+          "sentence": "One of the most enjoyable parts of travel is meeting new people.",
+          "translation": "旅行中最令人享受的部分之一是认识新朋友。",
+          "note": "日常主题也能用，但语气比口语稍书面。",
+          "scene": "日常表达",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "安全初学者模板",
+          "template": "One of the most [adj] [pluralNoun] is [complement].",
+          "slotHints": [
+            "[adj] 放 important/useful/common 等评价词",
+            "[pluralNoun] 用复数名词，如 reasons/problems/skills",
+            "[complement] 先放名词最安全，如 education/time management"
+          ],
+          "exampleSentence": "One of the most important reasons is communication.",
+          "exampleTranslation": "最重要的原因之一是沟通。",
+          "position": 1
+        },
+        {
+          "label": "带范围的模板",
+          "template": "For [group], one of the most [adj] [pluralNoun] is [complement].",
+          "slotHints": [
+            "[group] 放人群，如 students/parents",
+            "后面核心结构不要改，仍然用 is",
+            "适合先说明“对谁来说”"
+          ],
+          "exampleSentence": "For teenagers, one of the most important skills is self-control.",
+          "exampleTranslation": "对青少年来说，最重要的技能之一是自控力。",
+          "position": 1
+        },
+        {
+          "label": "写作用模板",
+          "template": "One of the most [adj] [pluralNoun] in [topic] is [complement].",
+          "slotHints": [
+            "[topic] 放范围，如 modern life/city life/education",
+            "适合社会、教育、环境类作文",
+            "注意 in 后是范围，不是完整句子"
+          ],
+          "exampleSentence": "One of the most serious problems in city life is noise pollution.",
+          "exampleTranslation": "城市生活中最严重的问题之一是噪音污染。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "the-best-way-to",
+      "title": "the best way to... is to...",
+      "shortLabel": "Best way to",
+      "pattern": "the best way to + goal + is to + action",
+      "family": "functional_pattern",
+      "subtype": "solution_frame",
+      "anchor": "the best way to",
+      "coreExplanation": "这个结构用来直接提出“实现某个目标的最佳方法”。基本形式是the best way to+目标+is to+动作；前半部分写想达到的事，后半部分写具体做法。整句常放在句首作主句，也常用于回答“怎么做最好”这类问题。",
+      "usageNote": "语气直接、清楚，属neutral，口语和写作都很常用，尤其适合给建议、说明步骤、写议论文观点。它强调“最佳方法”，所以适合谈一般做法或经验，不太适合绝对化、无法证明的场景。通常整句完整出现；若放句中，前后结构也要完整。初学者最安全的做法是两边都用to do，不要一边用名词一边随意换时态。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "advice",
+        "problem-solving",
+        "essay-writing",
+        "给建议",
+        "解决问题",
+        "学习方法",
+        "议论文写作",
+        "日常表达"
+      ],
+      "slotSchema": [
+        {
+          "key": "goal",
+          "label": "目标",
+          "type": "custom",
+          "required": true,
+          "hint": "这里放想实现的事，最常见是to+动词，如to learn English。不要只放裸动词learn English。例：to stay healthy"
+        },
+        {
+          "key": "action",
+          "label": "做法",
+          "type": "to_infinitive",
+          "required": true,
+          "hint": "这里放具体行动，用to+动词，如to exercise every day。不要写成exercising every day。例：to ask your teacher for help"
+        },
+        {
+          "key": "modifier",
+          "label": "补充信息",
+          "type": "prepositional_phrase",
+          "required": false,
+          "hint": "可在action后加方式、时间、对象等，如in class, every day。不要插在the best way和to之间。例：to practice with friends every day"
+        }
+      ],
+      "commonErrors": [
+        "Wrong: The best way improve English is to read more.｜错因：way后面通常要接to do表示目标。｜改法：The best way to improve English is to read more.",
+        "Wrong: The best way to improve English is reading more.｜错因：这张卡的基础安全格式是is to do，前后更整齐自然。｜改法：The best way to improve English is to read more.",
+        "Wrong: The best way for improve English is to read more.｜错因：for不能直接代替这里的to。｜改法：The best way to improve English is to read more.",
+        "Wrong: The best way to improving English is to read more.｜错因：to后应接动词原形，不接V-ing。｜改法：The best way to improve English is to read more.",
+        "Wrong: The best way to improve English is read more.｜错因：be动词后少了to，不符合本卡固定框架。｜改法：The best way to improve English is to read more.",
+        "Wrong: The best way to improve English, is to read more.｜错因：主语和be动词之间一般不要随便加逗号。｜改法：The best way to improve English is to read more."
+      ],
+      "contrasts": [
+        {
+          "slug": "important-to",
+          "title": "it is important to...",
+          "note": "结构不同：It is important to+动作，只说“重要”；本结构是The best way to+目标+is to+做法，强调“最佳方法”。语气上前者较泛，后者更像给方案。对比：It is important to practice. / The best way to improve is to practice daily."
+        },
+        {
+          "slug": "necessary-to",
+          "title": "it is necessary to...",
+          "note": "结构上necessary to表示“有必要做”，不直接回答“怎么做最好”；best way...is to...明确给出方法。场景上前者常见于规则、要求，后者常见于建议。对比：It is necessary to sleep enough. / The best way to feel better is to sleep enough."
+        },
+        {
+          "slug": "what-matters-is",
+          "title": "what matters is...",
+          "note": "结构上What matters is+内容，强调关键点；The best way to... is to...强调实现目标的手段。语气上前者更抽象，后者更操作性。对比：What matters is consistency. / The best way to improve is to practice every day."
+        },
+        {
+          "slug": "how-to-question",
+          "title": "How can I...?",
+          "note": "How can I...?是提问；The best way to... is to...是回答或建议。场景上前者用于求助，后者用于给方案。最小对比：How can I save money? / The best way to save money is to make a budget."
+        },
+        {
+          "slug": "good-way-to",
+          "title": "a good way to...",
+          "note": "结构相近，但a good way to...只是“一个不错的方法”，语气更保守；the best way to...更强，表示最推荐。若你不确定是否真是“最佳”，可用a good way更自然。对比：A good way to relax is to walk. / The best way to relax is to walk alone."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The best way to learn English is to practice every day.",
+          "translation": "学英语最好的方法是每天练习。",
+          "note": "最核心、最安全的基础句型。",
+          "scene": "学习建议",
+          "isPrimary": true
+        },
+        {
+          "sentence": "For beginners, the best way to remember new words is to use them in sentences.",
+          "translation": "对初学者来说，记住生词的最好方法是在句子里使用它们。",
+          "note": "前面可加短语说明对象，主结构不变。",
+          "scene": "课堂说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The best way to reduce traffic in big cities is to improve public transportation.",
+          "translation": "减少大城市交通拥堵的最佳方法是改善公共交通。",
+          "note": "较适合说明文、议论文写作。",
+          "scene": "正式写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The best way to stay healthy is to exercise regularly, not to skip meals.",
+          "translation": "保持健康的最好方法是规律锻炼，而不是不吃饭。",
+          "note": "和其他做法比较时很自然。",
+          "scene": "健康建议",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The best way to solve this problem is to talk to your teacher first.",
+          "translation": "解决这个问题最好的办法是先和你的老师谈谈。",
+          "note": "日常给建议很常用。",
+          "scene": "求助回应",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The best way to save money is to cook at home more often.",
+          "translation": "省钱最好的方法是更常在家做饭。",
+          "note": "生活场景中的自然表达。",
+          "scene": "日常生活",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全基础模板",
+          "template": "The best way to [goal] is to [action].",
+          "slotHints": [
+            "[goal]放想实现的目标，用to+动词，如 to improve pronunciation",
+            "[action]放具体做法，用to+动词，如 to listen and repeat every day"
+          ],
+          "exampleSentence": "The best way to improve pronunciation is to listen and repeat every day.",
+          "exampleTranslation": "提高发音最好的方法是每天听并跟读。",
+          "position": 1
+        },
+        {
+          "label": "带对象/范围的模板",
+          "template": "For [person/group], the best way to [goal] is to [action].",
+          "slotHints": [
+            "[person/group]放适用对象，如 beginners, students, busy workers",
+            "[goal]仍然用to+动词；[action]写最推荐的做法"
+          ],
+          "exampleSentence": "For busy students, the best way to manage time is to make a weekly plan.",
+          "exampleTranslation": "对忙碌的学生来说，管理时间最好的方法是做一个每周计划。",
+          "position": 1
+        },
+        {
+          "label": "写作用模板",
+          "template": "The best way to [solve/achieve/reduce] [issue] is to [action].",
+          "slotHints": [
+            "[solve/achieve/reduce]选和议题搭配的动词，如 solve a problem, reduce waste",
+            "[issue]放问题或目标；[action]写政策、措施或步骤"
+          ],
+          "exampleSentence": "The best way to reduce waste is to reuse things whenever possible.",
+          "exampleTranslation": "减少浪费的最佳方法是在可能的时候重复使用物品。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "what-matters-is",
+      "title": "what matters is...",
+      "shortLabel": "focus on the key point",
+      "pattern": "what matters is + noun / clause",
+      "family": "functional_pattern",
+      "subtype": "focus_frame",
+      "anchor": "what matters",
+      "coreExplanation": "what matters is... 用来把注意力拉到“最重要的事”上，意思接近“关键是……”。固定框架通常是 What matters is + 名词短语/that从句/to do。它常放在句首先立主题，也可放在较长句后半部分作总结。",
+      "usageNote": "语气多为中性，也常见于讨论、劝说、说明理由和英语写作中，能帮助你从细节转向重点。适合表达原则、判断标准、真正重要的因素；不适合只是在随便聊天时连续反复使用，否则会显得太用力。what matters 后面先接 is，再接内容；若放句首，后面通常直接继续，不必加逗号。初学者最安全的做法是先用 What matters is + 名词短语。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "focus",
+        "arguments",
+        "essay-writing",
+        "课堂讨论重点",
+        "写作文收束观点",
+        "劝别人看关键点",
+        "比较两个选择",
+        "工作沟通定标准"
+      ],
+      "slotSchema": [
+        {
+          "key": "focus_content",
+          "label": "核心内容",
+          "type": "custom",
+          "required": true,
+          "hint": "这里放真正重要的内容：可用名词短语、that从句或to do。常错：直接放完整独立句却不加that。例：What matters is honesty. / What matters is that we try."
+        },
+        {
+          "key": "subject_topic",
+          "label": "讨论对象",
+          "type": "noun_phrase",
+          "required": false,
+          "hint": "可在前句先交代讨论对象，再用本结构点出重点。常错：把对象硬塞进 what matters 后面造成句子过长。例：In interviews, what matters is preparation."
+        },
+        {
+          "key": "action_goal",
+          "label": "要做的事",
+          "type": "to_infinitive",
+          "required": false,
+          "hint": "若重点是行动，可用 to do。常错：误用 doing 在这里当主要补语。例：What matters is to stay calm."
+        }
+      ],
+      "commonErrors": [
+        "What matters that we try.｜错因：what matters 后面必须先有系动词 is。｜改法：What matters is that we try.",
+        "What matter is honesty.｜错因：matter 在这里主语是 what，谓语要用第三人称单数 matters。｜改法：What matters is honesty.",
+        "What matters is we try.｜错因：口语里偶尔能听到，但初学者这样写不稳妥，正式写作尤其不推荐。｜改法：What matters is that we try.",
+        "What matters are honesty.｜错因：固定框架通常用单数 is，别被后面的名词迷惑。｜改法：What matters is honesty.",
+        "What matters is not money, but being happy is.｜错因：后半句重复 is，结构不平行。｜改法：What matters is not money but happiness. / What matters is being happy, not money.",
+        "In my opinion what matters, is trust.｜错因：what matters 和 is 之间不要随便断开加逗号。｜改法：In my opinion, what matters is trust."
+      ],
+      "contrasts": [
+        {
+          "slug": "the-fact-is-that",
+          "title": "the fact is that...",
+          "note": "结构上 the fact is that + 从句；what matters is + 重点内容。前者是“事实是”，强调真实情况；后者是“关键是”，强调重要性。比较：The fact is that we are late.（事实）/ What matters is that we arrive safely.（重点）"
+        },
+        {
+          "slug": "the-best-way-is-to",
+          "title": "the best way to... is to...",
+          "note": "结构上 the best way to X is to Y 更具体，谈“最佳方法”；what matters is 更宽，可谈原则、标准、价值。语气上前者像给方案，后者像拉回重点。比较：The best way to learn is to practice. / What matters is regular practice."
+        },
+        {
+          "slug": "i-think-that",
+          "title": "I think that...",
+          "note": "结构上 I think (that) + 观点；what matters is + 重点。前者明确是“我的看法”，语气更主观；后者更像总结或定标准，常用于讨论和写作。比较：I think this plan is fine. / What matters is whether it works."
+        },
+        {
+          "slug": "in-my-opinion",
+          "title": "in my opinion...",
+          "note": "结构上 In my opinion, + 句子；what matters is + 名词/从句/to do。前者是加一个“依我看”的立场标记，后者是把焦点放在关键点上。可连用但功能不同：In my opinion, what matters is trust."
+        },
+        {
+          "slug": "what matters most is",
+          "title": "what matters most is...",
+          "note": "结构上只多了 most，语义更强，表示“最重要的是”。语气上比 what matters is 更强调排序。若只是指出关键点，用普通形式更自然。比较：What matters is honesty. / What matters most is honesty."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "What matters is honesty.",
+          "translation": "重要的是诚实。",
+          "note": "最安全的基础句型：is 后面接名词短语。",
+          "scene": "价值判断",
+          "isPrimary": true
+        },
+        {
+          "sentence": "In group work, what matters is that everyone understands the goal.",
+          "translation": "在小组合作中，重要的是每个人都明白目标。",
+          "note": "前面先交代场景，再用本结构点重点。",
+          "scene": "课堂讨论",
+          "isPrimary": false
+        },
+        {
+          "sentence": "What matters is to keep the argument clear and consistent.",
+          "translation": "重要的是让论证保持清楚且一致。",
+          "note": "写作中可用 to do 强调行动目标。",
+          "scene": "论文写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The fact is that the task is difficult, but what matters is whether we can finish it on time.",
+          "translation": "事实是这个任务很难，但关键是我们能否按时完成。",
+          "note": "和 the fact is that 对比：前者讲事实，后者讲关键点。",
+          "scene": "工作沟通",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Don’t worry too much about the price—what matters is quality.",
+          "translation": "别太担心价格——关键是质量。",
+          "note": "很自然的日常提醒用法。",
+          "scene": "购物建议",
+          "isPrimary": false
+        },
+        {
+          "sentence": "When choosing a roommate, what matters most is trust, not shared hobbies.",
+          "translation": "选室友时，最重要的是信任，而不是共同爱好。",
+          "note": "展示与 what matters most is 的细微强弱区别。",
+          "scene": "生活选择",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "安全基础模板",
+          "template": "What matters is + [核心名词短语].",
+          "slotHints": [
+            "这里放最重要的事，如 honesty, trust, quality。避免放完整句子。"
+          ],
+          "exampleSentence": "What matters is clear communication.",
+          "exampleTranslation": "重要的是清晰的沟通。",
+          "position": 1
+        },
+        {
+          "label": "从句模板",
+          "template": "What matters is that + [完整句子].",
+          "slotHints": [
+            "这里放一个完整意思，如 we keep trying。不要省略 that。"
+          ],
+          "exampleSentence": "What matters is that we keep trying.",
+          "exampleTranslation": "重要的是我们继续努力。",
+          "position": 2
+        },
+        {
+          "label": "场景前置模板",
+          "template": "In/When + [场景], what matters is + [重点].",
+          "slotHints": [
+            "前半部分写场景，如 in class, when traveling；后半部分写关键因素。"
+          ],
+          "exampleSentence": "When traveling, what matters is safety.",
+          "exampleTranslation": "旅行时，重要的是安全。",
+          "position": 3
+        },
+        {
+          "label": "写作导向模板",
+          "template": "What matters is to + [动词原形] + ...",
+          "slotHints": [
+            "用于强调该做什么，如 to stay calm, to present evidence clearly。"
+          ],
+          "exampleSentence": "What matters is to present your ideas clearly.",
+          "exampleTranslation": "重要的是清楚地表达你的想法。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "one-reason-is-that-another-reason-is-that",
+      "title": "one reason is that... another reason is that...",
+      "shortLabel": "listing reasons clearly",
+      "pattern": "one reason is that... another reason is that...",
+      "family": "functional_pattern",
+      "subtype": "organized_reason_frame",
+      "anchor": "one reason is that",
+      "coreExplanation": "这个结构用来把多个理由分条说清楚，常见形式是“One reason is that + 完整句子. Another reason is that + 完整句子.”。that后面通常接完整陈述句，不接单个名词。它常放在句首或某个观点句之后，特别适合写作中有条理地说明原因。",
+      "usageNote": "语气中性，偏书面，但口语中慢慢解释理由时也能用。适合英语作文、邮件、回答“Why...?”、做简短陈述。不太适合特别随意的闲聊，也不适合只说一个理由时机械地硬套两段。通常每个reason后单独成句，句号最安全；也可先说结论，再接这个框架。初学者记住最稳妥做法：reason后面用is that，that后面写完整主谓句。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "reasons",
+        "essay-writing",
+        "organization",
+        "英语作文列理由",
+        "回答why问题",
+        "邮件说明原因",
+        "课堂口头陈述",
+        "组织段落结构"
+      ],
+      "slotSchema": [
+        {
+          "key": "reason1_clause",
+          "label": "第一个理由内容",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里放完整陈述句，要有主语和谓语。常见错误是只放名词或短语，如“the price”；应改成“the price is low”。例：it saves time"
+        },
+        {
+          "key": "reason2_clause",
+          "label": "第二个理由内容",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "也放完整陈述句，最好和前一句并列、信息独立。常见错误是和前句重复或只写形容词，如“convenient”；应改成“it is convenient for students”。例：it is easy to use"
+        },
+        {
+          "key": "opening_claim",
+          "label": "前置观点（可选）",
+          "type": "statement_clause",
+          "required": false,
+          "hint": "可以先写你的观点，再列理由。常见错误是观点太长导致结构松散；建议一句话后接理由。例：I prefer studying at home"
+        }
+      ],
+      "commonErrors": [
+        "One reason is because it is cheap. → 错在把is that结构和because混在一起了。改成One reason is that it is cheap. 或 One reason is because it is cheap. 但本卡安全写法用is that。",
+        "One reason is that low price. → 错在that后面不是完整句子，只有名词短语。改成One reason is that the price is low.",
+        "Another reason that it is convenient. → 错在少了be动词，固定框架应是Another reason is that...。改成Another reason is that it is convenient.",
+        "One reason is that it is cheap, another reason is that convenient. → 错在第二个that后仍缺完整句子。改成..., another reason is that it is convenient. 初学者更安全：分成两个句子。",
+        "The reason is that it is cheap. Another reason is that it is convenient. → 不算绝对错误，但前后框架不平行，列举感较弱。若要明确列两点，改成One reason is that... Another reason is that...",
+        "One reason is that it saves time. The another reason is that it is fun. → 错在another前一般不用the。改成Another reason is that it is fun."
+      ],
+      "contrasts": [
+        {
+          "slug": "for-one-thing-for-another",
+          "title": "for one thing..., for another...",
+          "note": "结构上常是“For one thing, 句子; for another, 句子.”，不需要is that。语气更自然、更口语一点；“one reason is that...”更明白、更像写作框架。对比：One reason is that it is cheap. / For one thing, it is cheap."
+        },
+        {
+          "slug": "the-reason-is-that",
+          "title": "the reason is that...",
+          "note": "结构上“The reason is that...”通常回答单一原因；“One reason is that...”是在多个原因中列出其中一个。语气上前者更像定义真正原因，后者更像条理列点。对比：The reason is that I was sick. / One reason is that I was sick."
+        },
+        {
+          "slug": "because",
+          "title": "because...",
+          "note": "结构上because直接引导原因从句，常跟在主句后；“one reason is that...”是先搭框架再给原因。because更口语、更直接；本结构更适合组织段落。对比：I stayed home because it rained. / One reason I stayed home is that it rained."
+        },
+        {
+          "slug": "first-second",
+          "title": "first..., second...",
+          "note": "结构上first/second是顺序标记，不一定表示“理由”；“one reason... another reason...”明确表示原因。语气上first/second更像列点提纲，后者更解释性。对比：First, it is cheap. Second, it is safe. / One reason is that it is cheap. Another reason is that it is safe."
+        },
+        {
+          "slug": "one-reason-for-noun-is-that",
+          "title": "One reason for + 名词 is that...",
+          "note": "结构上可说“One reason for this choice is that...”，中间多了for + 名词；本卡核心结构更短。前者更正式、书面，适合作文；后者更基础、好上手。对比：One reason for my decision is that it saves money. / One reason is that it saves money."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "One reason is that it is cheap. Another reason is that it is easy to use.",
+          "translation": "一个原因是它很便宜。另一个原因是它很容易使用。",
+          "note": "最基础的双理由模板，两个that后都是完整句子。",
+          "scene": "基础写作",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I like online classes. One reason is that they save time. Another reason is that I can study at home.",
+          "translation": "我喜欢网课。一个原因是它们能节省时间。另一个原因是我可以在家学习。",
+          "note": "先给观点，再接理由框架，很常见。",
+          "scene": "回答观点题",
+          "isPrimary": false
+        },
+        {
+          "sentence": "One reason is that public transport reduces traffic. Another reason is that it is better for the environment.",
+          "translation": "一个原因是公共交通能减少交通拥堵。另一个原因是它对环境更好。",
+          "note": "偏写作、说明文风格。",
+          "scene": "作文",
+          "isPrimary": false
+        },
+        {
+          "sentence": "One reason is that the apartment is cheaper. Another reason is that it is closer to my office.",
+          "translation": "一个原因是这套公寓更便宜。另一个原因是它离我的办公室更近。",
+          "note": "展示比较级内容；that后仍然是完整句子。",
+          "scene": "比较选择",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I want to join the club. One reason is that I can make new friends. Another reason is that the activities look fun.",
+          "translation": "我想加入这个社团。一个原因是我能认识新朋友。另一个原因是这些活动看起来很有趣。",
+          "note": "日常校园场景很自然。",
+          "scene": "校园生活",
+          "isPrimary": false
+        },
+        {
+          "sentence": "One reason is that the report was finished late. Another reason is that some data were missing.",
+          "translation": "一个原因是报告完成得晚。另一个原因是一些数据缺失了。",
+          "note": "较书面，适合解释问题原因。",
+          "scene": "工作邮件/说明",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "One reason is that {reason1_clause}. Another reason is that {reason2_clause}.",
+          "slotHints": [
+            "两个空格都填完整句子，不要只填名词或形容词。"
+          ],
+          "exampleSentence": "One reason is that the course is useful. Another reason is that the teacher explains clearly.",
+          "exampleTranslation": "一个原因是这门课很有用。另一个原因是老师讲解得很清楚。",
+          "position": 1
+        },
+        {
+          "label": "先观点后理由模板",
+          "template": "{opening_claim}. One reason is that {reason1_clause}. Another reason is that {reason2_clause}.",
+          "slotHints": [
+            "第一句先写你的立场或选择，后面两句分别给理由。"
+          ],
+          "exampleSentence": "I prefer city life. One reason is that it is more convenient. Another reason is that there are more job opportunities.",
+          "exampleTranslation": "我更喜欢城市生活。一个原因是它更方便。另一个原因是那里有更多工作机会。",
+          "position": 2
+        },
+        {
+          "label": "写作用更完整模板",
+          "template": "One reason for this {fixed_chunk} is that {reason1_clause}. Another reason is that {reason2_clause}.",
+          "slotHints": [
+            "{fixed_chunk}可用change/decision/problem/choice等名词，让句子更像作文。"
+          ],
+          "exampleSentence": "One reason for this decision is that it will save money. Another reason is that it will reduce stress.",
+          "exampleTranslation": "这个决定的一个原因是它会省钱。另一个原因是它会减轻压力。",
+          "position": 3
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "for-this-reason",
+      "title": "for this reason, ...",
+      "shortLabel": "for this reason",
+      "pattern": "for this reason, statement",
+      "family": "functional_pattern",
+      "subtype": "logical_link_frame",
+      "anchor": "for this reason",
+      "coreExplanation": "for this reason 用来把前面已经说明的原因、事实或分析，连接到后面的结论、判断或做法，意思接近“因此、基于这个原因”。后面通常直接接完整陈述句，常放在句首并加逗号，也可放句中承接上文。",
+      "usageNote": "这个表达语气偏正式但仍很清楚，最自然的场景是作文、报告、说明理由、课堂发言和较完整的书面表达。不太适合非常随意的聊天；口语里更常说 so 或 that’s why。它通常放在新句开头，后面常接逗号；不要单独放句尾。初学者最安全的做法是：先写原因句，再另起一句用 For this reason, + 结论。",
+      "usageRegister": "formal",
+      "sceneTags": [
+        "logic",
+        "essay-writing",
+        "conclusion",
+        "英语作文结论句",
+        "说明决定的理由",
+        "课堂展示总结",
+        "邮件里正式解释",
+        "把原因接到结果"
+      ],
+      "slotSchema": [
+        {
+          "key": "reason_link",
+          "label": "固定连接语",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "固定写 for this reason。常见错误是漏掉 this 或写成 for this reasons。例：For this reason, we changed the plan."
+        },
+        {
+          "key": "result_clause",
+          "label": "结论或结果句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里放完整陈述句，要有主语和谓语。常见错误是后面只接名词短语。例：For this reason, the school changed the rule."
+        }
+      ],
+      "commonErrors": [
+        "For this reason, because the road was closed.｜错在后面不是完整结论句，而是 another reason 从句。应改为 For this reason, we took another road. 或 Because the road was closed, we took another road.",
+        "For this reasons, we stayed home.｜错在固定搭配，reason 要单数。应改为 For this reason, we stayed home.",
+        "We stayed home for this reason the storm was coming.｜错在把它放句中却不做停顿，后面结构也不完整。应改为 We stayed home. For this reason, we canceled the trip. 或 We stayed home because a storm was coming.",
+        "For this reason, to save money.｜错在后面只接不定式短语，不是完整陈述句。应改为 For this reason, we decided to save money.",
+        "For this reason, so we left early.｜错在重复表达结果，for this reason 和 so 不要叠加。应改为 For this reason, we left early.",
+        "I was tired. For this reason because I slept late, I missed class.｜错在一个位置里同时塞入 for this reason 和 because 从句，结构混乱。应改为 I slept late. For this reason, I missed class. 或 Because I slept late, I missed class."
+      ],
+      "contrasts": [
+        {
+          "slug": "as-a-result",
+          "title": "for this reason vs. as a result",
+          "note": "结构上两者都常放句首接完整句，但 for this reason 更强调“基于前述理由作出判断”，as a result 更强调“实际结果”。语气上前者更像论证，后者更像结果报告。对比：The evidence was weak. For this reason, we waited. / It rained all night. As a result, the game was canceled."
+        },
+        {
+          "slug": "therefore",
+          "title": "for this reason vs. therefore",
+          "note": "结构上 therefore 更灵活，可放句首、句中；for this reason 多放句首。语气上 therefore 更书面、更压缩；for this reason 更清楚，适合学习者写作。对比：The cost is high; therefore, we must cut spending. / The cost is high. For this reason, we must cut spending."
+        },
+        {
+          "slug": "so",
+          "title": "for this reason vs. so",
+          "note": "结构上 so 常直接连接口语中的因果句，for this reason 通常另起一句。语气上 so 很口语，for this reason 更正式。对比：I was tired, so I went home. / I was very tired. For this reason, I went home early."
+        },
+        {
+          "slug": "that-s-why",
+          "title": "for this reason vs. that's why",
+          "note": "结构上 that’s why 后面常接结果句或省略已知部分；for this reason 后面直接接完整陈述句。语气上 that’s why 更口语、更对话化。对比：I missed the bus. That’s why I was late. / I missed the bus. For this reason, I was late for class."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The road was icy. For this reason, the school canceled classes.",
+          "translation": "路面结冰了。因此，学校取消了课程。",
+          "note": "最安全的基础用法：前一句给原因，后一句给结果。",
+          "scene": "学校通知",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Many students lacked internet access. The plan was, for this reason, delayed by a week.",
+          "translation": "很多学生缺少网络条件。这个计划因此被推迟了一周。",
+          "note": "句中位置可以用，但比句首更书面，初学者不必优先模仿。",
+          "scene": "正式汇报",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The sample size was too small; for this reason, the findings should be treated with caution.",
+          "translation": "样本量太小；因此，这些发现应谨慎看待。",
+          "note": "学术或说明文里很自然。",
+          "scene": "论文写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The train was delayed. As a result, we arrived late. For this reason, we should leave earlier next time.",
+          "translation": "火车晚点了。结果我们到晚了。因此，下次我们应该更早出发。",
+          "note": "先用 as a result 说事实结果，再用 for this reason 引出建议，能看出两者差别。",
+          "scene": "比较表达",
+          "isPrimary": false
+        },
+        {
+          "sentence": "My laptop keeps shutting down. For this reason, I need to back up my files today.",
+          "translation": "我的笔记本电脑老是自动关机。因此，我今天得备份文件。",
+          "note": "日常生活中也能用，但语气比 so 正式。",
+          "scene": "日常决定",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The instructions were unclear. For this reason, several users made the same mistake.",
+          "translation": "说明不清楚。因此，几个用户犯了同样的错误。",
+          "note": "适合解释某个问题为什么发生。",
+          "scene": "问题分析",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "安全初学者模板",
+          "template": "[原因句]. For this reason, [结论句].",
+          "slotHints": [
+            "先用完整句说明原因或事实。",
+            "后面写完整结果、判断或决定，不要只写短语。"
+          ],
+          "exampleSentence": "The price is too high. For this reason, we will look for another supplier.",
+          "exampleTranslation": "价格太高了。因此，我们将寻找另一家供应商。",
+          "position": 1
+        },
+        {
+          "label": "句中书面模板",
+          "template": "[原因句]. [结论句], for this reason, [补充说明].",
+          "slotHints": [
+            "前半句先给出主要结论。",
+            "for this reason 后面补充进一步结果或限制，整体较书面。"
+          ],
+          "exampleSentence": "The system is unstable. We should, for this reason, delay the launch.",
+          "exampleTranslation": "系统不稳定。因此，我们应该推迟上线。",
+          "position": 2
+        },
+        {
+          "label": "写作用模板",
+          "template": "[分析/事实]. For this reason, [建议/判断/结论].",
+          "slotHints": [
+            "前面适合放观察、数据、分析。",
+            "后面适合放 should, need to, must, it is important to 等结论表达。"
+          ],
+          "exampleSentence": "The evidence is still limited. For this reason, more research is needed.",
+          "exampleTranslation": "现有证据仍然有限。因此，还需要更多研究。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "this-shows-that-this-means-that",
+      "title": "this shows that... / this means that...",
+      "shortLabel": "show/mean + that",
+      "pattern": "this shows that... / this means that...",
+      "family": "functional_pattern",
+      "subtype": "interpretation_frame",
+      "anchor": "this shows that",
+      "coreExplanation": "this shows that... / this means that... 用来把前面的事实、数据、例子或结果“解释成一个结论”。that 后面必须接完整句子，不能只接名词。它常放在一句话后面单独起新句，也常放在分号、句号后，用来做分析或总结。",
+      "usageNote": "语气中性偏书面，最自然的场景是分析图表、解释结果、写作文、课堂回答或做逻辑说明。日常口语也能用，但连续多次使用会显得像报告。它不适合用来表达纯个人喜好；那时更自然的是 I think...。通常 this 指前一句或前面整件事，所以先给事实，再写 this shows/means that...。初学者最安全做法：前句写事实，后句写 This shows that + 完整结论。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "analysis",
+        "interpretation",
+        "essay-writing",
+        "图表分析",
+        "考试写作",
+        "解释实验结果",
+        "课堂讨论",
+        "根据例子下结论"
+      ],
+      "slotSchema": [
+        {
+          "key": "evidence",
+          "label": "前文事实/证据",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里先放具体事实、数据、例子或结果。常见错误是前文太空泛，如 only 'It is good.'。更好：Sales increased by 20%."
+        },
+        {
+          "key": "frame",
+          "label": "解释框架",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "固定用 this shows that 或 this means that。常见错误是漏掉 that 后面完整句子，或把 this 换成空指代。例：This shows that..."
+        },
+        {
+          "key": "conclusion",
+          "label": "结论句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "that 后面放完整判断句，要有主语和谓语。常见错误是只放名词短语，如 that the reason。正确：that the plan is working."
+        }
+      ],
+      "commonErrors": [
+        "✘ This shows the plan is useful.｜问题：少了 that，在初级写作里结构不稳。｜修改：This shows that the plan is useful.",
+        "✘ This means that a big problem.｜问题：that 后面不能只接名词短语。｜修改：This means that there is a big problem.",
+        "✘ People studied harder. This shows that.｜问题：that 后面缺少完整内容。｜修改：People studied harder. This shows that the new rule had an effect.",
+        "✘ This show that students need help.｜问题：主语是 this，动词要用 shows。｜修改：This shows that students need help.",
+        "✘ This means when prices rise.｜问题：means 后面应接 that 从句表达结论，不是残缺的时间从句。｜修改：This means that prices are rising.",
+        "✘ I like this movie. This shows that it is good.｜问题：把个人喜好硬说成客观证明，不自然。｜修改：I like this movie. I think it is good. / The high ratings show that it is popular."
+      ],
+      "contrasts": [
+        {
+          "slug": "the-fact-is-that",
+          "title": "the fact is that...",
+          "note": "结构上是 The fact is that + 事实，本身直接陈述“真实情况”；this shows that 是从前文证据推出结论。语气上前者更像澄清或强调真相，后者更像分析。对比：The fact is that we are late. / The traffic was heavy. This shows that we left too late."
+        },
+        {
+          "slug": "it-seems-that",
+          "title": "it seems that... / it appears that...",
+          "note": "结构上都是 it + seems/appears + that，但它们表示“看起来”，不强调证据证明；this shows that 更像根据事实得出较明确结论。语气上 seems 更保留、更委婉。对比：It seems that he is tired. / He yawned several times. This shows that he is tired."
+        },
+        {
+          "slug": "i-think-that",
+          "title": "I think (that)...",
+          "note": "结构上 I think (that) + 观点，来源是说话者；this shows that + 结论，来源是前文证据。语气上 I think 更主观、口语化；this shows that 更客观、写作化。对比：I think the plan will work. / The test results are better. This shows that the plan will work."
+        },
+        {
+          "slug": "according-to",
+          "title": "according to...",
+          "note": "according to + 来源/依据，如 according to the report，不直接下结论；this shows that 则把依据解释成结论。场景上 according to 常先标来源，this shows that 常后接分析。对比：According to the report, sales fell. / This shows that demand is weaker."
+        },
+        {
+          "slug": "this-means-that-vs-this-shows-that",
+          "title": "this means that vs this shows that",
+          "note": "两者都接 that 从句。this shows that 更像“这表明/显示”，强调证据指向；this means that 更像“这意味着”，强调结果或含义。写作里 shows 常配数据和现象，means 常配后果。对比：The score dropped. This shows that students struggled. / This means that extra support is needed."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The number of errors fell by half. This shows that the new system is working.",
+          "translation": "错误数量减少了一半。这表明新系统正在起作用。",
+          "note": "最核心、安全的两句式：先给事实，再下结论。",
+          "scene": "解释结果",
+          "isPrimary": true
+        },
+        {
+          "sentence": "This means that we need more time, because two team members are still absent.",
+          "translation": "这意味着我们需要更多时间，因为还有两名队员缺席。",
+          "note": "也可把原因放在后面补充说明。",
+          "scene": "会议沟通",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The survey received only 35 responses; this shows that the sample is too small.",
+          "translation": "这份调查只收到35份回复；这表明样本太小。",
+          "note": "写作中常放在分号后，连接证据与分析。",
+          "scene": "学术写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It seems that the class was difficult, but the low average score shows that many students could not follow it well.",
+          "translation": "这门课似乎很难，但较低的平均分表明许多学生没能很好地跟上。",
+          "note": "和 it seems that 对比：前者较委婉，后者证据更强。",
+          "scene": "比较表达",
+          "isPrimary": false
+        },
+        {
+          "sentence": "My phone battery drops very quickly. This means that I should replace it soon.",
+          "translation": "我的手机电池掉电很快。这意味着我应该尽快更换它。",
+          "note": "日常生活里也很自然，尤其用于“现象→含义/行动”。",
+          "scene": "日常判断",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Many students now submit homework on time. This shows that the new rule has had a positive effect.",
+          "translation": "现在很多学生都按时交作业。这表明新规定产生了积极效果。",
+          "note": "适合考试作文中的分析句。",
+          "scene": "课堂与作文",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "[事实]. This shows that [结论].",
+          "slotHints": [
+            "先写一个具体事实或结果，不要只写模糊评价",
+            "结论部分必须是完整句子，如 the method is effective"
+          ],
+          "exampleSentence": "Sales increased in June. This shows that our campaign was successful.",
+          "exampleTranslation": "六月的销售额上升了。这表明我们的宣传活动是成功的。",
+          "position": 1
+        },
+        {
+          "label": "含义判断模板",
+          "template": "[现象]. This means that [后果/需要做的事].",
+          "slotHints": [
+            "前面放现象或变化",
+            "后面常写 need, should, will, there is/are 等完整判断"
+          ],
+          "exampleSentence": "The road is closed. This means that we need to take another route.",
+          "exampleTranslation": "这条路封了。这意味着我们需要走另一条路线。",
+          "position": 2
+        },
+        {
+          "label": "句内连接模板",
+          "template": "[事实]; this shows that [结论].",
+          "slotHints": [
+            "前半句写证据，后面用分号接分析",
+            "后半句仍然要用完整 that 从句"
+          ],
+          "exampleSentence": "The experiment failed twice; this shows that the method is unreliable.",
+          "exampleTranslation": "实验失败了两次；这表明这个方法不可靠。",
+          "position": 3
+        },
+        {
+          "label": "写作型加强模板",
+          "template": "[具体数据/result]. This shows that [较客观的分析结论].",
+          "slotHints": [
+            "前面尽量用数字、调查结果、观察结果",
+            "结论尽量写客观判断，少写纯个人喜好"
+          ],
+          "exampleSentence": "Attendance fell from 90% to 60%. This shows that student interest has dropped.",
+          "exampleTranslation": "出勤率从90%降到了60%。这表明学生兴趣下降了。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "it-is-worth-noting-that",
+      "title": "it is worth noting that...",
+      "shortLabel": "Worth noting that",
+      "pattern": "it is worth noting that + clause",
+      "family": "functional_pattern",
+      "subtype": "attention_marker_frame",
+      "anchor": "it is worth noting that",
+      "coreExplanation": "it is worth noting that + 从句 用来提醒读者注意一个“值得特别看到”的信息，常见于正式写作、分析和说明中。that后面要接完整句子，不能只放名词。这个框架通常放在句首作引出，也可放在句中插入，后面常接逗号再继续说明。",
+      "usageNote": "语气偏正式、客观，常用于论文、报告、评论、演讲稿中强调一个补充但重要的点。日常聊天里一般太书面，口语中更自然的是 also, by the way, or the thing is。它不是简单“另外”，而是“这一点值得注意”。放句首最稳妥；若置于句中，前后要注意逗号。初学者先安全使用：It is worth noting that + 完整句子.",
+      "usageRegister": "formal",
+      "sceneTags": [
+        "formal-writing",
+        "analysis",
+        "supporting-points",
+        "学术写作",
+        "数据分析",
+        "文章补充论点",
+        "演讲说明",
+        "正式邮件"
+      ],
+      "slotSchema": [
+        {
+          "key": "frame",
+          "label": "固定框架",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "固定用 It is worth noting that。常见错误是漏掉 it 或写成 is worth to note。例：It is worth noting that sales increased."
+        },
+        {
+          "key": "clause",
+          "label": "that后的完整句子",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里要放完整陈述句，要有主语和谓语。常见错误是只放名词短语。例：that the policy affects small businesses."
+        },
+        {
+          "key": "followup",
+          "label": "后续补充信息",
+          "type": "custom",
+          "required": false,
+          "hint": "常在主句后继续解释结果、原因或对比。常见错误是句子没收住，标点混乱。例：It is worth noting that prices fell, which surprised investors."
+        }
+      ],
+      "commonErrors": [
+        "It is worth noting the result.｜错因：noting后这里少了that从句，原句只接了名词。｜改法：改成 It is worth noting that the result was unexpected. 或 The result is worth noting.",
+        "It is worth to note that prices fell.｜错因：固定搭配不是 worth to do。｜改法：用 It is worth noting that prices fell. 或 It is worth noting the fall in prices.",
+        "Worth noting that the plan failed.｜错因：正式完整句中通常不能省掉 it is。｜改法：写成 It is worth noting that the plan failed.",
+        "It is worth noting that the high cost.｜错因：that后不是完整句子，只有名词短语。｜改法：写成 It is worth noting that the cost is high.",
+        "It is worth noting, that the data is limited.｜错因：that前通常不断开；逗号位置不自然。｜改法：写成 It is worth noting that the data is limited. 或 It is worth noting, however, that the data is limited.",
+        "It is worth noting that, many students disagree.｜错因：that后不应立刻加逗号把从句切开。｜改法：写成 It is worth noting that many students disagree."
+      ],
+      "contrasts": [
+        {
+          "slug": "the-fact-is-that",
+          "title": "the fact is that...",
+          "note": "结构上都是接that从句，但 the fact is that 更像“事实是”，语气更直接甚至带纠正意味；it is worth noting that 是提示“这一点值得注意”，更像分析性提醒。比较：The fact is that we are late.（直接点明事实）/ It is worth noting that we are late.（把迟到当作一个需关注的点）"
+        },
+        {
+          "slug": "in-addition-moreover-besides",
+          "title": "in addition / moreover / besides",
+          "note": "这些连接词后面直接接完整句子，用来“再加一点”；it is worth noting that 则先做评价框架，再引出内容，强调重要性更强、语气更正式。比较：Moreover, costs rose. / It is worth noting that costs rose."
+        },
+        {
+          "slug": "i-think-that",
+          "title": "I think that...",
+          "note": "I think that 表主观看法，常见于口语和一般写作；it is worth noting that 更客观、更像作者在组织论证。比较：I think that this rule is unfair.（我认为）/ It is worth noting that this rule affects low-income families.（值得注意的是）"
+        },
+        {
+          "slug": "it-seems-that",
+          "title": "it seems that...",
+          "note": "it seems that 表根据迹象作推测，不强调“提醒注意”；it is worth noting that 假设信息本身已值得被看见。比较：It seems that demand is falling.（看起来）/ It is worth noting that demand is falling.（这一点值得注意）"
+        },
+        {
+          "slug": "according-to",
+          "title": "according to...",
+          "note": "according to 后接来源，如人、报告、数据；it is worth noting that 后接完整内容。前者强调信息出处，后者强调作者要你注意。比较：According to the report, demand fell. / It is worth noting that demand fell."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "It is worth noting that this method is cheaper.",
+          "translation": "值得注意的是，这种方法更便宜。",
+          "note": "最基础、安全的用法：句首框架 + 完整句子。",
+          "scene": "基础写作",
+          "isPrimary": true
+        },
+        {
+          "sentence": "This method is, it is worth noting, cheaper than the old one.",
+          "translation": "这种方法——值得注意的是——比旧方法更便宜。",
+          "note": "句中插入可以出现，但不如句首常见；初学者少用。",
+          "scene": "插入说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It is worth noting that the survey was conducted in rural areas only.",
+          "translation": "值得注意的是，这项调查只在农村地区进行。",
+          "note": "很适合学术或报告里提示研究限制。",
+          "scene": "学术写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Moreover, sales increased in May. It is worth noting that profits did not.",
+          "translation": "此外，五月销售额上升了。值得注意的是，利润并没有上升。",
+          "note": "对比连接词：这里第二句不是单纯补充，而是提醒读者看关键反差。",
+          "scene": "比较分析",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It is worth noting that not all students agreed with the decision.",
+          "translation": "值得注意的是，并不是所有学生都同意这个决定。",
+          "note": "常用来突出例外、限制或反面信息。",
+          "scene": "正式评论",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It is worth noting that the store closes earlier on Sundays.",
+          "translation": "值得注意的是，这家店周日关门更早。",
+          "note": "虽然偏正式，但也可用于通知、说明等日常书面场景。",
+          "scene": "公告说明",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "It is worth noting that + 完整句子.",
+          "slotHints": [
+            "that后面一定写完整句子，不要只写名词",
+            "优先把整个框架放在句首，最自然"
+          ],
+          "exampleSentence": "It is worth noting that the test is optional.",
+          "exampleTranslation": "值得注意的是，这个测试是自愿参加的。",
+          "position": 1
+        },
+        {
+          "label": "带补充说明模板",
+          "template": "It is worth noting that + 完整句子, + 补充结果/原因.",
+          "slotHints": [
+            "主句先说“值得注意”的内容",
+            "逗号后再补充结果、解释或影响"
+          ],
+          "exampleSentence": "It is worth noting that attendance fell, which may affect the final result.",
+          "exampleTranslation": "值得注意的是，出勤率下降了，这可能会影响最终结果。",
+          "position": 1
+        },
+        {
+          "label": "写作用对比模板",
+          "template": "连接词/前句. It is worth noting that + 对比或限制信息.",
+          "slotHints": [
+            "前一句先给背景，再用本结构强调关键限制或反差",
+            "很适合 however, moreover 等后面接第二句"
+          ],
+          "exampleSentence": "The plan looks effective. It is worth noting that it is also expensive.",
+          "exampleTranslation": "这个计划看起来有效。值得注意的是，它也很贵。",
+          "position": 2
+        }
+      ],
+      "difficulty": 1
+    }
+  ]
+}

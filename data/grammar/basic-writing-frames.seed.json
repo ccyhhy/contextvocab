@@ -1,0 +1,276 @@
+{
+  "library": {
+    "slug": "basic-writing-frames",
+    "name": "Basic Writing Frames",
+    "description": "Foundational writing-oriented sentence frames for giving opinions, organizing ideas, adding examples, and making clear academic-style statements.",
+    "sourceType": "official",
+    "language": "en",
+    "isPublic": true
+  },
+  "items": [
+    {
+      "slug": "i-think-that",
+      "title": "I think that...",
+      "pattern": "I think (that) + clause",
+      "family": "functional_pattern",
+      "subtype": "opinion_frame",
+      "anchor": "I think",
+      "brief": "Use it to state a direct personal opinion in a simple and natural way.",
+      "sceneHints": ["opinions", "writing", "conversation"],
+      "contrastHints": ["in my opinion / from my point of view", "it seems that / it appears that"]
+    },
+    {
+      "slug": "in-my-opinion-from-my-point-of-view",
+      "title": "in my opinion / from my point of view",
+      "pattern": "In my opinion, ... / From my point of view, ...",
+      "family": "functional_pattern",
+      "subtype": "opinion_marker_contrast",
+      "anchor": "in my opinion",
+      "brief": "Use it to mark a personal opinion more explicitly and in a more writing-friendly way.",
+      "sceneHints": ["opinions", "essay-writing", "formal-speaking"],
+      "contrastHints": ["I think that...", "according to..."]
+    },
+    {
+      "slug": "it-seems-that-it-appears-that",
+      "title": "it seems that / it appears that",
+      "pattern": "it seems that... / it appears that...",
+      "family": "functional_pattern",
+      "subtype": "tentative_judgment_frame",
+      "anchor": "it seems that",
+      "brief": "Use it to make a softer judgment when you do not want to sound too absolute.",
+      "sceneHints": ["observations", "formal-writing", "careful-claims"],
+      "contrastHints": ["I think that...", "there is no doubt that..."]
+    },
+    {
+      "slug": "according-to",
+      "title": "according to...",
+      "pattern": "according to + source",
+      "family": "functional_pattern",
+      "subtype": "source_frame",
+      "anchor": "according to",
+      "brief": "Use it to introduce information from a source instead of presenting it as your own idea.",
+      "sceneHints": ["reporting", "source-based-writing", "formal-writing"],
+      "contrastHints": ["I think that...", "the fact is that..."]
+    },
+    {
+      "slug": "for-example-for-instance-such-as",
+      "title": "for example / for instance / such as",
+      "pattern": "for example / for instance / such as",
+      "family": "functional_pattern",
+      "subtype": "example_marker_contrast",
+      "anchor": "for example",
+      "brief": "Use it to add examples, while choosing correctly between sentence-level and phrase-level example markers.",
+      "sceneHints": ["examples", "explanations", "essay-writing"],
+      "contrastHints": ["to begin with / first of all", "in addition / moreover / besides"]
+    },
+    {
+      "slug": "for-one-thing-for-another",
+      "title": "for one thing... for another...",
+      "pattern": "for one thing..., for another...",
+      "family": "functional_pattern",
+      "subtype": "multiple_reasons_frame",
+      "anchor": "for one thing",
+      "brief": "Use it to present two separate reasons or considerations in an organized way.",
+      "sceneHints": ["reasoning", "essay-writing", "arguments"],
+      "contrastHints": ["first of all / to begin with", "on the one hand / on the other hand"]
+    },
+    {
+      "slug": "first-of-all-to-begin-with",
+      "title": "first of all / to begin with",
+      "pattern": "first of all, ... / to begin with, ...",
+      "family": "functional_pattern",
+      "subtype": "opening_organizer_contrast",
+      "anchor": "first of all",
+      "brief": "Use it to open a list or the first major point in a clear and organized way.",
+      "sceneHints": ["organization", "essay-writing", "presentations"],
+      "contrastHints": ["in addition / moreover / besides", "for one thing... for another..."]
+    },
+    {
+      "slug": "in-addition-moreover-besides",
+      "title": "in addition / moreover / besides",
+      "pattern": "in addition / moreover / besides",
+      "family": "functional_pattern",
+      "subtype": "addition_marker_contrast",
+      "anchor": "in addition",
+      "brief": "Use it to add another point, while choosing the right tone from neutral to more formal or more conversational.",
+      "sceneHints": ["essay-writing", "arguments", "organization"],
+      "contrastHints": ["first of all / to begin with", "for example / for instance / such as"]
+    },
+    {
+      "slug": "finally-in-conclusion-to-sum-up",
+      "title": "finally / in conclusion / to sum up",
+      "pattern": "finally / in conclusion / to sum up",
+      "family": "functional_pattern",
+      "subtype": "closing_marker_contrast",
+      "anchor": "in conclusion",
+      "brief": "Use it to close a paragraph or short essay with the right level of directness and formality.",
+      "sceneHints": ["conclusion", "essay-writing", "summaries"],
+      "contrastHints": ["first of all / to begin with", "in addition / moreover / besides"]
+    },
+    {
+      "slug": "on-the-one-hand-on-the-other-hand",
+      "title": "on the one hand... on the other hand...",
+      "pattern": "on the one hand..., on the other hand...",
+      "family": "functional_pattern",
+      "subtype": "balanced_contrast_frame",
+      "anchor": "on the one hand",
+      "brief": "Use it to present two sides of an issue in a balanced and organized way.",
+      "sceneHints": ["comparison", "balanced-arguments", "essay-writing"],
+      "contrastHints": ["for one thing... for another...", "however / but / yet / still"]
+    },
+    {
+      "slug": "as-a-result",
+      "title": "as a result, ...",
+      "pattern": "as a result, statement",
+      "family": "functional_pattern",
+      "subtype": "result_summary_frame",
+      "anchor": "as a result",
+      "brief": "Use it to state the result of what has just been discussed in a clear writing-oriented way.",
+      "sceneHints": ["cause-and-effect", "essay-writing", "reports"],
+      "contrastHints": ["therefore / so / that's why", "for example / for instance / such as"]
+    },
+    {
+      "slug": "the-fact-is-that",
+      "title": "the fact is that...",
+      "pattern": "the fact is that + clause",
+      "family": "functional_pattern",
+      "subtype": "clarifying_statement_frame",
+      "anchor": "the fact is that",
+      "brief": "Use it to state what you see as the central reality or key point in an argument.",
+      "sceneHints": ["clarifying", "arguments", "essay-writing"],
+      "contrastHints": ["there is no doubt that...", "it seems that / it appears that"]
+    },
+    {
+      "slug": "there-is-no-doubt-that",
+      "title": "there is no doubt that...",
+      "pattern": "there is no doubt that + clause",
+      "family": "functional_pattern",
+      "subtype": "certainty_frame",
+      "anchor": "there is no doubt that",
+      "brief": "Use it when you want to make a very strong, confident claim in a formal style.",
+      "sceneHints": ["strong-claims", "formal-writing", "arguments"],
+      "contrastHints": ["it seems that / it appears that", "the fact is that..."]
+    },
+    {
+      "slug": "it-is-important-to-it-is-necessary-to",
+      "title": "it is important to / it is necessary to",
+      "pattern": "it is important to... / it is necessary to...",
+      "family": "functional_pattern",
+      "subtype": "importance_frame_contrast",
+      "anchor": "it is important to",
+      "brief": "Use it to state importance or necessity in a neutral, useful writing style.",
+      "sceneHints": ["advice", "essay-writing", "formal-writing"],
+      "contrastHints": ["it is helpful to / it is useful to", "there is no need to..."]
+    },
+    {
+      "slug": "it-is-helpful-to-it-is-useful-to",
+      "title": "it is helpful to / it is useful to",
+      "pattern": "it is helpful to... / it is useful to...",
+      "family": "functional_pattern",
+      "subtype": "practical_value_frame",
+      "anchor": "it is helpful to",
+      "brief": "Use it to recommend a practical action without sounding as strong as necessary or important.",
+      "sceneHints": ["advice", "study-strategies", "practical-writing"],
+      "contrastHints": ["it is important to / it is necessary to", "there is no need to..."]
+    },
+    {
+      "slug": "it-is-hard-to-it-is-easy-to",
+      "title": "it is hard to / it is easy to",
+      "pattern": "it is hard to... / it is easy to...",
+      "family": "functional_pattern",
+      "subtype": "difficulty_frame_contrast",
+      "anchor": "it is hard to",
+      "brief": "Use it to judge how easy or difficult an action is in a clean, objective way.",
+      "sceneHints": ["judgment", "essay-writing", "daily-life"],
+      "contrastHints": ["have trouble + v-ing", "it is important to / it is necessary to"]
+    },
+    {
+      "slug": "it-is-common-for-to",
+      "title": "it is common for... to...",
+      "pattern": "it is common for + noun + to + base",
+      "family": "functional_pattern",
+      "subtype": "general_observation_frame",
+      "anchor": "it is common for",
+      "brief": "Use it to describe a general pattern or typical behavior in a more objective style.",
+      "sceneHints": ["generalizations", "formal-writing", "analysis"],
+      "contrastHints": ["one of the most ... is ...", "it seems that / it appears that"]
+    },
+    {
+      "slug": "one-of-the-most-is",
+      "title": "one of the most ... is ...",
+      "pattern": "one of the most + adjective + nouns is...",
+      "family": "functional_pattern",
+      "subtype": "ranking_frame",
+      "anchor": "one of the most",
+      "brief": "Use it to present an item as a highly important example within a larger group.",
+      "sceneHints": ["importance", "essay-writing", "introductions"],
+      "contrastHints": ["it is common for... to...", "what matters is..."]
+    },
+    {
+      "slug": "the-best-way-to",
+      "title": "the best way to... is to...",
+      "pattern": "the best way to + goal + is to + action",
+      "family": "functional_pattern",
+      "subtype": "solution_frame",
+      "anchor": "the best way to",
+      "brief": "Use it to propose a clear solution or method in a direct and useful format.",
+      "sceneHints": ["advice", "problem-solving", "essay-writing"],
+      "contrastHints": ["it is important to / it is necessary to", "what matters is..."]
+    },
+    {
+      "slug": "what-matters-is",
+      "title": "what matters is...",
+      "pattern": "what matters is + noun / clause",
+      "family": "functional_pattern",
+      "subtype": "focus_frame",
+      "anchor": "what matters",
+      "brief": "Use it to shift attention to the most important point in a discussion.",
+      "sceneHints": ["focus", "arguments", "essay-writing"],
+      "contrastHints": ["the fact is that...", "the best way to... is to..."]
+    },
+    {
+      "slug": "one-reason-is-that-another-reason-is-that",
+      "title": "one reason is that... another reason is that...",
+      "pattern": "one reason is that... another reason is that...",
+      "family": "functional_pattern",
+      "subtype": "organized_reason_frame",
+      "anchor": "one reason is that",
+      "brief": "Use it to list multiple reasons in a very explicit, beginner-friendly writing structure.",
+      "sceneHints": ["reasons", "essay-writing", "organization"],
+      "contrastHints": ["for one thing... for another...", "the reason is that..."]
+    },
+    {
+      "slug": "for-this-reason",
+      "title": "for this reason, ...",
+      "pattern": "for this reason, statement",
+      "family": "functional_pattern",
+      "subtype": "logical_link_frame",
+      "anchor": "for this reason",
+      "brief": "Use it to connect a previous explanation to a following conclusion in a formal but clear way.",
+      "sceneHints": ["logic", "essay-writing", "conclusion"],
+      "contrastHints": ["as a result, ...", "therefore / so / that's why"]
+    },
+    {
+      "slug": "this-shows-that-this-means-that",
+      "title": "this shows that... / this means that...",
+      "pattern": "this shows that... / this means that...",
+      "family": "functional_pattern",
+      "subtype": "interpretation_frame",
+      "anchor": "this shows that",
+      "brief": "Use it to explain what an example, fact, or result proves or suggests.",
+      "sceneHints": ["analysis", "interpretation", "essay-writing"],
+      "contrastHints": ["the fact is that...", "it seems that / it appears that"]
+    },
+    {
+      "slug": "it-is-worth-noting-that",
+      "title": "it is worth noting that...",
+      "pattern": "it is worth noting that + clause",
+      "family": "functional_pattern",
+      "subtype": "attention_marker_frame",
+      "anchor": "it is worth noting that",
+      "brief": "Use it to draw attention to an important supporting point in a formal, academic tone.",
+      "sceneHints": ["formal-writing", "analysis", "supporting-points"],
+      "contrastHints": ["the fact is that...", "in addition / moreover / besides"]
+    }
+  ]
+}
