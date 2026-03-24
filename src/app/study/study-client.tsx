@@ -228,8 +228,7 @@ export default function StudyClient({
     })
   }
 
-  const handleLibraryChange = async (event: ChangeEvent<HTMLSelectElement>) => {
-    const nextLibrarySlug = event.target.value
+  const handleLibraryChange = async (nextLibrarySlug: string) => {
     const nextLibrary =
       availableLibraries.find((item) => item.slug === nextLibrarySlug) ?? null
     const nextStudyView = normalizeStudyViewForContentType(nextLibrary?.contentType, studyView)
@@ -244,18 +243,18 @@ export default function StudyClient({
     await reloadStudyBatch(nextLibrarySlug, nextStudyView, [])
   }
 
-  const handleStudyModeChange = async (event: ChangeEvent<HTMLSelectElement>) => {
-    const nextStudyView = normalizeStudyViewForContentType(
+  const handleStudyModeChange = async (nextStudyView: string) => {
+    const normalizedView = normalizeStudyViewForContentType(
       selectedLibraryContentType,
-      event.target.value as StudyView
+      nextStudyView as StudyView
     )
-    setStudyView(nextStudyView)
+    setStudyView(normalizedView)
     setHistoryReviewContext(null)
     resetSessionScope()
     clearVisibleBatch()
     setSubmissionMode("scheduled")
     resetComposerState()
-    await reloadStudyBatch(librarySlug, nextStudyView, [])
+    await reloadStudyBatch(librarySlug, nextStudyView as StudyView, [])
   }
 
   const toggleFavorite = async () => {

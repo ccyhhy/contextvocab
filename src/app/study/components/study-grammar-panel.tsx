@@ -38,8 +38,8 @@ export function StudyGrammarPanel({
 
   return (
     <div
-      className={`glass-panel rounded-3xl p-6 sm:p-8 ${
-        loadingNext ? "pointer-events-none opacity-50 blur-sm" : ""
+      className={`glass-panel rounded-3xl p-6 sm:p-8 transition-all duration-300 ${
+        loadingNext ? "pointer-events-none opacity-60 animate-pulse" : ""
       }`}
     >
       <div className="mb-4 flex items-center justify-between gap-3">

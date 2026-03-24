@@ -1,8 +1,8 @@
 "use client"
 
-import type { ChangeEvent } from "react"
 import type { StudyContentType } from "@/lib/study-content"
 import type { StudyLibrary, StudyView } from "../actions"
+import { CustomDropdown, officialLibraryNames } from "./study-toolbar"
 
 export function StudyEmptyState({
   availableLibraries,
@@ -19,8 +19,8 @@ export function StudyEmptyState({
   studyView: StudyView
   loading?: boolean
   selectedLibraryContentType?: StudyContentType | null
-  onLibraryChange: (event: ChangeEvent<HTMLSelectElement>) => void | Promise<void>
-  onStudyViewChange: (event: ChangeEvent<HTMLSelectElement>) => void | Promise<void>
+  onLibraryChange: (value: string) => void | Promise<void>
+  onStudyViewChange: (value: string) => void | Promise<void>
   onRefresh: () => void | Promise<void>
 }) {
   const isGrammarLibrary = selectedLibraryContentType === "grammar"
@@ -32,43 +32,41 @@ export function StudyEmptyState({
       ? "当前筛选下还没有可学习的句法卡片。"
       : "当前筛选下还没有可学习的单词。"
 
+  const libraryOptions = [{ label: "全部词库", value: "all" }, ...availableLibraries.map(item => ({
+    label: officialLibraryNames[item.slug] ?? item.name,
+    value: item.slug
+  }))]
+
+  const grammarViews = [
+    { label: "全部句法卡", value: "all" },
+    { label: "薄弱项", value: "weak" },
+    { label: "最近失败", value: "recent_failures" }
+  ]
+
+  const wordViews = [
+    { label: "全部单词", value: "all" },
+    { label: "收藏", value: "favorites" },
+    { label: "薄弱项", value: "weak" },
+    { label: "最近失败", value: "recent_failures" }
+  ]
+
+  const viewOptions = isGrammarLibrary ? grammarViews : wordViews
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <select
+          <CustomDropdown
             value={librarySlug}
             onChange={onLibraryChange}
-            className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
-          >
-            <option value="all">全部词库</option>
-            {availableLibraries.map((item) => (
-              <option key={item.id} value={item.slug}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+            options={libraryOptions}
+          />
 
-          <select
+          <CustomDropdown
             value={studyView}
             onChange={onStudyViewChange}
-            className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-200"
-          >
-            {isGrammarLibrary ? (
-              <>
-                <option value="all">全部句法卡</option>
-                <option value="weak">薄弱项</option>
-                <option value="recent_failures">最近失败</option>
-              </>
-            ) : (
-              <>
-                <option value="all">全部单词</option>
-                <option value="favorites">收藏</option>
-                <option value="weak">薄弱项</option>
-                <option value="recent_failures">最近失败</option>
-              </>
-            )}
-          </select>
+            options={viewOptions}
+          />
 
           {isGrammarLibrary ? (
             <div className="rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-sm text-zinc-300">

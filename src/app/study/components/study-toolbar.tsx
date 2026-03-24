@@ -1,9 +1,91 @@
 "use client"
 
-import type { ChangeEvent } from "react"
-import { Settings } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { Settings, ChevronDown, Check } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import type { StudyContentType } from "@/lib/study-content"
 import type { StudyLibrary, StudyView } from "../actions"
+
+export function CustomDropdown({
+  value,
+  onChange,
+  disabled,
+  options,
+}: {
+  value: string
+  onChange: (val: string) => void
+  disabled?: boolean
+  options: { label: string; value: string }[]
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const selectedOption = options.find((opt) => opt.value === value) || options[0]
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/60 px-4 py-2 text-sm font-medium text-zinc-200 outline-none transition-all hover:bg-black/80 focus:border-white/20 focus:ring-2 focus:ring-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <span className="truncate">{selectedOption?.label}</span>
+        <ChevronDown 
+          className="h-4 w-4 text-zinc-500 transition-transform duration-200" 
+          style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} 
+        />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -5, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -5, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            className="absolute left-0 top-full z-50 mt-2 max-h-60 w-56 overflow-auto rounded-xl border border-white/10 bg-zinc-900/95 p-1.5 shadow-xl backdrop-blur-xl"
+          >
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  onChange(opt.value)
+                  setIsOpen(false)
+                }}
+                className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
+                  value === opt.value
+                    ? "bg-blue-500/10 text-blue-400 font-medium"
+                    : "text-zinc-300 hover:bg-white/5 hover:text-white"
+                }`}
+              >
+                <span className="truncate">{opt.label}</span>
+                {value === opt.value && <Check className="h-4 w-4" />}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+export const officialLibraryNames: Record<string, string> = {
+  "cet-4": "大学英语四级",
+  "cet-6": "大学英语六级",
+  "basic-scene-grammar": "基础场景句法",
+}
 
 export function StudyToolbar({
   availableLibraries,
@@ -26,8 +108,8 @@ export function StudyToolbar({
   queuedCount: number
   loadingNext: boolean
   refillingQueue: boolean
-  onLibraryChange: (event: ChangeEvent<HTMLSelectElement>) => void | Promise<void>
-  onStudyViewChange: (event: ChangeEvent<HTMLSelectElement>) => void | Promise<void>
+  onLibraryChange: (value: string) => void | Promise<void>
+  onStudyViewChange: (value: string) => void | Promise<void>
   onOpenSettings: () => void
 }) {
   const isGrammarLibrary = selectedLibraryContentType === "grammar"
@@ -38,44 +120,42 @@ export function StudyToolbar({
         : "后续队列补充中"
       : `队列 ${queuedCount}`
 
+  const libraryOptions = [{ label: "全部词库", value: "all" }, ...availableLibraries.map(item => ({
+    label: officialLibraryNames[item.slug] ?? item.name,
+    value: item.slug
+  }))]
+
+  const grammarViews = [
+    { label: "全部句法卡", value: "all" },
+    { label: "薄弱项", value: "weak" },
+    { label: "最近失败", value: "recent_failures" }
+  ]
+
+  const wordViews = [
+    { label: "全部单词", value: "all" },
+    { label: "收藏", value: "favorites" },
+    { label: "薄弱项", value: "weak" },
+    { label: "最近失败", value: "recent_failures" }
+  ]
+
+  const viewOptions = isGrammarLibrary ? grammarViews : wordViews
+
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <select
+        <CustomDropdown
           value={librarySlug}
           onChange={onLibraryChange}
           disabled={disabled}
-          className="cursor-pointer rounded-xl border border-white/10 bg-black/60 px-4 py-2 text-sm font-medium text-zinc-200 outline-none transition-all hover:bg-black/80 focus:border-white/20 focus:ring-2 focus:ring-white/10"
-        >
-          <option value="all">全部词库</option>
-          {availableLibraries.map((item) => (
-            <option key={item.id} value={item.slug}>
-              {item.name}
-            </option>
-          ))}
-        </select>
+          options={libraryOptions}
+        />
 
-        <select
+        <CustomDropdown
           value={studyView}
           onChange={onStudyViewChange}
           disabled={disabled}
-          className="cursor-pointer rounded-xl border border-white/10 bg-black/60 px-4 py-2 text-sm font-medium text-zinc-200 outline-none transition-all hover:bg-black/80 focus:border-white/20 focus:ring-2 focus:ring-white/10"
-        >
-          {isGrammarLibrary ? (
-            <>
-              <option value="all">全部句法卡</option>
-              <option value="weak">薄弱项</option>
-              <option value="recent_failures">最近失败</option>
-            </>
-          ) : (
-            <>
-              <option value="all">全部单词</option>
-              <option value="favorites">收藏</option>
-              <option value="weak">薄弱项</option>
-              <option value="recent_failures">最近失败</option>
-            </>
-          )}
-        </select>
+          options={viewOptions}
+        />
 
         {isGrammarLibrary ? (
           <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-3 py-2 text-sm font-medium tracking-wide text-blue-200">

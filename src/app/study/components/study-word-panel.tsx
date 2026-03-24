@@ -50,7 +50,7 @@ export function StudyWordPanel({
   const usageRegisterLabel = getUsageRegisterLabel(wordProfile?.usageRegister)
 
   return (
-    <div className={`glass-panel rounded-3xl p-8 ${loadingNext ? "pointer-events-none opacity-50 blur-sm" : ""}`}>
+    <div className={`glass-panel rounded-3xl p-8 transition-all duration-300 ${loadingNext ? "pointer-events-none opacity-60 animate-pulse" : ""}`}>
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex min-h-8 items-center gap-2">
           {shouldHighlightPriority(currentWord.priorityReason) ? (
