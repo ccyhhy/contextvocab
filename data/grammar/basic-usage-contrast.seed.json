@@ -1,0 +1,287 @@
+{
+  "library": {
+    "slug": "basic-usage-contrast",
+    "name": "Basic Usage Contrast",
+    "description": "Contrast-focused library for high-frequency words and structures that learners often confuse in context.",
+    "sourceType": "official",
+    "language": "en",
+    "isPublic": true
+  },
+  "items": [
+    {
+      "slug": "because-since-as",
+      "title": "because / since / as",
+      "pattern": "because / since / as + clause",
+      "family": "reason_result",
+      "subtype": "reason_contrast",
+      "anchor": "because",
+      "brief": "Use this card to distinguish direct reasons from background or lighter reasons in common writing and speaking.",
+      "sceneHints": ["explaining", "reasoning", "writing"],
+      "contrastHints": ["because / because of", "therefore / so / that's why"]
+    },
+    {
+      "slug": "because-because-of",
+      "title": "because / because of",
+      "pattern": "because + clause / because of + noun",
+      "family": "reason_result",
+      "subtype": "form_choice_contrast",
+      "anchor": "because",
+      "brief": "Use this card to choose correctly between a full clause and a noun phrase when giving a reason.",
+      "sceneHints": ["explaining", "rewriting", "accuracy"],
+      "contrastHints": ["because / since / as", "due to / because of / thanks to"]
+    },
+    {
+      "slug": "therefore-so-thats-why",
+      "title": "therefore / so / that's why",
+      "pattern": "therefore / so / that's why + result",
+      "family": "reason_result",
+      "subtype": "result_connector_contrast",
+      "anchor": "so",
+      "brief": "Use this card to compare spoken and formal ways of expressing a result after a reason.",
+      "sceneHints": ["cause-and-effect", "conversation", "formal-writing"],
+      "contrastHints": ["because / since / as", "due to / because of / thanks to"]
+    },
+    {
+      "slug": "due-to-because-of-thanks-to",
+      "title": "due to / because of / thanks to",
+      "pattern": "due to / because of / thanks to + noun",
+      "family": "reason_result",
+      "subtype": "cause_phrase_contrast",
+      "anchor": "because of",
+      "brief": "Use this card to choose between neutral, formal, and positive cause phrases.",
+      "sceneHints": ["formal-writing", "announcements", "positive-results"],
+      "contrastHints": ["because / because of", "therefore / so / that's why"]
+    },
+    {
+      "slug": "although-though-even-though",
+      "title": "although / though / even though",
+      "pattern": "although / though / even though + clause",
+      "family": "concession_contrast",
+      "subtype": "concession_strength_contrast",
+      "anchor": "although",
+      "brief": "Use this card to compare standard, lighter, and stronger concession in speaking and writing.",
+      "sceneHints": ["contrast", "conversation", "writing"],
+      "contrastHints": ["although / despite / in spite of", "but / however / yet / still"]
+    },
+    {
+      "slug": "although-despite-in-spite-of",
+      "title": "although / despite / in spite of",
+      "pattern": "although + clause / despite + noun / in spite of + noun",
+      "family": "concession_contrast",
+      "subtype": "clause_vs_phrase_contrast",
+      "anchor": "although",
+      "brief": "Use this card to choose between concessive clauses and concessive phrases without making form mistakes.",
+      "sceneHints": ["rewriting", "writing", "accuracy"],
+      "contrastHints": ["although / though / even though", "even if / even though"]
+    },
+    {
+      "slug": "but-however-yet-still",
+      "title": "but / however / yet / still",
+      "pattern": "but / however / yet / still",
+      "family": "concession_contrast",
+      "subtype": "contrast_connector_contrast",
+      "anchor": "but",
+      "brief": "Use this card to compare the most common contrast connectors by tone, position, and degree of surprise.",
+      "sceneHints": ["contrast", "conversation", "essay-writing"],
+      "contrastHints": ["although / though / even though", "while / whereas"]
+    },
+    {
+      "slug": "while-whereas",
+      "title": "while / whereas",
+      "pattern": "while / whereas + clause",
+      "family": "concession_contrast",
+      "subtype": "comparison_clause_contrast",
+      "anchor": "while",
+      "brief": "Use this card to compare side-by-side contrast in general writing and more formal analysis.",
+      "sceneHints": ["comparison", "formal-writing", "analysis"],
+      "contrastHints": ["but / however / yet / still", "when / while"]
+    },
+    {
+      "slug": "if-unless",
+      "title": "if / unless",
+      "pattern": "if + clause / unless + clause",
+      "family": "condition",
+      "subtype": "basic_condition_contrast",
+      "anchor": "if",
+      "brief": "Use this card to compare ordinary conditions with negative conditions and avoid double-negative mistakes.",
+      "sceneHints": ["rules", "daily-life", "warnings"],
+      "contrastHints": ["if / as long as / provided that", "in case / if"]
+    },
+    {
+      "slug": "if-as-long-as-provided-that",
+      "title": "if / as long as / provided that",
+      "pattern": "if / as long as / provided that + clause",
+      "family": "condition",
+      "subtype": "condition_strength_contrast",
+      "anchor": "if",
+      "brief": "Use this card to compare ordinary conditions with stronger or more formal requirement conditions.",
+      "sceneHints": ["agreements", "rules", "planning"],
+      "contrastHints": ["if / unless", "only if / provided that"]
+    },
+    {
+      "slug": "even-if-even-though",
+      "title": "even if / even though",
+      "pattern": "even if + clause / even though + clause",
+      "family": "condition",
+      "subtype": "hypothetical_vs_real_contrast",
+      "anchor": "even if",
+      "brief": "Use this card to separate hypothetical concession from real concession.",
+      "sceneHints": ["argument", "determination", "hypothetical"],
+      "contrastHints": ["although / though / even though", "if / unless"]
+    },
+    {
+      "slug": "in-case-if",
+      "title": "in case / if",
+      "pattern": "in case + clause / if + clause",
+      "family": "condition",
+      "subtype": "preparation_vs_condition_contrast",
+      "anchor": "in case",
+      "brief": "Use this card to compare preparing for a possibility with stating an ordinary condition.",
+      "sceneHints": ["preparation", "safety", "daily-life"],
+      "contrastHints": ["if / unless", "if / as long as / provided that"]
+    },
+    {
+      "slug": "when-while",
+      "title": "when / while",
+      "pattern": "when + clause / while + clause",
+      "family": "time_sequence",
+      "subtype": "time_clause_contrast",
+      "anchor": "when",
+      "brief": "Use this card to compare time points with overlapping actions or periods.",
+      "sceneHints": ["daily-life", "stories", "habits"],
+      "contrastHints": ["while / whereas", "when / once / as soon as"]
+    },
+    {
+      "slug": "when-once-as-soon-as",
+      "title": "when / once / as soon as",
+      "pattern": "when / once / as soon as + clause",
+      "family": "time_sequence",
+      "subtype": "time_trigger_contrast",
+      "anchor": "when",
+      "brief": "Use this card to compare a general time trigger with a one-time trigger and an immediate next step.",
+      "sceneHints": ["instructions", "plans", "daily-life"],
+      "contrastHints": ["when / while", "before / after / by the time"]
+    },
+    {
+      "slug": "before-after-by-the-time",
+      "title": "before / after / by the time",
+      "pattern": "before / after / by the time",
+      "family": "time_sequence",
+      "subtype": "sequence_reference_contrast",
+      "anchor": "before",
+      "brief": "Use this card to compare earlier, later, and deadline-like time reference in action sequences.",
+      "sceneHints": ["planning", "narration", "schedules"],
+      "contrastHints": ["when / once / as soon as", "until / by the time"]
+    },
+    {
+      "slug": "until-by-the-time",
+      "title": "until / by the time",
+      "pattern": "until + clause / by the time + clause",
+      "family": "time_sequence",
+      "subtype": "end_point_vs_deadline_contrast",
+      "anchor": "until",
+      "brief": "Use this card to compare an action continuing up to an endpoint with a state already true by a later point.",
+      "sceneHints": ["deadlines", "processes", "time-management"],
+      "contrastHints": ["before / after / by the time", "when / once / as soon as"]
+    },
+    {
+      "slug": "that-whether-if-noun-clause",
+      "title": "that / whether / if (noun clause)",
+      "pattern": "that / whether / if + clause",
+      "family": "noun_clause",
+      "subtype": "statement_vs_question_clause_contrast",
+      "anchor": "that",
+      "brief": "Use this card to compare reported statements with yes-no uncertainty clauses.",
+      "sceneHints": ["opinions", "reporting", "uncertainty"],
+      "contrastHints": ["what-clause / that-clause", "whether or not / whether / if"]
+    },
+    {
+      "slug": "what-clause-that-clause",
+      "title": "what-clause / that-clause",
+      "pattern": "what + clause / that + clause",
+      "family": "noun_clause",
+      "subtype": "content_clause_contrast",
+      "anchor": "what",
+      "brief": "Use this card to compare clauses that include their own meaning slot with plain reported statement clauses.",
+      "sceneHints": ["reporting", "explanations", "writing"],
+      "contrastHints": ["that / whether / if (noun clause)", "who / which / that (relative clause)"]
+    },
+    {
+      "slug": "whether-or-not-whether-if",
+      "title": "whether or not / whether / if",
+      "pattern": "whether or not / whether / if + clause",
+      "family": "noun_clause",
+      "subtype": "alternative_strength_contrast",
+      "anchor": "whether",
+      "brief": "Use this card to compare ordinary yes-no uncertainty with a stronger all-cases meaning.",
+      "sceneHints": ["decision-making", "formal-writing", "uncertainty"],
+      "contrastHints": ["that / whether / if (noun clause)", "no matter what / even if"]
+    },
+    {
+      "slug": "who-which-that-relative-clause",
+      "title": "who / which / that (relative clause)",
+      "pattern": "who / which / that + relative clause",
+      "family": "relative_clause",
+      "subtype": "basic_relative_pronoun_contrast",
+      "anchor": "that",
+      "brief": "Use this card to compare the most common relative pronouns for people, things, and flexible everyday usage.",
+      "sceneHints": ["describing", "writing", "accuracy"],
+      "contrastHints": ["where / when / why (relative clause)", "what-clause / that-clause"]
+    },
+    {
+      "slug": "where-when-why-relative-clause",
+      "title": "where / when / why (relative clause)",
+      "pattern": "where / when / why + relative clause",
+      "family": "relative_clause",
+      "subtype": "relative_adverb_contrast",
+      "anchor": "where",
+      "brief": "Use this card to compare relative clauses about place, time, and reason.",
+      "sceneHints": ["describing", "stories", "writing"],
+      "contrastHints": ["who / which / that (relative clause)", "when / while"]
+    },
+    {
+      "slug": "so-that-in-order-to",
+      "title": "so that / in order to",
+      "pattern": "so that + clause / in order to + base",
+      "family": "purpose_comparison",
+      "subtype": "purpose_form_contrast",
+      "anchor": "so that",
+      "brief": "Use this card to choose between a full purpose clause and a simpler to-infinitive purpose phrase.",
+      "sceneHints": ["planning", "formal-writing", "explanations"],
+      "contrastHints": ["too-to / enough-to", "because / because of"]
+    },
+    {
+      "slug": "too-to-enough-to",
+      "title": "too...to / enough to",
+      "pattern": "too + adj + to / adj + enough to",
+      "family": "purpose_comparison",
+      "subtype": "degree_threshold_contrast",
+      "anchor": "too",
+      "brief": "Use this card to compare when a degree blocks an action and when it makes an action possible.",
+      "sceneHints": ["describing", "results", "daily-life"],
+      "contrastHints": ["so that / in order to", "so...that / such...that"]
+    },
+    {
+      "slug": "rather-than-instead-of-would-rather",
+      "title": "rather than / instead of / would rather",
+      "pattern": "rather than / instead of / would rather",
+      "family": "purpose_comparison",
+      "subtype": "choice_preference_contrast",
+      "anchor": "rather than",
+      "brief": "Use this card to compare neutral substitution with stronger personal preference between options.",
+      "sceneHints": ["choices", "preferences", "conversation"],
+      "contrastHints": ["prefer A to B", "would rather", "because / since / as"]
+    },
+    {
+      "slug": "used-to-be-used-to-get-used-to",
+      "title": "used to / be used to / get used to",
+      "pattern": "used to / be used to / get used to",
+      "family": "functional_pattern",
+      "subtype": "habit_vs_familiarity_contrast",
+      "anchor": "used to",
+      "brief": "Use this card to compare past habits with present familiarity and the process of becoming familiar.",
+      "sceneHints": ["habits", "adaptation", "daily-life"],
+      "contrastHints": ["be used to + noun / v-ing", "can't help + v-ing", "have trouble + v-ing"]
+    }
+  ]
+}

@@ -1,0 +1,4261 @@
+{
+  "library": {
+    "slug": "basic-usage-contrast",
+    "name": "Basic Usage Contrast",
+    "description": "Contrast-focused library for high-frequency words and structures that learners often confuse in context.",
+    "sourceType": "official",
+    "language": "en",
+    "isPublic": true
+  },
+  "generatedAt": "2026-03-24T07:11:30.439Z",
+  "source": "E:\\codework\\words\\data\\grammar\\basic-usage-contrast.seed.json",
+  "model": "gpt-5.4",
+  "items": [
+    {
+      "slug": "because-since-as",
+      "title": "because / since / as",
+      "shortLabel": "Reason clause",
+      "pattern": "because / since / as + clause",
+      "family": "reason_result",
+      "subtype": "reason_contrast",
+      "anchor": "because",
+      "coreExplanation": "because/since/as 后面都接完整从句（要有主语+谓语），用来说明原因。because 表示最直接、最明确的原因；since 和 as 更像“既然/由于”，语气较轻，常把原因放在句首，后面用逗号隔开，再说主要结果。",
+      "usageNote": "because 最中性、最常用，口语和书面都自然，适合回答“为什么”。since/as 常用于解释背景、双方都知道的理由，语气更委婉，也更常见于写作或较平稳的说明。不要把它们后面直接接名词；那要用 because of。句首用 since/as 时，原因从句后通常加逗号。初学者最安全：先用 Because + 完整句子, + 结果句。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "explaining",
+        "reasoning",
+        "writing",
+        "回答为什么",
+        "解释迟到或缺席",
+        "写邮件说明原因",
+        "做作业写理由",
+        "日常聊天解释决定"
+      ],
+      "slotSchema": [
+        {
+          "key": "reasonClause",
+          "label": "原因从句",
+          "type": "clause",
+          "required": true,
+          "hint": "这里放完整句子：主语+动词，如 she was sick。常错：只放名词，如 because the rain。小例：because it was late"
+        },
+        {
+          "key": "resultClause",
+          "label": "结果主句",
+          "type": "clause",
+          "required": true,
+          "hint": "这里放主要信息或结果，如 we stayed home。常错：写成残句。小例：we canceled the trip"
+        },
+        {
+          "key": "linker",
+          "label": "连接词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "可用 because / since / as。常错：想强调真正原因却用 as/since，语气会太轻。小例：Because I was tired, I went to bed early"
+        }
+      ],
+      "commonErrors": [
+        "wrong: because of he was sick；错因：because of 后面不能接完整从句；改法：用 because he was sick，或 because of his illness。",
+        "wrong: Because of the weather was bad, we stayed home；错因：because of 后面接了主谓结构；改法：Because the weather was bad, we stayed home. / Because of the bad weather, we stayed home.",
+        "wrong: We stayed home because tired；错因：because 后面缺主语和谓语，不是完整从句；改法：We stayed home because we were tired.",
+        "wrong: As I was very hungry. I made noodles；错因：把从句单独断成一句；改法：As I was very hungry, I made noodles.",
+        "wrong: Because I was sick, so I stayed home；错因：英语里通常不用 because 和 so 同时连接同一组因果；改法：Because I was sick, I stayed home. 或 I was sick, so I stayed home.",
+        "wrong: Since you ask why, because I was busy；错因：结构混乱，since 从句后缺主句，because 也挂空；改法：Since you asked, I’ll explain. I was busy. 或 I was busy because you asked me to finish it today."
+      ],
+      "contrasts": [
+        {
+          "slug": "because-vs-because-of",
+          "title": "because vs because of",
+          "note": "结构不同：because + 从句；because of + 名词/名词短语。场景上，because 更适合完整解释，because of 更适合简短说明。对比：because it rained / because of the rain。"
+        },
+        {
+          "slug": "because-vs-so",
+          "title": "because vs so",
+          "note": "结构不同：because 引出原因从句，so 引出结果分句。语气上 because 像“因为”，so 像“所以”，不要在同一句核心结构里重复。对比：I left because I was tired. / I was tired, so I left."
+        },
+        {
+          "slug": "because-vs-thats-why",
+          "title": "because vs that's why",
+          "note": "结构不同：because 后接原因，that’s why 后接结果句。语气上 that’s why 更像总结说明，常见于口语解释。对比：I left early because I was tired. / I was tired. That’s why I left early."
+        },
+        {
+          "slug": "because-vs-since",
+          "title": "because vs since",
+          "note": "结构不同：两者都接从句，但 since 更常放句首作背景。语气上 because 更直接回答真正原因；since 更像“既然/由于大家都知道”。对比：Because he was sick, he stayed home. / Since he was sick, he stayed home."
+        },
+        {
+          "slug": "because-vs-as",
+          "title": "because vs as",
+          "note": "结构不同：两者都接从句；as 也常放句首。语气上 as 最轻，常用于平稳叙述或写作，不太适合强调强烈原因。对比：Because I needed help, I called her. / As I needed help, I called her."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Because I was tired, I went to bed early.",
+          "translation": "因为我累了，所以我早早睡了。",
+          "note": "最安全基础句型：Because + 原因从句, + 结果主句。",
+          "scene": "回答原因",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I went to bed early because I was tired.",
+          "translation": "我因为累了，所以早早睡了。",
+          "note": "because 从句放句尾也很常见，口语尤其自然。",
+          "scene": "日常聊天",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Since it was raining, we stayed inside.",
+          "translation": "由于在下雨，我们待在室内。",
+          "note": "since 语气比 because 轻，更像交代背景。",
+          "scene": "解释安排",
+          "isPrimary": false
+        },
+        {
+          "sentence": "As the roads were icy, the school closed early.",
+          "translation": "由于道路结冰，学校提前放学了。",
+          "note": "as 常见于较平稳的书面说明。",
+          "scene": "通知或写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I chose the train because it was cheaper.",
+          "translation": "我选择了火车，因为它更便宜。",
+          "note": "这里如果换成 as/since，强调“真正决定原因”的感觉会变弱。",
+          "scene": "比较并做决定",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Because my phone was dead, I couldn't call you.",
+          "translation": "因为我的手机没电了，所以我不能给你打电话。",
+          "note": "日常生活中非常自然的解释。",
+          "scene": "解释失联",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "Because {reasonClause}, {resultClause}.",
+          "slotHints": [
+            "{reasonClause} 放完整原因句，如 I was sick",
+            "{resultClause} 放结果句，如 I stayed home"
+          ],
+          "exampleSentence": "Because I was sick, I stayed home.",
+          "exampleTranslation": "因为我生病了，所以我待在家里。",
+          "position": 1
+        },
+        {
+          "label": "句尾原因模板",
+          "template": "{resultClause} because {reasonClause}.",
+          "slotHints": [
+            "先说主要信息，更像自然口语",
+            "because 后仍要接完整句子"
+          ],
+          "exampleSentence": "I stayed home because I was sick.",
+          "exampleTranslation": "我待在家里，因为我生病了。",
+          "position": 2
+        },
+        {
+          "label": "背景说明模板",
+          "template": "Since {reasonClause}, {resultClause}.",
+          "slotHints": [
+            "适合双方都知道或容易接受的理由",
+            "句首从句后通常加逗号"
+          ],
+          "exampleSentence": "Since it was late, we took a taxi.",
+          "exampleTranslation": "由于时间晚了，我们打了出租车。",
+          "position": 3
+        },
+        {
+          "label": "写作用较轻模板",
+          "template": "As {reasonClause}, {resultClause}.",
+          "slotHints": [
+            "适合较平稳、书面的说明",
+            "不要用来强调特别强烈、核心的原因"
+          ],
+          "exampleSentence": "As the weather was bad, the game was canceled.",
+          "exampleTranslation": "由于天气不好，比赛取消了。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "because-because-of",
+      "title": "because / because of",
+      "shortLabel": "Reason: clause vs noun",
+      "pattern": "because + clause / because of + noun",
+      "family": "reason_result",
+      "subtype": "form_choice_contrast",
+      "anchor": "because",
+      "coreExplanation": "because 用来接“完整原因句”，后面必须有主语+谓语，如 because it was raining。because of 用来接“名词性成分”，如名词、代词、动名词短语：because of the rain / because of being late。两者都常放在主句后说明原因，也可放句首，后面通常加逗号。",
+      "usageNote": "语气上 because 最直接、最常用，口语和写作都自然；because of 也很常见，适合把原因压缩成较短名词短语。适合解释原因、改写句子、做语法选择题。不适合把 because 后面只接一个名词，也不适合把 because of 后面接完整句子。放句首时，原因部分后通常加逗号；放句中时一般不加。初学者最安全的做法：先判断后面是不是“完整句子”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "explaining",
+        "rewriting",
+        "accuracy",
+        "解释原因",
+        "语法改写",
+        "写作纠错",
+        "考试选择",
+        "日常说明"
+      ],
+      "slotSchema": [
+        {
+          "key": "reasonClause",
+          "label": "原因从句",
+          "type": "clause",
+          "required": true,
+          "hint": "放在 because 后，必须是完整句子，通常有主语和动词。常错：只放名词，如 because rain。例：because it was late"
+        },
+        {
+          "key": "reasonNoun",
+          "label": "原因名词短语",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "放在 because of 后，可以是名词、代词或名词短语。常错：放完整句子，如 because of it was late。例：because of the traffic"
+        },
+        {
+          "key": "gerundReason",
+          "label": "动名词原因",
+          "type": "verb_ing",
+          "required": true,
+          "hint": "because of 后也可接动名词短语，表示某行为是原因。常错：写成 because of be late。例：because of missing the bus"
+        }
+      ],
+      "commonErrors": [
+        "× because the rain → 错在 because 后不能只接名词。√ because it was raining / √ because of the rain",
+        "× because of he was sick → 错在 because of 后不能接完整句子。√ because he was sick / √ because of his illness",
+        "× I stayed home because of it was snowing. → 错在 because of 后面是从句。改为 I stayed home because it was snowing.",
+        "× Because of was tired, I slept early. → 错在 because of 后缺少名词性成分。改为 Because I was tired, I slept early. / Because of my tiredness, I slept early.",
+        "× Because of late, I missed the train. → 错在 late 不是合适的名词短语。改为 Because I was late, I missed the train. / Because of being late, I missed the train.",
+        "× I went out, because it was sunny. → 错在主句后接 because 从句时一般不在 because 前随意加逗号。改为 I went out because it was sunny."
+      ],
+      "contrasts": [
+        {
+          "slug": "because-vs-since",
+          "title": "because vs since",
+          "note": "结构上都可接从句，但 because 更直接强调“原因”，since 常带“既然、大家已知”的感觉。场景上 because 更适合明确回答 why；since 稍正式或带前提感。对比：Because it was raining, we stayed in. / Since it was raining, we stayed in."
+        },
+        {
+          "slug": "because-vs-as",
+          "title": "because vs as",
+          "note": "结构上都接从句；as 通常语气更轻，常把原因当背景信息。场景上 because 更清楚、更安全；as 在句首写作里较常见。对比：Because I was tired, I left early. / As I was tired, I left early."
+        },
+        {
+          "slug": "because-of-vs-due-to",
+          "title": "because of vs due to",
+          "note": "结构上都常接名词短语，但 because of 更口语、更通用；due to 更书面，常见于正式写作。场景上初学者优先用 because of。对比：The game was canceled because of rain. / The cancellation was due to rain."
+        },
+        {
+          "slug": "because-of-vs-thanks-to",
+          "title": "because of vs thanks to",
+          "note": "结构上都可接名词短语；但 because of 只表示原因，中性；thanks to 常表示“多亏、由于”并带积极结果，有时也可讽刺。对比：We were late because of traffic. / We arrived early thanks to your help."
+        },
+        {
+          "slug": "because-vs-so",
+          "title": "because vs so",
+          "note": "结构上 because 引出原因，so 引出结果，不能直接互换。场景上回答“为什么”用 because；说明结果用 so。对比：I stayed home because I was sick. / I was sick, so I stayed home."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I stayed home because it was raining.",
+          "translation": "我待在家里，因为当时在下雨。",
+          "note": "最基础用法：because 后面是完整句子。",
+          "scene": "解释原因",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Because of the rain, I stayed home.",
+          "translation": "因为这场雨，我待在家里。",
+          "note": "句首位置；because of 后是名词短语，后面加逗号。",
+          "scene": "改写句子",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Because I was tired, I went to bed early.",
+          "translation": "因为我累了，所以我早早上床睡觉了。",
+          "note": "句首用 because 从句，适合清楚交代原因。",
+          "scene": "日常说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The meeting was canceled because of a power failure.",
+          "translation": "会议因停电而取消。",
+          "note": "较像书面说明；原因被压缩成名词短语。",
+          "scene": "写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "We left early because the traffic was getting worse.",
+          "translation": "我们早走了，因为交通越来越糟。",
+          "note": "这里不能换成 because of the traffic was getting worse。",
+          "scene": "比较辨析",
+          "isPrimary": false
+        },
+        {
+          "sentence": "She missed class because of being sick.",
+          "translation": "她因为生病没去上课。",
+          "note": "because of 后可接动名词短语，但初学者更常用 because she was sick。",
+          "scene": "日常说明",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "Subject + verb + because + subject + verb.",
+          "slotHints": [
+            "先说结果，再用 because 接完整原因句；确认 because 后有主语和动词。"
+          ],
+          "exampleSentence": "I stayed home because I felt sick.",
+          "exampleTranslation": "我待在家里，因为我觉得不舒服。",
+          "position": 1
+        },
+        {
+          "label": "句首原因模板",
+          "template": "Because + clause, main clause.",
+          "slotHints": [
+            "想先交代原因时使用；because 从句后通常加逗号。"
+          ],
+          "exampleSentence": "Because it was late, we took a taxi.",
+          "exampleTranslation": "因为晚了，我们打了出租车。",
+          "position": 1
+        },
+        {
+          "label": "名词原因模板",
+          "template": "Main clause + because of + noun phrase.",
+          "slotHints": [
+            "如果原因能说成名词短语，就用 because of；不要在后面放完整句子。"
+          ],
+          "exampleSentence": "The flight was delayed because of fog.",
+          "exampleTranslation": "航班因大雾而延误。",
+          "position": 1
+        },
+        {
+          "label": "写作压缩模板",
+          "template": "Because of + noun phrase, main clause.",
+          "slotHints": [
+            "写作中可先放较短原因；句首短语后通常加逗号。"
+          ],
+          "exampleSentence": "Because of heavy traffic, we arrived late.",
+          "exampleTranslation": "因为交通拥堵，我们迟到了。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "therefore-so-thats-why",
+      "title": "therefore / so / that's why",
+      "shortLabel": "result after reason",
+      "pattern": "therefore / so / that's why + result",
+      "family": "reason_result",
+      "subtype": "result_connector_contrast",
+      "anchor": "so",
+      "coreExplanation": "这个组表示“前面是原因，后面是结果”。so最常用，通常放在两个分句之间；therefore更正式，常放在句中并常有逗号；that’s why后面直接接结果性说明，常形成“That’s why + 完整句子/名词短语”。先说原因，再接这些结果连接词最自然。",
+      "usageNote": "so语气最中性、最适合口语和日常写作；therefore偏正式，常见于说明文、邮件、报告；that’s why很口语，也常用来总结前因后果。它们适合“已知原因→引出结果”的场景，不适合直接拿来引导原因。标点上，so前常有逗号；therefore前后常有逗号或分号；that’s why常在新句开头。初学者最安全：原因句, so + 结果句。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "cause-and-effect",
+        "conversation",
+        "formal-writing",
+        "解释因果",
+        "日常对话",
+        "邮件说明",
+        "正式写作",
+        "总结原因后果"
+      ],
+      "slotSchema": [
+        {
+          "key": "reason",
+          "label": "原因分句",
+          "type": "clause",
+          "required": true,
+          "hint": "放完整句子，说明原因。常见错误是只放名词短语。例：It was raining"
+        },
+        {
+          "key": "connector",
+          "label": "结果连接词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "可用so / therefore / that’s why。常见错误是把that’s why后面直接接动词原形。例：so"
+        },
+        {
+          "key": "result",
+          "label": "结果部分",
+          "type": "clause",
+          "required": true,
+          "hint": "通常放完整结果句。that’s why后面最安全也放完整句子。常见错误是把therefore后面接半句残缺结构。例：we stayed home"
+        }
+      ],
+      "commonErrors": [
+        "Because it was raining, so we stayed home.｜错因：because和so一般不一起用来连接同一组因果。｜改法：去掉一个：Because it was raining, we stayed home. / It was raining, so we stayed home.",
+        "It was raining, that's why stayed home.｜错因：that’s why后面缺主语，不是完整句。｜改法：It was raining. That’s why we stayed home.",
+        "He was sick, therefore he not come.｜错因：therefore后面的结果句不完整，时态和助动词缺失。｜改法：He was sick; therefore, he did not come.",
+        "Due to it was late, we left.｜错因：due to后面不能直接接完整从句。｜改法：Because it was late, we left. / Due to the late hour, we left.",
+        "I missed the bus. So. I was late.｜错因：so不能单独成句悬空使用。｜改法：I missed the bus, so I was late.",
+        "That's why because I was tired.｜错因：that’s why表示结果，不再接because引导原因。｜改法：I was tired. That’s why I went to bed early."
+      ],
+      "contrasts": [
+        {
+          "slug": "because-since-as",
+          "title": "vs because / since / as",
+          "note": "结构上，because/since/as后接原因；so/therefore/that’s why后接结果。语气上，because最直接，since/as较书面；so最口语。对比：Because I was tired, I left early. / I was tired, so I left early."
+        },
+        {
+          "slug": "because-of-due-to-thanks-to",
+          "title": "vs because of / due to / thanks to",
+          "note": "结构上，这组后接名词短语，不接完整句；本卡三项后面接结果句。语气上，due to更正式，thanks to常带积极结果。对比：Because of the rain, we stayed home. / It rained, so we stayed home."
+        },
+        {
+          "slug": "so-vs-therefore",
+          "title": "so vs therefore",
+          "note": "结构上，两者都接结果句；therefore前后更常配逗号或分号。语气上，so中性口语，therefore更正式。对比：It was late, so we left. / It was late; therefore, we left."
+        },
+        {
+          "slug": "so-vs-thats-why",
+          "title": "so vs that’s why",
+          "note": "结构上，so常放两分句之间；that’s why常另起一句，后接完整解释结果。语气上，that’s why更像“这就是为什么”。对比：I forgot my key, so I went back. / I forgot my key. That’s why I went back."
+        },
+        {
+          "slug": "therefore-vs-thus",
+          "title": "therefore vs thus",
+          "note": "结构上，两者都可引结果，但thus更书面、更少见于日常口语。语气上，therefore较正式但仍常见，thus更像论文风。对比：The road was closed; therefore, we turned back. / Thus, the plan failed."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "It was raining, so we stayed home.",
+          "translation": "下雨了，所以我们待在家里。",
+          "note": "最安全的基础句型：原因句, so + 结果句。",
+          "scene": "日常解释",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I forgot my wallet. That’s why I went back home.",
+          "translation": "我忘带钱包了，那就是为什么我回家了。",
+          "note": "that’s why常放在新句开头，总结前一句原因。",
+          "scene": "口语对话",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The data were incomplete; therefore, the conclusion was unreliable.",
+          "translation": "数据不完整，因此结论不可靠。",
+          "note": "正式写作中常用分号+therefore,+结果句。",
+          "scene": "正式写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "She was sick, so she didn’t come; she was sick. Therefore, she didn’t come.",
+          "translation": "她病了，所以她没来；她病了，因此她没来。",
+          "note": "内容相同，但后句更正式，适合比较语体差异。",
+          "scene": "语体对比",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The train was delayed, so I got to work late.",
+          "translation": "火车晚点了，所以我上班迟到了。",
+          "note": "非常常见的生活场景。",
+          "scene": "通勤",
+          "isPrimary": false
+        },
+        {
+          "sentence": "He didn’t study much. That’s why he failed the test.",
+          "translation": "他没怎么学习，这就是为什么他考试没通过。",
+          "note": "that’s why后面接结果句，表达“这就是……的原因”。",
+          "scene": "解释结果",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "[原因分句], so [结果分句].",
+          "slotHints": [
+            "前面放完整原因句；后面放完整结果句；so前常有逗号"
+          ],
+          "exampleSentence": "I was tired, so I went to bed early.",
+          "exampleTranslation": "我累了，所以我早早睡觉了。",
+          "position": 1
+        },
+        {
+          "label": "换位置总结模板",
+          "template": "[原因分句]. That’s why [结果分句].",
+          "slotHints": [
+            "先说原因，再另起一句用That’s why；后面最好放完整句"
+          ],
+          "exampleSentence": "I missed the bus. That’s why I was late.",
+          "exampleTranslation": "我错过了公交车，那就是为什么我迟到了。",
+          "position": 2
+        },
+        {
+          "label": "写作用正式模板",
+          "template": "[原因分句]; therefore, [结果分句].",
+          "slotHints": [
+            "适合邮件、报告、说明文；therefore前常用分号，后常加逗号"
+          ],
+          "exampleSentence": "The file was corrupted; therefore, we could not open it.",
+          "exampleTranslation": "文件损坏了，因此我们无法打开它。",
+          "position": 3
+        },
+        {
+          "label": "较短正式模板",
+          "template": "[原因分句]. Therefore, [结果分句].",
+          "slotHints": [
+            "想分成两句时可这样写；注意Therefore后通常加逗号"
+          ],
+          "exampleSentence": "The weather was bad. Therefore, the event was canceled.",
+          "exampleTranslation": "天气不好，因此活动取消了。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "due-to-because-of-thanks-to",
+      "title": "due to / because of / thanks to",
+      "shortLabel": "cause phrase + noun",
+      "pattern": "due to / because of / thanks to + noun",
+      "family": "reason_result",
+      "subtype": "cause_phrase_contrast",
+      "anchor": "because of",
+      "coreExplanation": "due to、because of、thanks to 都用来表示“原因”，后面通常接名词、代词或名词短语，不直接接完整句子。because of 最中性最常用；due to 偏正式，常见于书面通知、说明；thanks to 带“幸亏/多亏”这样的正面或带感谢色彩。它们常放在句中，也可置于句首，句首后通常加逗号。",
+      "usageNote": "because of 适合日常口语和一般写作，最安全；due to 语气更正式，常见于公告、邮件、报告，不太像轻松聊天；thanks to 通常用于好结果，或说话人把结果看成值得感谢，不适合明显负面结果。放句首时后面常用逗号，放句中时直接接原因短语。初学者先稳用 because of + 名词短语；如果后面是完整主谓句，要改成 because + 句子。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "formal-writing",
+        "announcements",
+        "positive-results",
+        "日常解释原因",
+        "正式通知或公告",
+        "表达积极结果",
+        "邮件与书面说明",
+        "对比口语和正式语气"
+      ],
+      "slotSchema": [
+        {
+          "key": "cause",
+          "label": "原因名词短语",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "这里放名词、代词或短语，如 the rain, traffic, your help。常错：后面直接放完整句子 ×because of it was late；应改为 because it was late / because of the delay。例：because of the rain"
+        },
+        {
+          "key": "result",
+          "label": "结果分句",
+          "type": "clause",
+          "required": true,
+          "hint": "这里放完整结果句，如 we stayed home。常错：只有名词没有谓语，句子不完整。例：We stayed home because of the rain."
+        },
+        {
+          "key": "chooser",
+          "label": "原因短语选择",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "在 because of / due to / thanks to 中选。常错：把 thanks to 用在明显坏结果上。例：Thanks to your help, we finished early."
+        }
+      ],
+      "commonErrors": [
+        "× because of he was sick → 错在 because of 后面不能直接接完整句子；改为 because he was sick / because of his illness。",
+        "× due to of the rain → 错在 due to 本身已含 to，后面不加 of；改为 due to the rain。",
+        "× thanks to the heavy traffic, I was late for the exam → 语义别扭，thanks to 通常带正面或感谢色彩；改为 because of/due to the heavy traffic。",
+        "× Because of, we canceled the trip. → 错在 because of 后面缺少原因名词短语；改为 Because of the storm, we canceled the trip.。",
+        "× The game was canceled because of was raining. → 错在 because of 后面用了动词结构；改为 because it was raining / because of the rain。",
+        "× Due to I missed the bus, I was late. → 错在 due to 后面不能直接接从句；改为 Because I missed the bus, I was late. / Due to missing the bus, I was late.。"
+      ],
+      "contrasts": [
+        {
+          "slug": "because-vs-because-of",
+          "title": "because + clause vs because of + noun",
+          "note": "结构区别：because 后接完整句子，because of 后接名词短语。语气上 because 更直接，because of 在名词化表达里很常见。对比：I stayed home because it rained. / I stayed home because of the rain."
+        },
+        {
+          "slug": "due-to-vs-because-of",
+          "title": "due to vs because of",
+          "note": "结构上两者后面都常接名词短语，但 due to 更正式，更常见于通知、报告、说明；because of 更中性，口语最自然。对比：The event was canceled due to bad weather. / We canceled the picnic because of the rain."
+        },
+        {
+          "slug": "thanks-to-vs-because-of",
+          "title": "thanks to vs because of",
+          "note": "结构上都接名词短语；语气和场景不同：thanks to 通常表示正面原因或感谢意味，because of 只表示原因，不带褒义。对比：Thanks to your advice, I passed. / Because of your advice, I changed my plan."
+        },
+        {
+          "slug": "cause-phrase-vs-result-linker",
+          "title": "because of/due to vs therefore/so/that's why",
+          "note": "前者先给原因短语，后者用来引出结果。结构不同：because of + 名词；therefore/so/that's why + 结果句。对比：Because of the snow, school closed. / It snowed heavily, so school closed."
+        },
+        {
+          "slug": "sentence-initial-vs-mid-sentence",
+          "title": "sentence-initial vs mid-sentence position",
+          "note": "这三个短语都可句首或句中。句首更像先交代背景，书面感稍强；句中更口语、更直接。句首后通常加逗号。对比：Because of the noise, I couldn't sleep. / I couldn't sleep because of the noise."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "We stayed home because of the rain.",
+          "translation": "因为下雨，我们待在家里。",
+          "note": "最安全、最常用的基础用法。",
+          "scene": "日常解释原因",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Because of the noise, I couldn't sleep.",
+          "translation": "因为噪音，我睡不着。",
+          "note": "句首位置；后面通常加逗号。",
+          "scene": "句首交代原因",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The meeting was postponed due to technical issues.",
+          "translation": "会议因技术问题而延期。",
+          "note": "正式、书面、公告感更强。",
+          "scene": "正式通知",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Thanks to your help, we finished the project on time.",
+          "translation": "多亏了你的帮助，我们按时完成了项目。",
+          "note": "表示正面结果，带感谢色彩。",
+          "scene": "表达积极结果",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I missed the train because of the traffic, not because I left late.",
+          "translation": "我误了火车是因为堵车，不是因为我出门晚。",
+          "note": "用于和 because + 从句做清楚对比。",
+          "scene": "比较不同原因表达",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Due to rain, the school sports day will be held indoors.",
+          "translation": "由于下雨，学校运动会将在室内举行。",
+          "note": "公告或通知里很自然。",
+          "scene": "校园公告",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全入门模板",
+          "template": "[Result] because of [Cause].",
+          "slotHints": [
+            "[Result] 放完整结果句",
+            "[Cause] 放名词短语，如 the rain / traffic / my illness"
+          ],
+          "exampleSentence": "We were late because of the traffic.",
+          "exampleTranslation": "我们因为堵车迟到了。",
+          "position": 1
+        },
+        {
+          "label": "句首原因模板",
+          "template": "Because of [Cause], [Result].",
+          "slotHints": [
+            "[Cause] 放名词短语，句首后加逗号",
+            "[Result] 放完整句子"
+          ],
+          "exampleSentence": "Because of the storm, the flight was canceled.",
+          "exampleTranslation": "因为暴风雨，航班取消了。",
+          "position": 2
+        },
+        {
+          "label": "正式写作模板",
+          "template": "[Result] due to [Cause].",
+          "slotHints": [
+            "适合通知、报告、邮件",
+            "[Cause] 用较正式的名词短语，如 technical issues / bad weather"
+          ],
+          "exampleSentence": "The event was canceled due to bad weather.",
+          "exampleTranslation": "活动因天气恶劣而取消。",
+          "position": 3
+        },
+        {
+          "label": "积极结果模板",
+          "template": "Thanks to [Cause], [Result].",
+          "slotHints": [
+            "[Cause] 通常是帮助、努力、好条件等",
+            "[Result] 通常是好结果，不要配明显坏结果"
+          ],
+          "exampleSentence": "Thanks to your support, I felt much calmer.",
+          "exampleTranslation": "多亏你的支持，我冷静多了。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "although-though-even-though",
+      "title": "although / though / even though",
+      "shortLabel": "concession with a clause",
+      "pattern": "although / though / even though + clause",
+      "family": "concession_contrast",
+      "subtype": "concession_strength_contrast",
+      "anchor": "although",
+      "coreExplanation": "although、though、even though都用来表示“虽然……但是……”，后面必须接完整从句（主语+谓语），不能直接接名词。它们常放在句首引出让步，也能放在句中连接前后两部分。even though语气最强，though最口语。",
+      "usageNote": "语体上，although较中性偏书面，though更口语，even though用于强调“尽管事实如此”。适合表达转折、承认事实后再说结果，常见于对话、说明、写作。不适合后面只放名词短语；那时应用despite/in spite of。句首后通常加逗号，句中一般不加。初学者最安全：Although/Though + 从句, 主句。不要再在主句前加but。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "contrast",
+        "conversation",
+        "writing",
+        "日常对话里的转折",
+        "作文中承认事实后补充观点",
+        "解释结果与预期不同",
+        "比较强弱语气",
+        "句首让步表达"
+      ],
+      "slotSchema": [
+        {
+          "key": "concessiveLinker",
+          "label": "让步连接词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "可用although / though / even though。常见错误是随便互换语气：even though强调更强。例：Even though it was late, we kept working."
+        },
+        {
+          "key": "concessiveClause",
+          "label": "让步从句",
+          "type": "clause",
+          "required": true,
+          "hint": "这里要放完整从句，要有主语和谓语。常见错误是只放名词，如× although the rain。例：although it was raining"
+        },
+        {
+          "key": "mainClause",
+          "label": "主句",
+          "type": "clause",
+          "required": true,
+          "hint": "主句写真正想表达的结果或态度。常见错误是再加but：× Although..., but.... 例：we went out"
+        },
+        {
+          "key": "tailThough",
+          "label": "句尾though",
+          "type": "fixed_chunk",
+          "required": false,
+          "hint": "though还可单独放句尾，表示“不过/可是”。常见错误是although放句尾。例：I liked it. It was expensive, though."
+        }
+      ],
+      "commonErrors": [
+        "× Although the rain, we went out. → 错在although后不能直接接名词。√ Although it was raining, we went out. / √ Despite the rain, we went out.",
+        "× Although he was tired, but he kept studying. → 错在although已经表示转折，主句前通常不再加but。√ Although he was tired, he kept studying.",
+        "× Even though for two hours, he waited. → 错在even though后缺少完整从句。√ Even though he waited for two hours, he stayed calm.",
+        "× I didn’t go, although. → 错在although一般不能像though那样单独放句尾。√ I didn’t go, though.",
+        "× Although it was cheap. I didn’t buy it. → 错在把从句单独断成句，结构不完整。√ Although it was cheap, I didn’t buy it.",
+        "× Though formal report, the results are useful. → 错在though后不是完整从句。√ Though the report is formal, the results are useful."
+      ],
+      "contrasts": [
+        {
+          "slug": "although-vs-despite",
+          "title": "although vs despite / in spite of",
+          "note": "结构不同：although后接从句；despite/in spite of后接名词或动名词。语气都可中性。对比：Although he was sick, he came. / Despite his illness, he came."
+        },
+        {
+          "slug": "although-vs-but",
+          "title": "although vs but",
+          "note": "结构不同：although引导从句，but连接两个并列部分。although常放句首或句中；but更直接口语。不要同句重复：√ Although it rained, we went out. / √ It rained, but we went out."
+        },
+        {
+          "slug": "although-vs-however",
+          "title": "although vs however",
+          "note": "结构不同：although后直接接从句；however多作连接副词，常另起分句并配标点。however更书面。对比：Although he is young, he is calm. / He is young; however, he is calm."
+        },
+        {
+          "slug": "although-vs-while-whereas",
+          "title": "although vs while / whereas",
+          "note": "结构不同：although表示“虽然”；while/whereas更常作对比两种情况。while可较中性，whereas更书面。对比：Although it was hard, I finished it. / Whereas Tom is quiet, Ben is talkative."
+        },
+        {
+          "slug": "though-vs-even-though",
+          "title": "though vs even though",
+          "note": "结构相近，都接从句；但even though让步更强，更强调“尽管事实如此”。though更轻、更口语，还能放句尾。对比：Though I was busy, I called. / Even though I was busy, I called."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Although it was raining, we went for a walk.",
+          "translation": "虽然在下雨，我们还是去散步了。",
+          "note": "最安全基础句型：句首让步从句 + 逗号 + 主句。",
+          "scene": "日常计划",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I went for a walk although it was raining.",
+          "translation": "虽然在下雨，我还是去散步了。",
+          "note": "同一意思也可把although从句放句末，句中一般不加逗号。",
+          "scene": "口语叙述",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Although the data are limited, the report offers a useful overview.",
+          "translation": "虽然数据有限，这份报告还是提供了有用的概览。",
+          "note": "although常见于说明文和较正式写作。",
+          "scene": "学术/写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Even though he apologized, she was still upset.",
+          "translation": "尽管他道歉了，她还是很难过。",
+          "note": "even though比although/though更强调“即使事实已经如此”。",
+          "scene": "情感表达",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Though I was tired, I finished my homework.",
+          "translation": "虽然我很累，我还是完成了作业。",
+          "note": "though更口语，语气比even though轻。",
+          "scene": "学习生活",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The movie was too long. I liked it, though.",
+          "translation": "这部电影太长了，不过我还是喜欢。",
+          "note": "只有though能自然地放在句尾，表示补充转折。",
+          "scene": "聊天评价",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "Although/Though + 从句, + 主句",
+          "slotHints": [
+            "前面放完整让步从句",
+            "后面放真实结果，不要再加but"
+          ],
+          "exampleSentence": "Although she was nervous, she gave the presentation well.",
+          "exampleTranslation": "虽然她很紧张，她还是把展示做得很好。",
+          "position": 1
+        },
+        {
+          "label": "句末从句模板",
+          "template": "主句 + although/though + 从句",
+          "slotHints": [
+            "先说主要信息",
+            "句中连接时通常不加逗号"
+          ],
+          "exampleSentence": "We kept talking though it was very late.",
+          "exampleTranslation": "虽然已经很晚了，我们还是继续聊天。",
+          "position": 2
+        },
+        {
+          "label": "强让步强调模板",
+          "template": "Even though + 从句, + 主句",
+          "slotHints": [
+            "用于强调“尽管事实明确如此”",
+            "适合表达意外结果"
+          ],
+          "exampleSentence": "Even though the test was difficult, he stayed calm.",
+          "exampleTranslation": "尽管考试很难，他还是保持冷静。",
+          "position": 3
+        },
+        {
+          "label": "句尾though模板",
+          "template": "陈述句. + 另一句, though.",
+          "slotHints": [
+            "只适用于though",
+            "表示“不过/可是”，很口语"
+          ],
+          "exampleSentence": "It was expensive. I bought it, though.",
+          "exampleTranslation": "它很贵，不过我还是买了。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "although-despite-in-spite-of",
+      "title": "although / despite / in spite of",
+      "shortLabel": "concession: clause vs noun phrase",
+      "pattern": "although + clause / despite + noun / in spite of + noun",
+      "family": "concession_contrast",
+      "subtype": "clause_vs_phrase_contrast",
+      "anchor": "although",
+      "coreExplanation": "这个结构用来表达“虽然/尽管……，但是……”。although后面必须接完整从句，至少有主语和谓语；despite和in spite of后面接名词、代词或动名词，不能直接接完整句子。它们常放在句首引出让步，也可放在主句后作补充。",
+      "usageNote": "语气上，although中性、很常用；despite和in spite of更像书面连接，写作里很自然。适合比较、解释结果与预期不一致、改写句子。口语里也能用，但随便聊天时though更轻松。句首后通常加逗号，句中一般不加。初学者先记住：although+完整句；despite/in spite of+名词或V-ing，别把两种结构混在一起。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "rewriting",
+        "writing",
+        "accuracy",
+        "句型改写",
+        "作文对比",
+        "考试纠错",
+        "表达让步",
+        "书面说明"
+      ],
+      "slotSchema": [
+        {
+          "key": "concessionClause",
+          "label": "让步从句",
+          "type": "clause",
+          "required": true,
+          "hint": "放在although后，必须是完整句子：有主语+谓语。常错：although the rain。应说although it was raining。例：although she was tired"
+        },
+        {
+          "key": "concessionPhrase",
+          "label": "让步短语",
+          "type": "custom",
+          "required": true,
+          "hint": "放在despite/in spite of后，可用名词、代词或动名词。常错：despite he was tired。应说despite his tiredness / despite being tired。例：despite the rain"
+        },
+        {
+          "key": "mainClause",
+          "label": "主句",
+          "type": "clause",
+          "required": true,
+          "hint": "写主要结果或事实，通常与前面形成“出乎预期”的对比。常错：只写前半句没有结果。例：we went out anyway"
+        }
+      ],
+      "commonErrors": [
+        "despite he was tired：错在despite后不能直接接完整句子；改为although he was tired，或despite being tired。",
+        "although the rain was heavy? 不对，若写although后面必须是完整句子，但the rain was heavy本身是完整句子，其真正常错是although the heavy rain；改为although it rained heavily，或despite the heavy rain。",
+        "in spite of she arrived late：错在in spite of后不能直接接从句；改为although she arrived late，或in spite of arriving late。",
+        "Although..., but...：英语里一般不把although和but并用，因为两者都表示转折；改为Although it was cold, we went out. 或It was cold, but we went out.",
+        "despite of the cost：错在despite后面不加of；只有in spite of有of。改为despite the cost / in spite of the cost。",
+        "although being tired：通常不自然，因为although最稳妥的是接完整从句；初学者改成although she was tired，或despite being tired。"
+      ],
+      "contrasts": [
+        {
+          "slug": "although-though-even-though",
+          "title": "although vs though vs even though",
+          "note": "结构上三者都接完整从句；语气上though更口语，even though让步更强更强调事实。比较：Although it was late, we stayed. / Even though it was late, we stayed. 后者“尽管确实很晚了”更强。"
+        },
+        {
+          "slug": "despite-in-spite-of",
+          "title": "despite vs in spite of",
+          "note": "结构上都接名词、代词或V-ing；意思几乎一样。语气上despite更简洁，常见于写作；in spite of稍长。比较：despite the rain = in spite of the rain。初学者按固定搭配记。"
+        },
+        {
+          "slug": "even-if-vs-even-though",
+          "title": "even if vs even though",
+          "note": "结构上都接从句；但even if表示假设条件，even though表示真实让步。场景不同：计划/假设用even if，说明事实用even though。比较：Even if it rains, we’ll go. / Even though it rained, we went."
+        },
+        {
+          "slug": "but-however",
+          "title": "although/despite vs but/however",
+          "note": "although/despite把“让步信息”放进从属结构里；but/however是并列或句间转折。写作时however更正式，前后常有标点。比较：Although he was tired, he worked. / He was tired, but he worked."
+        },
+        {
+          "slug": "while-whereas",
+          "title": "although/despite vs while/whereas",
+          "note": "although/despite强调“尽管如此仍然”；while/whereas更常用于对照两种情况。语气上whereas更书面。比较：Although she is young, she is experienced. / Whereas she is young, her manager is older. 后句是对比，不是让步。"
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Although it was raining, we went for a walk.",
+          "translation": "虽然在下雨，我们还是去散步了。",
+          "note": "最核心用法：although后接完整从句。",
+          "scene": "基础让步",
+          "isPrimary": true
+        },
+        {
+          "sentence": "We went for a walk although it was raining.",
+          "translation": "虽然在下雨，我们还是去散步了。",
+          "note": "although从句也可放句末，句中通常不加逗号。",
+          "scene": "句中位置",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Despite the heavy rain, the game continued.",
+          "translation": "尽管雨很大，比赛还是继续了。",
+          "note": "despite后接名词短语。",
+          "scene": "书面说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "In spite of being tired, she finished the report.",
+          "translation": "尽管很累，她还是完成了报告。",
+          "note": "in spite of后可接动名词。",
+          "scene": "写作表达",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Although he was inexperienced, he did the job well.",
+          "translation": "虽然他经验不足，但工作做得很好。",
+          "note": "和despite his lack of experience可互改，注意结构变化。",
+          "scene": "对比改写",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Despite the traffic, I got to class on time.",
+          "translation": "尽管路上堵车，我还是准时到了课上。",
+          "note": "日常场景里也很自然。",
+          "scene": "日常通勤",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "安全初学者模板",
+          "template": "Although {concessionClause}, {mainClause}.",
+          "slotHints": [
+            "{concessionClause}写完整句子，不要只写名词",
+            "{mainClause}写结果，常与预期相反"
+          ],
+          "exampleSentence": "Although I was nervous, I answered the question.",
+          "exampleTranslation": "虽然我很紧张，我还是回答了那个问题。",
+          "position": 1
+        },
+        {
+          "label": "短语型替换模板",
+          "template": "Despite/In spite of {concessionPhrase}, {mainClause}.",
+          "slotHints": [
+            "{concessionPhrase}可用名词、代词或V-ing，不可直接用完整句子",
+            "{mainClause}写主要结果"
+          ],
+          "exampleSentence": "Despite the noise, I fell asleep.",
+          "exampleTranslation": "尽管很吵，我还是睡着了。",
+          "position": 2
+        },
+        {
+          "label": "句末位置模板",
+          "template": "{mainClause} although {concessionClause}.",
+          "slotHints": [
+            "主句先说重点，后面补充让步信息",
+            "although后仍然必须是完整句子"
+          ],
+          "exampleSentence": "She kept smiling although she was upset.",
+          "exampleTranslation": "虽然她心里难过，她还是一直在微笑。",
+          "position": 3
+        },
+        {
+          "label": "写作用模板",
+          "template": "Despite/In spite of {concessionPhrase}, {mainClause}.",
+          "slotHints": [
+            "适合作文、报告、正式说明",
+            "句首短语后通常加逗号"
+          ],
+          "exampleSentence": "In spite of limited resources, the team achieved good results.",
+          "exampleTranslation": "尽管资源有限，团队还是取得了不错的结果。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "but-however-yet-still",
+      "title": "but / however / yet / still",
+      "shortLabel": "Contrast connectors",
+      "pattern": "but / however / yet / still",
+      "family": "concession_contrast",
+      "subtype": "contrast_connector_contrast",
+      "anchor": "but",
+      "coreExplanation": "这组词都用来表示“转折/对比”，把前后两个信息连起来，但位置和语气不同。but最常放在句中连接两个分句；however常放句首或分号后，后面通常有逗号；yet多放句中，表示“尽管如此仍然”；still可放句首或主语前，强调“还是、依然”。",
+      "usageNote": "but最中性，口语和写作都常用；however更正式，适合邮件、报告、作文；yet带一点“出乎意料仍如此”的感觉；still更像说话人补充“即便这样也还是”。日常对话优先先学but和still，写作中再多用however。不要把however直接当and那样随便连两个完整句；放句首后常加逗号，放句中前面常有分号。初学者最安全：句子1, but 句子2。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "contrast",
+        "conversation",
+        "essay-writing",
+        "日常对话转折",
+        "作文与邮件",
+        "表达意外结果",
+        "比较两种情况",
+        "让步后补充观点"
+      ],
+      "slotSchema": [
+        {
+          "key": "clause1",
+          "label": "前一分句",
+          "type": "clause",
+          "required": true,
+          "hint": "放一个完整意思的分句。常见错误：只放单个词，导致but/however后面不平衡。例：I was tired"
+        },
+        {
+          "key": "connector",
+          "label": "转折连接词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "可用but/however/yet/still。常见错误：把however当并列连词直接无标点连接两个完整句。例：but / However, / yet / Still,"
+        },
+        {
+          "key": "clause2",
+          "label": "后一分句",
+          "type": "clause",
+          "required": true,
+          "hint": "放与前文形成转折的完整分句。常见错误：内容不是转折而是并列，听起来不自然。例：I finished the work"
+        },
+        {
+          "key": "position",
+          "label": "位置格式",
+          "type": "custom",
+          "required": true,
+          "hint": "安全格式：A, but B.；A; however, B.；A, yet B.；A. Still, B. 常见错误：句首however后忘逗号。例：However, I went anyway."
+        }
+      ],
+      "commonErrors": [
+        "I was tired however I went out.｜错因：however通常不能像but一样直接无标点连接两个完整句。｜改法：I was tired, but I went out. / I was tired; however, I went out.",
+        "Although it was late, but I kept working.｜错因：although已经表示让步，后面通常不再加but。｜改法：Although it was late, I kept working. / It was late, but I kept working.",
+        "He is rich, still he is unhappy.｜错因：still连接完整句时更自然写成独立句或放主语前，逗号连接偏随意。｜改法：He is rich, but he is unhappy. / He is rich. Still, he is unhappy.",
+        "I studied hard, however I failed.｜错因：句首/插入式however后常要逗号，句中连接两个独立分句前常用分号。｜改法：I studied hard; however, I failed.",
+        "Yet I don’t know him well, but I trust him.｜错因：yet和but重复表达同一层转折，结构累赘。｜改法：Yet I trust him. / I don’t know him well, but I trust him.",
+        "We went shopping, however to buy food.｜错因：however后面需要完整分句，不接不完整目的短语。｜改法：We went shopping, but only to buy food. / We went shopping; however, we didn’t buy much food."
+      ],
+      "contrasts": [
+        {
+          "slug": "but-vs-however",
+          "title": "but vs however",
+          "note": "结构上，but直接连接两个分句最方便；however常放句首或分号后，更像“然而”。语气上，but更口语中性，however更正式。对比：I was busy, but I replied. / I was busy; however, I replied."
+        },
+        {
+          "slug": "but-vs-yet",
+          "title": "but vs yet",
+          "note": "结构上两者都可连分句；语气上，yet更强调“出乎预期仍然如此”，比but更有反差感。场景上，but最通用，yet多见于书面或较讲究表达。对比：It’s simple, but useful. / It’s simple, yet effective."
+        },
+        {
+          "slug": "yet-vs-still",
+          "title": "yet vs still",
+          "note": "结构上，yet常作连接词连前后分句；still更常作副词放句首或主语前。语气上，yet偏书面转折，still偏说话人坚持原判断。对比：He knew the risk, yet he went. / He knew the risk. Still, he went."
+        },
+        {
+          "slug": "however-vs-although",
+          "title": "however vs although",
+          "note": "结构上，however连接两个独立陈述；although引导从句，后面必须接完整从句。场景上，however适合句与句之间转折，although适合先让步再说主句。对比：It was raining; however, we left. / Although it was raining, we left."
+        },
+        {
+          "slug": "but-vs-while-whereas",
+          "title": "but vs while/whereas",
+          "note": "结构上，but强调单纯转折；while/whereas更常用于平行比较两种情况。语气上，whereas更正式。对比：I like tea, but he likes coffee. / I like tea, whereas he likes coffee."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I was tired, but I kept studying.",
+          "translation": "我很累，但我还是继续学习。",
+          "note": "最安全、最常用的基础转折句型。",
+          "scene": "学习对话",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I was tired; however, I kept studying.",
+          "translation": "我很累；然而，我还是继续学习。",
+          "note": "同样意思，但更像书面表达。",
+          "scene": "作文写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The plan is simple, yet effective.",
+          "translation": "这个计划很简单，却很有效。",
+          "note": "yet突出“简单但出乎意料地有效”。",
+          "scene": "评价事物",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It was raining. Still, we went for a walk.",
+          "translation": "那时在下雨。尽管如此，我们还是去散步了。",
+          "note": "still放句首，像补充“即便这样也还是”。",
+          "scene": "日常叙述",
+          "isPrimary": false
+        },
+        {
+          "sentence": "He is very young, but he is already a good teacher.",
+          "translation": "他很年轻，但已经是一位好老师了。",
+          "note": "适合体会but的中性转折，与yet相比惊讶感更弱。",
+          "scene": "人物评价",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The method has some limits; however, it is still useful in practice.",
+          "translation": "这种方法有一些局限；不过，它在实践中仍然有用。",
+          "note": "同时看到however和still：however连转折，still表示“仍然”。",
+          "scene": "学术或说明文",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全基础模板",
+          "template": "[clause1], but [clause2].",
+          "slotHints": [
+            "前后都放完整分句",
+            "but前常有逗号",
+            "后一分句要有明显转折"
+          ],
+          "exampleSentence": "I wanted to go, but I was too busy.",
+          "exampleTranslation": "我想去，但我太忙了。",
+          "position": 1
+        },
+        {
+          "label": "正式写作模板",
+          "template": "[clause1]; however, [clause2].",
+          "slotHints": [
+            "前后都放完整句",
+            "however前常用分号，后常用逗号",
+            "适合作文、邮件、报告"
+          ],
+          "exampleSentence": "The idea sounds risky; however, it may work.",
+          "exampleTranslation": "这个想法听起来有风险；不过，它可能行得通。",
+          "position": 2
+        },
+        {
+          "label": "意外反差模板",
+          "template": "[clause1], yet [clause2].",
+          "slotHints": [
+            "后一分句常是出乎预料的结果",
+            "比but更有“却”感",
+            "不要再和but一起用"
+          ],
+          "exampleSentence": "The room is small, yet comfortable.",
+          "exampleTranslation": "这个房间很小，却很舒服。",
+          "position": 3
+        },
+        {
+          "label": "补充坚持观点模板",
+          "template": "[sentence1]. Still, [clause2].",
+          "slotHints": [
+            "先说事实，再用Still补充“尽管如此”",
+            "Still后常加逗号",
+            "适合口语和叙述"
+          ],
+          "exampleSentence": "I was nervous. Still, I gave the talk.",
+          "exampleTranslation": "我当时很紧张。尽管如此，我还是做了演讲。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "while-whereas",
+      "title": "while / whereas",
+      "shortLabel": "contrast two facts",
+      "pattern": "while / whereas + clause",
+      "family": "concession_contrast",
+      "subtype": "comparison_clause_contrast",
+      "anchor": "while",
+      "coreExplanation": "while / whereas 用来把两个事实、情况或特点并列对比，意思接近“而、却、相比之下”。后面必须接完整从句（有主语+谓语）。它常放句首引出第一组对比，也可放句中连接前后两部分；whereas通常更书面。",
+      "usageNote": "语气以中性到较正式为主，适合比较数据、观点、两类人或两种情况，如作文、报告、分析说明。日常口语里 while 偶尔这样用，但 whereas 较少口语化。不适合只想简单转折一下的随意短句，那时常用 but。放句首时后面常加逗号；放句中时，前面通常先有一完整分句。初学者先安全使用“A..., while B...”即可。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "comparison",
+        "formal-writing",
+        "analysis",
+        "比较两个人或两物",
+        "作文分析对照",
+        "图表数据描述",
+        "说明两种观点",
+        "正式书面比较"
+      ],
+      "slotSchema": [
+        {
+          "key": "clause1",
+          "label": "第一对比从句",
+          "type": "clause",
+          "required": true,
+          "hint": "放完整从句：主语+谓语，如 Some students prefer studying alone。常见错误是只放名词短语。例：My brother likes tea"
+        },
+        {
+          "key": "linker",
+          "label": "连接词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "用 while 或 whereas。常见错误是把表示时间的 while 和对比用法混淆；如果意思是“当……时候”，就不是这张卡的用法。例：while"
+        },
+        {
+          "key": "clause2",
+          "label": "第二对比从句",
+          "type": "clause",
+          "required": true,
+          "hint": "也要放完整从句，与前面形成清楚对照。常见错误是省掉谓语或只写形容词。例：my sister prefers coffee"
+        },
+        {
+          "key": "positionChunk",
+          "label": "位置形式",
+          "type": "custom",
+          "required": true,
+          "hint": "常见两种：While/Whereas + 从句, 从句；或 从句 + while/whereas + 从句。常见错误是句首用了连接词却忘了逗号。例：While Tom works fast, Anna works carefully"
+        }
+      ],
+      "commonErrors": [
+        "wrong: whereas the older group more active → 错在 whereas 后面不是完整从句，缺少谓语。应改为: whereas the older group is more active",
+        "wrong: I like tea, whereas coffee. → 错在后半部分只有名词，没有完整陈述。应改为: I like tea, whereas my brother likes coffee.",
+        "wrong: While I was walking, my sister likes music. → 这里前半句是时间“当……时”，后半句却在做对比，逻辑混乱。要么都写时间关系，要么改成对比：While I like pop music, my sister likes jazz.",
+        "wrong: Whereas he is rich. He is unhappy. → 错在把从属连词 whereas 单独成句。应把两部分连在一起：Whereas he is rich, he is unhappy. 或 He is rich, whereas he is unhappy 不自然，最好改成 He is rich, but he is unhappy.",
+        "wrong: But some students study at night, whereas others in the morning. → 错在 others 后省略过头，初学者容易写成残缺结构。应改为: But some students study at night, whereas others study in the morning.",
+        "wrong: While, city life is convenient, country life is quieter. → 错在 while 后面多了不该有的逗号，打断从句。应改为: While city life is convenient, country life is quieter."
+      ],
+      "contrasts": [
+        {
+          "slug": "but-however",
+          "title": "vs but / however",
+          "note": "结构上 while/whereas 后必须接完整从句；but 连接并列内容更灵活，however 常作副词单独插入。语气上 while/whereas 更像“并列对照”，较分析性；but 更日常直接。对比：Tom is outgoing, while Anna is quiet. / Tom is outgoing, but Anna is quiet."
+        },
+        {
+          "slug": "although-though",
+          "title": "vs although / though",
+          "note": "结构上二者都接从句，但 although/though 重点是“虽然……但是……”的让步；while/whereas 重点是“两相对照”。场景上 although 常表示出乎预期，while 更适合客观比较。对比：Although he is young, he is experienced. / While he is young, his manager is older."
+        },
+        {
+          "slug": "despite-in-spite-of",
+          "title": "vs despite / in spite of",
+          "note": "结构上 despite/in spite of 后接名词、代词或动名词，不接完整从句；while/whereas 后接完整从句。语义上 despite 表让步，while 表对比。对比：Despite his age, he runs fast. / While he is old, he is still active 不自然，若想让步应用 although/despite。"
+        },
+        {
+          "slug": "while-time",
+          "title": "vs time-meaning while",
+          "note": "结构相同，都可接从句，但一个表示对比，一个表示时间“当……时”。场景上时间 while 常用于动作同时发生；对比 while 常用于比较两种事实。最小对比：While I was cooking, he called.（时间）/ While I enjoy cooking, he prefers eating out.（对比）"
+        },
+        {
+          "slug": "whereas-formality",
+          "title": "while vs whereas",
+          "note": "结构上都接从句，都可句首或句中；语气上 whereas 更正式、更常见于论文报告，while 更常见也更自然。比较：While online classes are flexible, in-person classes offer more interaction. / Whereas online classes are flexible, in-person classes offer more interaction."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "My father likes hot weather, while my mother prefers cool weather.",
+          "translation": "我爸爸喜欢炎热的天气，而我妈妈更喜欢凉爽的天气。",
+          "note": "最基础的并列对比模板。",
+          "scene": "家庭偏好比较",
+          "isPrimary": true
+        },
+        {
+          "sentence": "While some students study best in the morning, others work better at night.",
+          "translation": "有些学生早上学习效率最高，而另一些学生晚上效果更好。",
+          "note": "句首用法；while 从句后加逗号。",
+          "scene": "学习习惯比较",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Whereas the first plan reduces costs, the second plan improves quality.",
+          "translation": "第一种方案降低成本，而第二种方案提高质量。",
+          "note": "较正式，适合报告或分析写作。",
+          "scene": "正式方案分析",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Although this phone is cheaper, that one has a better camera, whereas this one has longer battery life.",
+          "translation": "虽然这部手机更便宜，但那部手机摄像头更好，而这部手机的续航更长。",
+          "note": "展示它和 although 可同句共存，但作用不同：although 表让步，whereas 表对比。",
+          "scene": "商品比较",
+          "isPrimary": false
+        },
+        {
+          "sentence": "City apartments are usually smaller, while houses in the suburbs offer more space.",
+          "translation": "城市公寓通常更小，而郊区的房子空间更大。",
+          "note": "适合客观比较两类事物。",
+          "scene": "住房比较",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I like to plan everything in advance, while my roommate is more spontaneous.",
+          "translation": "我喜欢提前把一切都计划好，而我的室友更随性。",
+          "note": "日常表达中 while 比 whereas 更自然。",
+          "scene": "室友性格对比",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全基础模板",
+          "template": "A + 谓语..., while B + 谓语...",
+          "slotHints": [
+            "A、B 放主语；两边都写完整从句，不要只写名词。"
+          ],
+          "exampleSentence": "My sister enjoys reading, while my brother prefers sports.",
+          "exampleTranslation": "我姐姐喜欢阅读，而我哥哥更喜欢运动。",
+          "position": 1
+        },
+        {
+          "label": "句首对比模板",
+          "template": "While/Whereas A + 谓语..., B + 谓语...",
+          "slotHints": [
+            "句首从句后加逗号；适合先提出第一项，再说第二项。"
+          ],
+          "exampleSentence": "While some people save money carefully, others spend it freely.",
+          "exampleTranslation": "有些人仔细存钱，而另一些人花钱很随意。",
+          "position": 2
+        },
+        {
+          "label": "写作分析模板",
+          "template": "Whereas A + shows/has/is..., B + shows/has/is...",
+          "slotHints": [
+            "适合图表、报告、议论文；whereas 语气更正式。"
+          ],
+          "exampleSentence": "Whereas rural areas have fewer jobs, cities offer more opportunities.",
+          "exampleTranslation": "农村地区工作较少，而城市提供更多机会。",
+          "position": 3
+        },
+        {
+          "label": "数据对照模板",
+          "template": "A + 数字/特点..., while B + 数字/特点...",
+          "slotHints": [
+            "两边尽量比较同一维度，如价格、人数、速度。"
+          ],
+          "exampleSentence": "The train takes two hours, while the bus takes three.",
+          "exampleTranslation": "火车要两小时，而公交车要三小时。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "if-unless",
+      "title": "if / unless",
+      "shortLabel": "if vs unless",
+      "pattern": "if + clause / unless + clause",
+      "family": "condition",
+      "subtype": "basic_condition_contrast",
+      "anchor": "if",
+      "coreExplanation": "这个结构用来表示条件。if后接完整从句，意思是“如果……就……”；unless后也接完整从句，意思是“除非……，否则……”，本身已经带否定含义。条件从句常放在主句前，也可放在主句后；放前面时后面通常加逗号。",
+      "usageNote": "语气通常中性，最常见于规则、提醒、日常安排、警告。unless很自然地用于“只有不……才会……”这类负条件；但如果条件本身已经是否定内容，初学者不要再用unless叠加not，容易变成双重否定。口语和写作都常见。把条件从句放句首时，后面一般加逗号；放句尾时通常不加。初学者最安全的做法：先写“If + 主语 + 动词, 主语 + will + 动词”或“Unless + 主语 + 动词, 主语 + will + 动词”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "rules",
+        "daily-life",
+        "warnings",
+        "学校或公司规则",
+        "日常计划安排",
+        "安全提醒或警告",
+        "请求与建议",
+        "说明结果条件"
+      ],
+      "slotSchema": [
+        {
+          "key": "conditionClause",
+          "label": "条件从句",
+          "type": "clause",
+          "required": true,
+          "hint": "放完整句子：主语+动词，如 if it rains / unless you hurry。常见错误：只放名词或短语。可说 if you study hard，不要只说 if hard study。"
+        },
+        {
+          "key": "mainClause",
+          "label": "主句结果",
+          "type": "clause",
+          "required": true,
+          "hint": "写条件成立后的结果，常见 will/can/imperative，如 you will pass / call me。常见错误：结果不完整。例：If you leave now, you can catch the bus."
+        },
+        {
+          "key": "negativePart",
+          "label": "否定内容处理",
+          "type": "custom",
+          "required": true,
+          "hint": "unless本身已是否定条件，后面通常不用 not。常见错误：unless you don't go。应改为 unless you go，或 if you don't go。"
+        }
+      ],
+      "commonErrors": [
+        "wrong: Unless you don't hurry, you'll be late.｜错因：unless已经表示“除非不/如果不”，再加don't形成双重否定，意思混乱。｜改法：Unless you hurry, you'll be late. 或 If you don't hurry, you'll be late.",
+        "wrong: If not rain, we will go.｜错因：if后要接完整从句，不是只放not+词。｜改法：If it doesn't rain, we will go.",
+        "wrong: Unless it won't stop, we'll wait.｜错因：unless后再用won't不自然，逻辑也容易反。｜改法：Unless it stops, we'll wait. 或 If it doesn't stop, we'll wait.",
+        "wrong: You can't enter unless if you have a ticket.｜错因：unless和if不能连用在同一个条件标记位置。｜改法：You can't enter unless you have a ticket. 或 You can enter if you have a ticket.",
+        "wrong: Unless you will finish now, we start.｜错因：条件从句里初学阶段不要随便用will；主句时态也不完整。｜改法：Unless you finish now, we will start.",
+        "wrong: If you won't study, you fail.｜错因：这里是在说一般条件，不是“拒绝”；主句也最好用清楚的时态。｜改法：If you don't study, you will fail."
+      ],
+      "contrasts": [
+        {
+          "slug": "if-vs-unless",
+          "title": "if 与 unless",
+          "note": "结构上二者都接完整从句，但unless自带否定意义。语气上if更普通、范围更广；unless更像“除非”，适合强调例外条件。对比：If you don't hurry, you'll miss it. = Unless you hurry, you'll miss it."
+        },
+        {
+          "slug": "if-vs-as-long-as-provided-that",
+          "title": "if vs as long as / provided that",
+          "note": "结构都可接从句，但as long as / provided that更强调“只要满足这个条件”，语气更明确，其中provided that更正式。if只是一般“如果”。对比：If you pay, you can enter. / As long as you pay, you can enter."
+        },
+        {
+          "slug": "unless-vs-except-if",
+          "title": "unless vs except if",
+          "note": "结构上都能谈例外，但unless更常见、更自然；except if较少见，常用于特别精确的说明。语气上unless更口语和普通。对比：I go out unless it rains. 比 I go out except if it rains. 更自然。"
+        },
+        {
+          "slug": "if-vs-in-case",
+          "title": "if vs in case",
+          "note": "结构相似，都可接从句，但场景不同：if表示“条件真的发生时”，in case表示“以防万一，为预防而做”。不要互换。对比：Take an umbrella if it rains.＝下雨时用；Take an umbrella in case it rains.＝怕下雨先带着。"
+        },
+        {
+          "slug": "unless-vs-even-if",
+          "title": "unless vs even if",
+          "note": "结构都接从句，但unless表示“如果不……才……”，even if表示“即使……也……”，是让步，不是条件。语气上even if更强调结果不变。对比：Unless you call, I won't know. / Even if you call, I won't change my mind."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "If it rains, we will stay home.",
+          "translation": "如果下雨，我们就待在家里。",
+          "note": "最基础的正条件：if + 从句，主句写结果。",
+          "scene": "日常计划",
+          "isPrimary": true
+        },
+        {
+          "sentence": "We will stay home if it rains.",
+          "translation": "如果下雨，我们就会待在家里。",
+          "note": "条件从句放句尾也很常见，通常不用逗号。",
+          "scene": "日常计划",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Unless you show your ID, you cannot enter the building.",
+          "translation": "除非你出示身份证件，否则你不能进入这栋楼。",
+          "note": "规则说明中很常见；unless强调“没有这个条件就不行”。",
+          "scene": "规则",
+          "isPrimary": false
+        },
+        {
+          "sentence": "If you don't leave now, you'll miss the train.",
+          "translation": "如果你现在不走，你就会错过火车。",
+          "note": "这是和unless可互换的典型句。",
+          "scene": "提醒",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Unless you leave now, you'll miss the train.",
+          "translation": "除非你现在就走，否则你会错过火车。",
+          "note": "和上一句意思接近，但unless更像在强调唯一避免坏结果的条件。",
+          "scene": "提醒",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Please keep this door closed unless staff need access.",
+          "translation": "除非工作人员需要进入，否则请保持这扇门关闭。",
+          "note": "较偏书面/告示风格，常见于通知、标牌。",
+          "scene": "书面告示",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "If [conditionClause], [mainClause].",
+          "slotHints": [
+            "[conditionClause] 写完整条件，如 you study hard；[mainClause] 写结果，如 you will improve。"
+          ],
+          "exampleSentence": "If you practice every day, you will improve.",
+          "exampleTranslation": "如果你每天练习，你就会进步。",
+          "position": 1
+        },
+        {
+          "label": "负条件模板",
+          "template": "Unless [conditionClause], [mainClause].",
+          "slotHints": [
+            "[conditionClause] 不要再加 not，先写肯定形式，如 you hurry；[mainClause] 写不满足条件时的结果。"
+          ],
+          "exampleSentence": "Unless you hurry, you will be late.",
+          "exampleTranslation": "除非你快一点，否则你会迟到。",
+          "position": 1
+        },
+        {
+          "label": "句尾条件模板",
+          "template": "[mainClause] if [conditionClause].",
+          "slotHints": [
+            "先写结果，再补条件；句尾的if从句前通常不加逗号。"
+          ],
+          "exampleSentence": "I will call you if I arrive early.",
+          "exampleTranslation": "如果我早到，我会给你打电话。",
+          "position": 2
+        },
+        {
+          "label": "书面规则模板",
+          "template": "[Instruction/result] unless [conditionClause].",
+          "slotHints": [
+            "适合规则、通知、告示；主句可用祈使句或cannot/must等。"
+          ],
+          "exampleSentence": "Do not open the window unless the teacher says so.",
+          "exampleTranslation": "除非老师这样说，否则不要打开窗户。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "if-as-long-as-provided-that",
+      "title": "if / as long as / provided that",
+      "shortLabel": "Condition contrast",
+      "pattern": "if / as long as / provided that + clause",
+      "family": "condition",
+      "subtype": "condition_strength_contrast",
+      "anchor": "if",
+      "coreExplanation": "这个结构用来提出“条件”：if 表示一般“如果”；as long as 表示“只要……就”，强调条件足够即可；provided that 表示“倘若/前提是”，更正式。后面都要接完整从句，前面或后面都能放，放句首时后面通常加逗号。",
+      "usageNote": "语气上，if 最中性、最常用；as long as 常见于口语协商、规则说明、做计划；provided that 多见于书面规则、协议、正式说明。它们都适合谈条件，不适合直接表达原因、时间或让步。放句首时常写“条件从句, 主句”；放句中一般不加逗号。初学者最安全的做法是先用“If + 主语 + 动词, 主语 + will/can + 动词”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "agreements",
+        "rules",
+        "planning",
+        "做计划时说明条件",
+        "谈规则或要求",
+        "协商许可",
+        "书面说明或协议",
+        "日常承诺"
+      ],
+      "slotSchema": [
+        {
+          "key": "condition",
+          "label": "条件从句",
+          "type": "clause",
+          "required": true,
+          "hint": "这里放完整从句，要有主语和动词，如 if you finish early。常见错误是只放名词或短语，如 ×if your homework。小例：as long as it doesn't rain"
+        },
+        {
+          "key": "main",
+          "label": "主句结果",
+          "type": "clause",
+          "required": true,
+          "hint": "这里放结果、安排、许可等主句，如 we can go out。常见错误是缺主语或只放一个动词，如 ×can go。小例：provided that you follow the rules, you may stay"
+        },
+        {
+          "key": "linker",
+          "label": "条件连接词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "可用 if / as long as / provided that。常见错误是把语气混用：想表达“只要”却只用 if。小例：If you need help, call me."
+        }
+      ],
+      "commonErrors": [
+        "× as long as to finish early, we can leave.——错在 as long as 后面不能接 to do，必须接完整从句。应改为：As long as we finish early, we can leave.",
+        "× provided that you will pay, we ship today.——错在条件从句里滥用 will；这里说条件本身，通常用一般现在时。应改为：Provided that you pay, we ship today.",
+        "× If you are hungry. we can eat now.——错在标点；句首条件从句后应用逗号，不是句号。应改为：If you are hungry, we can eat now.",
+        "× We can go as long as if it stops raining.——错在重复连接词，不能同时用 as long as 和 if。应改为：We can go if it stops raining. / We can go as long as it stops raining.",
+        "× Provided that, you agree, we will start.——错在不必要地把 provided that 拆开。它应直接连完整从句。应改为：Provided that you agree, we will start.",
+        "× As long as = only if everywhere.——错在把两者完全当同义；as long as 常有“只要满足就行”的宽松感，only if 更强调唯一限制。可改成按语气选择：As long as you're careful, it's fine. / Only if you're over 18 can you enter."
+      ],
+      "contrasts": [
+        {
+          "slug": "if-vs-as-long-as",
+          "title": "if vs as long as",
+          "note": "结构上都接完整从句；但 if 只是一般“如果”，as long as 是“只要……就”，更强调条件足够。场景上 if 最通用，as long as 常用于协商、许可。对比：If you call, I'll help. / As long as you call, I'll help."
+        },
+        {
+          "slug": "if-vs-provided-that",
+          "title": "if vs provided that",
+          "note": "两者都可放句首或句中，后接完整从句；但 provided that 更正式，像“前提是”。适合协议、通知、规则，不太像随口聊天。对比：If you pay today, we can ship it. / Provided that payment is received today, we can ship it."
+        },
+        {
+          "slug": "provided-that-vs-only-if",
+          "title": "provided that vs only if",
+          "note": "结构上都可表达严格条件；only if 常直接强调“只有在……才”，限制更强，句型变化也更多；provided that 较书面，像补充前提。对比：You can go provided that you tell me. / You can go only if you tell me."
+        },
+        {
+          "slug": "if-vs-unless",
+          "title": "if vs unless",
+          "note": "if 表示正条件“如果……”，unless 表示否定条件“除非……不”。结构都接从句，但语义方向不同。场景上 unless 常用于规则提醒。对比：If you hurry, you'll catch it. / Unless you hurry, you'll miss it."
+        },
+        {
+          "slug": "as-long-as-vs-when",
+          "title": "as long as vs when",
+          "note": "as long as 表条件，when 表时间。结构都能接从句，但意思不同。不要把“只要”误写成“当……时候”。对比：As long as you're ready, we'll start. / When you're ready, we'll start."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "If it rains, we'll stay home.",
+          "translation": "如果下雨，我们就待在家。",
+          "note": "最基础、最安全的条件句模板。",
+          "scene": "做计划",
+          "isPrimary": true
+        },
+        {
+          "sentence": "We'll go for a walk if you finish your homework.",
+          "translation": "如果你做完作业，我们就去散步。",
+          "note": "条件从句放句末时通常不加逗号。",
+          "scene": "日常安排",
+          "isPrimary": false
+        },
+        {
+          "sentence": "As long as you're quiet, you can stay here.",
+          "translation": "只要你安静一点，你就可以待在这里。",
+          "note": "表示满足这个条件就行，常用于许可或协商。",
+          "scene": "协商许可",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Provided that all documents are complete, your application will be processed tomorrow.",
+          "translation": "前提是所有文件都齐全，你的申请将于明天处理。",
+          "note": "较正式，常见于书面通知或流程说明。",
+          "scene": "书面说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "If you need a ride, I can pick you up, but as long as you're ready by six.",
+          "translation": "如果你需要搭车，我可以来接你，但前提是你六点前准备好。",
+          "note": "同句对比 if 与 as long as：前者提一般条件，后者提明确要求。",
+          "scene": "日常承诺",
+          "isPrimary": false
+        },
+        {
+          "sentence": "You may use the meeting room provided that you book it in advance.",
+          "translation": "只要你提前预约，就可以使用会议室。",
+          "note": "正式规则口吻；也可换成 if，但语气没这么正式。",
+          "scene": "规则说明",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全基础模板",
+          "template": "If + 条件从句, + 主句",
+          "slotHints": [
+            "条件从句用一般现在时最安全，如 if you have time",
+            "主句可用 will/can/may + 动词，如 we can talk later"
+          ],
+          "exampleSentence": "If you have time, we can talk later.",
+          "exampleTranslation": "如果你有时间，我们之后可以聊。",
+          "position": 1
+        },
+        {
+          "label": "句末条件模板",
+          "template": "主句 + if + 条件从句",
+          "slotHints": [
+            "主句先说结果或安排，如 I'll help you",
+            "if 从句放后面时通常不加逗号"
+          ],
+          "exampleSentence": "I'll help you if you're busy.",
+          "exampleTranslation": "如果你很忙，我会帮你。",
+          "position": 2
+        },
+        {
+          "label": "只要就行模板",
+          "template": "As long as + 条件从句, + 主句",
+          "slotHints": [
+            "适合表示许可、承诺、要求，如 as long as you are careful",
+            "主句常用 can / will / it's fine"
+          ],
+          "exampleSentence": "As long as you're careful, it's fine.",
+          "exampleTranslation": "只要你小心一点，就没问题。",
+          "position": 1
+        },
+        {
+          "label": "正式前提模板",
+          "template": "Provided that + 条件从句, + 主句",
+          "slotHints": [
+            "用于规则、协议、通知，语气较正式",
+            "条件从句后直接接主句，句首后通常加逗号"
+          ],
+          "exampleSentence": "Provided that payment is made today, we will ship the order tomorrow.",
+          "exampleTranslation": "前提是今天付款，我们明天就会发货。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "even-if-even-though",
+      "title": "even if / even though",
+      "shortLabel": "hypothetical vs real concession",
+      "pattern": "even if + clause / even though + clause",
+      "family": "condition",
+      "subtype": "hypothetical_vs_real_contrast",
+      "anchor": "even if",
+      "coreExplanation": "这个结构表示“让步”：前面的情况不会改变后面的结果。even if强调“即使……也……”的假设情况；even though强调“虽然……但是……”的已知事实。后面必须接完整从句，常放在主句前，也可放句中或句后。",
+      "usageNote": "语气多为中性，口语和书面语都常见。适合表达决心、反驳、承认事实后继续说明结果。even if常用于还没发生、只是设想的情况；even though常用于说话人知道是真的情况。不适合只接名词或动词原形。若从句在句首，后面通常加逗号；初学者最安全的做法是先写“Even if/Even though + 主语+谓语, 主句”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "argument",
+        "determination",
+        "hypothetical",
+        "表达决心",
+        "反驳别人的担心",
+        "假设情况",
+        "承认事实后转折",
+        "日常决定"
+      ],
+      "slotSchema": [
+        {
+          "key": "concessionClause",
+          "label": "让步从句",
+          "type": "clause",
+          "required": true,
+          "hint": "这里要放完整从句：主语+谓语，如 it rains / I am tired。常见错误是只放名词或短语，如 ×even if rain。例：even if it rains"
+        },
+        {
+          "key": "mainClause",
+          "label": "主句结果",
+          "type": "clause",
+          "required": true,
+          "hint": "这里放不受前面影响的结果或态度，如 I will go / we can finish it。常见错误是结果不完整。例：I will still go"
+        },
+        {
+          "key": "positionChunk",
+          "label": "可选位置块",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "可用句首 Even if/Even though..., 主句；也可主句 + even if/even though...。常见错误是句首从句后忘记逗号。例：Even though he was late, he apologized."
+        }
+      ],
+      "commonErrors": [
+        "×Even if raining, I will go.——错在even if后面缺少完整从句。应改为Even if it rains, I will go.",
+        "×Even though it may rain tomorrow, we will cancel.——若只是猜测明天会不会下雨，更自然用even if。应改为Even if it rains tomorrow, we will cancel.／Even if it may rain tomorrow较少用。",
+        "×Even if he was tired, he still came yesterday.——这里说的是已知事实“他昨天确实累了”，更合适用even though。应改为Even though he was tired, he still came yesterday.",
+        "×I will go, even though it rains tomorrow.——若表示未来假设，不用even though。应改为I will go, even if it rains tomorrow.",
+        "×Even though of the high price, I bought it.——even though后不能直接接介词短语。应改为Even though it was expensive, I bought it. 或 Despite the high price, I bought it.",
+        "×Even if he is rich but he is unhappy.——英语里不用双重转折，even if从句后主句不要再加but。应改为Even if he is rich, he is unhappy."
+      ],
+      "contrasts": [
+        {
+          "slug": "even-if-vs-even-though",
+          "title": "even if vs even though",
+          "note": "结构上两者后面都接完整从句；区别在于even if讲假设、让步，even though讲已知事实、让步。语气上，前者像“就算……也”，后者像“虽然……但是”。对比：Even if it rains, we’ll play. / Even though it rained, we played."
+        },
+        {
+          "slug": "even-though-vs-although-though",
+          "title": "even though vs although/though",
+          "note": "结构上都可接从句。语气上even though更强，强调“尽管事实如此”；although较中性，though更口语。比较：Even though I was tired, I worked. 比 Although I was tired, I worked. 语气更强。"
+        },
+        {
+          "slug": "even-if-vs-if",
+          "title": "even if vs if",
+          "note": "结构上都接从句，但if只是普通条件；even if表示“这个条件成立也不影响结果”。语气上even if更强调结果不变。最小对比：If it rains, we’ll stay home. / Even if it rains, we’ll go out."
+        },
+        {
+          "slug": "even-if-vs-unless",
+          "title": "even if vs unless",
+          "note": "结构上都接从句，但unless表示“除非……否则不……”，是真正限制条件；even if表示“即使……也……”，不限制主句结果。场景不同：unless常用于规则、条件；even if常用于决心。对比：Unless you hurry, you’ll miss it. / Even if you hurry, you may still miss it."
+        },
+        {
+          "slug": "even-though-vs-despite",
+          "title": "even though vs despite",
+          "note": "结构差别最重要：even though后接从句，despite后接名词/动名词。语气上两者都可表达让步，despite更紧凑、常见于书面。对比：Even though he was sick, he worked. / Despite being sick, he worked."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Even if it rains, I will go.",
+          "translation": "即使下雨，我也会去。",
+          "note": "最安全的基础模板：假设情况+结果不变。",
+          "scene": "表达决心",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I will go even if it rains.",
+          "translation": "即使下雨，我也会去。",
+          "note": "同样正确；让步从句放句尾更像补充条件。",
+          "scene": "日常决定",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Even though he was tired, he finished the report.",
+          "translation": "虽然他很累，但他还是完成了报告。",
+          "note": "已知事实，所以用even though。",
+          "scene": "工作汇报",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Even if you apologize, she may not change her mind.",
+          "translation": "即使你道歉，她也未必会改变主意。",
+          "note": "和if相比，这里强调“道歉也不一定有用”。",
+          "scene": "劝告/争论",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Even though it was expensive, we bought it.",
+          "translation": "虽然它很贵，我们还是买了。",
+          "note": "可替换为although，但even though语气更强。",
+          "scene": "购物",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Even if nobody helps me, I can do it myself.",
+          "translation": "即使没人帮我，我也能自己做。",
+          "note": "常用于表达决心或独立。",
+          "scene": "自我鼓励",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "Even if/Even though + 从句, + 主句.",
+          "slotHints": [
+            "从句里放主语+谓语；假设用even if，事实用even though",
+            "主句写不会被前面情况改变的结果"
+          ],
+          "exampleSentence": "Even if I am busy, I will call you.",
+          "exampleTranslation": "即使我很忙，我也会给你打电话。",
+          "position": 1
+        },
+        {
+          "label": "句尾让步模板",
+          "template": "主句 + even if/even though + 从句.",
+          "slotHints": [
+            "先写主要信息，再补充让步条件",
+            "句尾也要接完整从句，不要只接名词"
+          ],
+          "exampleSentence": "We can finish it today even though we are short on time.",
+          "exampleTranslation": "虽然时间不多，我们今天还是能完成它。",
+          "position": 2
+        },
+        {
+          "label": "书面表达模板",
+          "template": "Even though + 从句, + 主句; however, + 补充句.",
+          "slotHints": [
+            "先承认事实，再写主要判断",
+            "however后通常另起一个分句，适合较正式写作"
+          ],
+          "exampleSentence": "Even though the plan is risky, we should try it; however, we must prepare carefully.",
+          "exampleTranslation": "虽然这个计划有风险，我们还是应该尝试；不过，我们必须认真准备。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "in-case-if",
+      "title": "in case / if",
+      "shortLabel": "prepare vs condition",
+      "pattern": "in case + clause / if + clause",
+      "family": "condition",
+      "subtype": "preparation_vs_condition_contrast",
+      "anchor": "in case",
+      "coreExplanation": "in case表示“以防、免得”，主句通常是先做准备或采取措施，后面接完整从句说明可能发生的事；if表示“如果”，只是提出条件。两者都可放句首或句中，但in case最常见于主句后，说明做某事的目的。",
+      "usageNote": "语气上，if最中性，口语书面都常见；in case也常见，但带“预防、提前准备”的意思，适合出门、旅行、安全、提醒等场景。不适合把in case只当普通“如果”来用。句首时后面常加逗号，句中一般不加。初学者最安全的做法是先写“主句表示准备/带东西/留信息 + in case + 可能情况”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "preparation",
+        "safety",
+        "daily-life",
+        "出门前准备",
+        "安全提醒",
+        "日常安排",
+        "旅行携带",
+        "办公室备用"
+      ],
+      "slotSchema": [
+        {
+          "key": "main_action",
+          "label": "主句动作",
+          "type": "custom",
+          "required": true,
+          "hint": "放“提前准备、携带、保存、留着、写下、充电”等动作。常见错误是主句不是准备行为，结果不像in case。例：Take an umbrella..."
+        },
+        {
+          "key": "risk_clause",
+          "label": "可能发生的情况从句",
+          "type": "clause",
+          "required": true,
+          "hint": "放完整从句，表示可能发生但不确定的事。常见错误是只放名词或短语。例：...in case it rains."
+        },
+        {
+          "key": "if_clause",
+          "label": "条件从句",
+          "type": "clause",
+          "required": true,
+          "hint": "用于if时，放真实条件。常见错误是把“预防目的”错写成普通条件。例：If it rains, we’ll stay inside."
+        }
+      ],
+      "commonErrors": [
+        "Wrong: I’ll take an umbrella if it rains. 原因：这表示“下雨时我才会带伞”，不是“提前带着以防下雨”。改法：I’ll take an umbrella in case it rains.",
+        "Wrong: In case it will rain, take an umbrella. 原因：in case后的从句一般不用will表示普通将来可能。改法：In case it rains, take an umbrella.",
+        "Wrong: I brought snacks in case if you get hungry. 原因：in case和if不能直接叠在一起表示同一层关系。改法：I brought snacks in case you get hungry. 或 If you get hungry, have some snacks.",
+        "Wrong: I saved his number in case of he calls. 原因：in case of后面接名词短语，不接完整从句。改法：I saved his number in case he calls. 或 in case of an emergency.",
+        "Wrong: If an emergency, call me. 原因：if后面通常要有完整从句。改法：If there is an emergency, call me. 或 In case of an emergency, call me.",
+        "Wrong: We left early in case we would miss the train. 原因：这里是预防可能发生的事，in case后通常不用would。改法：We left early in case we missed the train./...in case we miss the train."
+      ],
+      "contrasts": [
+        {
+          "slug": "if-basic",
+          "title": "in case vs if",
+          "note": "结构上两者都可接从句，但in case表示“先做准备”，if表示“满足条件才发生主句”。语气上，in case更像防患未然，if只是普通条件。对比：Take a map in case you get lost. / If you get lost, call me."
+        },
+        {
+          "slug": "unless",
+          "title": "if / unless",
+          "note": "结构上unless=if...not，表示排除条件；in case不是否定条件。场景上，unless用于规则和限制，in case用于预防。对比：We’ll go if it’s sunny. / We won’t go unless it’s sunny. / Take a hat in case it’s sunny."
+        },
+        {
+          "slug": "as-long-as-provided-that",
+          "title": "if vs as long as / provided that",
+          "note": "结构上as long as和provided that都表示“只要、前提是”，比if更强调条件；in case不强调前提，而强调准备。语气上provided that更正式。对比：You can go if you finish. / You can go provided that you finish. / Bring your notes in case you need them."
+        },
+        {
+          "slug": "even-if-even-though",
+          "title": "in case / if vs even if / even though",
+          "note": "结构上even if表示“即使”，even though表示“虽然”；它们都不是“预防”。场景上，even if谈让步，in case谈备用，if谈条件。对比：Even if it rains, we’ll go. / If it rains, we’ll stay home. / Take coats in case it rains."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Take an umbrella in case it rains.",
+          "translation": "带把伞，以防下雨。",
+          "note": "最核心用法：先做准备，再说可能发生的事。",
+          "scene": "出门前准备",
+          "isPrimary": true
+        },
+        {
+          "sentence": "In case it rains, take an umbrella.",
+          "translation": "如果担心下雨，就带把伞以防万一。",
+          "note": "句首也可以，用逗号隔开主句。",
+          "scene": "出门前准备",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Please keep this receipt in case you need to return the item.",
+          "translation": "请保留这张小票，以防你需要退货。",
+          "note": "常见于说明、提醒、服务场景。",
+          "scene": "购物售后",
+          "isPrimary": false
+        },
+        {
+          "sentence": "If it rains, we’ll cancel the picnic.",
+          "translation": "如果下雨，我们就取消野餐。",
+          "note": "这里不是提前准备，而是真实条件触发结果。",
+          "scene": "活动安排",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I wrote down the address in case my phone died.",
+          "translation": "我记下了地址，以防手机没电。",
+          "note": "日常生活中非常自然，强调备用措施。",
+          "scene": "旅行携带",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Call me if you have any questions.",
+          "translation": "如果你有任何问题，就给我打电话。",
+          "note": "普通条件，不要误换成in case。",
+          "scene": "办公室沟通",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "[main_action] in case [risk_clause].",
+          "slotHints": [
+            "主句写准备动作，如 take, bring, keep, save, write down；从句写可能发生的情况，如 it rains, you need it"
+          ],
+          "exampleSentence": "Bring some cash in case the card machine doesn't work.",
+          "exampleTranslation": "带些现金，以防刷卡机不能用。",
+          "position": 1
+        },
+        {
+          "label": "句首替代模板",
+          "template": "In case [risk_clause], [main_action].",
+          "slotHints": [
+            "适合提醒或建议；句首从句后通常加逗号"
+          ],
+          "exampleSentence": "In case you get cold, take a jacket.",
+          "exampleTranslation": "以防你觉得冷，带上外套。",
+          "position": 2
+        },
+        {
+          "label": "普通条件模板",
+          "template": "If [if_clause], [result].",
+          "slotHints": [
+            "前面写条件，后面写结果；不要误写成“提前准备”的意思"
+          ],
+          "exampleSentence": "If you see Anna, tell her I called.",
+          "exampleTranslation": "如果你见到安娜，告诉她我打过电话。",
+          "position": 3
+        },
+        {
+          "label": "书面提醒模板",
+          "template": "Please [main_action] in case [risk_clause].",
+          "slotHints": [
+            "适合通知、服务、说明文字，语气礼貌清楚"
+          ],
+          "exampleSentence": "Please save this email in case you need the booking number later.",
+          "exampleTranslation": "请保存这封邮件，以防你之后需要预订号码。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "when-while",
+      "title": "when / while",
+      "shortLabel": "time point vs overlap",
+      "pattern": "when + clause / while + clause",
+      "family": "time_sequence",
+      "subtype": "time_clause_contrast",
+      "anchor": "when",
+      "coreExplanation": "when和while都可引出时间从句。when常指“某个时间点/某件事发生时”，后面可接短动作或长状态；while更强调“在……期间、两个动作同时进行”，后面通常接持续性动作或状态。时间从句可放句首，也可放主句后；句首后通常加逗号。",
+      "usageNote": "语气中性，口语和书面语都常见。when适合讲某事发生时、习惯性情况、故事推进；while适合描述两个动作重叠的背景。while放句首还常有“与此同时”感。初学者不要把while随便用于瞬间动作，也不要把它和表示转折的while/whereas混淆。时间从句在前时，后面一般加逗号；在后时通常不加。最安全做法：先写主句，再加when/while从句。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "daily-life",
+        "stories",
+        "habits",
+        "日常经历",
+        "讲故事经过",
+        "描述同时发生",
+        "表达习惯场景",
+        "写作中的背景说明"
+      ],
+      "slotSchema": [
+        {
+          "key": "timeLinker",
+          "label": "连接词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "填when或while。when适合“某事发生时”；while适合“在……期间/同时”。常见错误：用while接瞬间动作作唯一主事件。例：When I arrived, she smiled./While I was cooking, he called."
+        },
+        {
+          "key": "timeClause",
+          "label": "时间从句",
+          "type": "clause",
+          "required": true,
+          "hint": "放完整主谓结构。when后可接短动作或状态；while后更自然的是进行中、持续中的动作或状态。常见错误：只写动词不写主语。例：when I got home / while she was studying"
+        },
+        {
+          "key": "mainClause",
+          "label": "主句",
+          "type": "clause",
+          "required": true,
+          "hint": "写主要事件或结果。常见错误：两个从句连在一起却没有完整主句。例：I saw Tom / the lights went out"
+        }
+      ],
+      "commonErrors": [
+        "Wrong: While I arrived, he left.｜错因：arrive是瞬间动作，while不自然地强调持续重叠。｜改法：When I arrived, he left.",
+        "Wrong: When I was cooking, the phone was ringing.｜错因：若想表达两个动作同时进行，when不如while自然。｜改法：While I was cooking, the phone rang./While I was cooking, he was washing the dishes.",
+        "Wrong: I was sleeping, when the doorbell rang.｜错因：主句在前时，这里通常不用逗号隔开when时间从句。｜改法：I was sleeping when the doorbell rang.",
+        "Wrong: While he was tired, he went to bed.｜错因：这里不是“在……期间”，而是“因为/由于”或“当……时”语义不清。｜改法：When he was tired, he went to bed. / Because he was tired, he went to bed.",
+        "Wrong: While I called her, she took a shower.｜错因：call常被理解为短动作，若表达“我打电话时她正在洗澡”，应用when引出时间点。｜改法：When I called her, she was taking a shower.",
+        "Wrong: When both children were doing homework, their mother cooked.｜错因：句子重点是两个持续动作重叠，while更贴切。｜改法：While the children were doing homework, their mother was cooking."
+      ],
+      "contrasts": [
+        {
+          "slug": "when-vs-while-duration",
+          "title": "when vs while：时间点 vs 同时进行",
+          "note": "结构上，when后可接短动作或长状态；while后通常接持续性动作/状态。语感上，when像“……的时候”，while更像“在……期间，同时”。对比：When I opened the door, the cat ran out. / While I was opening the window, the cat was hiding."
+        },
+        {
+          "slug": "while-vs-whereas",
+          "title": "while（时间）vs whereas/while（对比）",
+          "note": "结构上都可接从句，但时间while表示同时；对比while/whereas表示“而、却”。场景上，时间义常见于叙事；对比义更常见于说明比较。对比：While I was studying, he was cooking. / I like tea, while he prefers coffee."
+        },
+        {
+          "slug": "when-vs-once",
+          "title": "when vs once",
+          "note": "结构上都接从句；when是“当……时”，once是“一旦……就/……之后”。语气上，once更强调先后和条件感。对比：When you arrive, call me. / Once you arrive, call me."
+        },
+        {
+          "slug": "when-vs-as-soon-as",
+          "title": "when vs as soon as",
+          "note": "结构上都可接时间从句；as soon as强调“立刻、紧接着”，when只表示“在那个时候”。场景上，催促、安排常用as soon as。对比：When I got home, I took a shower. / As soon as I got home, I took a shower."
+        },
+        {
+          "slug": "while-position",
+          "title": "句首 vs 句中位置",
+          "note": "结构上，两者都可句首或句中。语篇上，句首更像先交代时间背景，句中更像先说主事件。标点上，句首后常加逗号，句中通常不加。对比：While I was walking home, it started to rain. / It started to rain while I was walking home."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "When I got home, I took off my shoes.",
+          "translation": "我到家时，脱了鞋。",
+          "note": "最基础用法：when引出一个时间点。",
+          "scene": "日常经历",
+          "isPrimary": true
+        },
+        {
+          "sentence": "It started to rain while we were playing soccer.",
+          "translation": "我们踢足球的时候，开始下雨了。",
+          "note": "主句在前，while表示动作重叠。",
+          "scene": "户外活动",
+          "isPrimary": false
+        },
+        {
+          "sentence": "While the experiment was running, the team recorded the data.",
+          "translation": "实验进行期间，团队记录了数据。",
+          "note": "较偏书面，while用于背景过程。",
+          "scene": "写作说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "When I called her, she was taking a shower.",
+          "translation": "我给她打电话时，她正在洗澡。",
+          "note": "对比敏感：when接短动作called，主句写当时正在进行的动作。",
+          "scene": "日常联系",
+          "isPrimary": false
+        },
+        {
+          "sentence": "While my brother was cooking, I set the table.",
+          "translation": "我哥哥做饭的时候，我摆好了餐桌。",
+          "note": "两个动作同时发生，但不必都用进行时。",
+          "scene": "家庭生活",
+          "isPrimary": false
+        },
+        {
+          "sentence": "When I was a child, we visited my grandparents every summer.",
+          "translation": "我小时候，我们每年夏天都会去看望祖父母。",
+          "note": "when也可接较长时期，表示某阶段中的习惯。",
+          "scene": "回忆习惯",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "When [timeClause], [mainClause].",
+          "slotHints": [
+            "[timeClause]写一个发生的时间点，如I got home；[mainClause]写主要事件，如I called my mom"
+          ],
+          "exampleSentence": "When I finished work, I went home.",
+          "exampleTranslation": "我下班后就回家了。",
+          "position": 1
+        },
+        {
+          "label": "同时进行模板",
+          "template": "While [timeClause], [mainClause].",
+          "slotHints": [
+            "[timeClause]最好用持续动作或状态，如I was studying；[mainClause]写同时发生的另一动作"
+          ],
+          "exampleSentence": "While I was studying, my roommate was watching TV.",
+          "exampleTranslation": "我学习的时候，我室友在看电视。",
+          "position": 2
+        },
+        {
+          "label": "主句在前模板",
+          "template": "[mainClause] when/while [timeClause].",
+          "slotHints": [
+            "先写你最想表达的主事件；when后可接短动作，while后更适合持续动作"
+          ],
+          "exampleSentence": "I met Lisa when I was living in Beijing.",
+          "exampleTranslation": "我住在北京的时候认识了丽莎。",
+          "position": 3
+        },
+        {
+          "label": "写作背景模板",
+          "template": "While [backgroundClause], [eventClause].",
+          "slotHints": [
+            "[backgroundClause]写背景过程；[eventClause]写在该过程中发生的事"
+          ],
+          "exampleSentence": "While the meeting was going on, someone knocked on the door.",
+          "exampleTranslation": "会议进行时，有人敲门了。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "when-once-as-soon-as",
+      "title": "when / once / as soon as",
+      "shortLabel": "time trigger clauses",
+      "pattern": "when / once / as soon as + clause",
+      "family": "time_sequence",
+      "subtype": "time_trigger_contrast",
+      "anchor": "when",
+      "coreExplanation": "when、once、as soon as后面都接完整从句（主语+谓语），表示“到某时/一旦/一……就……”。它们常放句首引出条件或时间点，后面接主句；也可放主句后。when最宽，once强调某事发生后，as soon as强调紧接着马上发生。",
+      "usageNote": "语气多为中性，常见于说明步骤、安排计划、日常承诺、规则提醒。when适合一般时间触发，once适合“完成后再做下一步”，as soon as适合“立刻”。不适合单独接名词，也不要和进行中的while乱换。放句首时时间从句后通常加逗号；放句中一般不加。初学者最安全的做法是：先写时间从句，再写主句。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "instructions",
+        "plans",
+        "daily-life",
+        "操作说明",
+        "日常计划",
+        "消息通知",
+        "学校作业",
+        "家庭对话"
+      ],
+      "slotSchema": [
+        {
+          "key": "trigger",
+          "label": "时间从句",
+          "type": "clause",
+          "required": true,
+          "hint": "这里放完整从句：主语+动词，如 you get home / the movie ends。常见错误是只放名词，如 × when your arrival。可说：when you arrive。"
+        },
+        {
+          "key": "main",
+          "label": "主句",
+          "type": "clause",
+          "required": true,
+          "hint": "这里放结果或下一步，如 call me / we can start。常见错误是主句不完整，如 × as soon as he arrives, immediately。可说：as soon as he arrives, we’ll leave。"
+        },
+        {
+          "key": "marker",
+          "label": "连接词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "只能放 when / once / as soon as 之一。常见错误是按中文直译乱加 soon，如 × when he arrives soon。要么用 when he arrives，要么用 as soon as he arrives。"
+        }
+      ],
+      "commonErrors": [
+        "× When arriving home, call me. → 这里把本卡基础结构“连接词+完整从句”写成了分词结构，初学阶段不稳。✓ When you get home, call me.",
+        "× As soon as you will arrive, text me. → 时间从句里一般不用 will 表将来，英语常用一般现在时表示将来。✓ As soon as you arrive, text me.",
+        "× Once finish your homework, you can play. → once 后要接完整从句，不是裸动词。✓ Once you finish your homework, you can play.",
+        "× I will call you when will I get there. → when 后如果表示时间，不用疑问语序。✓ I will call you when I get there.",
+        "× As soon as the meeting, we’ll leave. → as soon as 后不能直接接名词短语，要接从句。✓ As soon as the meeting ends, we’ll leave.",
+        "× When you get home. Call me. → 时间从句不能单独成句，必须连主句；句号把结构打断了。✓ When you get home, call me."
+      ],
+      "contrasts": [
+        {
+          "slug": "when-vs-once",
+          "title": "when vs once",
+          "note": "结构上都接完整从句；when只是“当……时/每当……时”，once更像“一旦……就；在……之后就”。语气上，once更强调先完成前件，再进入后件，常见于步骤说明。对比：When you get home, call me.（到家时打）/ Once you get home, call me.（一到家就打）"
+        },
+        {
+          "slug": "once-vs-as-soon-as",
+          "title": "once vs as soon as",
+          "note": "结构都可放句首或句中。once强调“某事成立后”，as soon as强调“紧接着、不要拖”。场景上，once适合流程、规则；as soon as适合催促、即时反应。对比：Once you finish, send it. / As soon as you finish, send it."
+        },
+        {
+          "slug": "when-vs-while",
+          "title": "when vs while",
+          "note": "when后可接短动作或长动作；while更常接持续中的动作，常见进行状态。语气上，while强调“在……过程中”，不是“触发下一步”。对比：When the bell rings, leave. / While the teacher is speaking, don’t talk."
+        },
+        {
+          "slug": "with-before-after-by-the-time",
+          "title": "vs before / after / by the time",
+          "note": "这些词也谈时间，但结构和焦点不同：before/after强调先后关系，by the time强调“到……为止的结果”。when/once/as soon as更像“时间触发器”。对比：After you arrive, call me.（到了之后）/ As soon as you arrive, call me.（一到就打）"
+        },
+        {
+          "slug": "time-clause-tense",
+          "title": "time clause tense",
+          "note": "和汉语不同，表示将来时，这类时间从句里通常不用 will，而主句可用 will。这个限制同样适用于 when、once、as soon as。对比：✓ When she comes, we’ll start. / × When she will come, we’ll start."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "When you get home, call me.",
+          "translation": "你到家时给我打电话。",
+          "note": "最安全的基础模板：句首时间从句 + 逗号 + 主句。",
+          "scene": "家庭对话",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I’ll text you once I arrive.",
+          "translation": "我一到就给你发短信。",
+          "note": "时间从句放在主句后面时通常不加逗号。",
+          "scene": "消息通知",
+          "isPrimary": false
+        },
+        {
+          "sentence": "As soon as you finish the form, send it to the office.",
+          "translation": "你一填完表，就把它发到办公室。",
+          "note": "强调“紧接着马上做下一步”，很适合指示或流程。",
+          "scene": "操作说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "When the movie ends, we can talk, but as soon as my phone rings, I need to answer it.",
+          "translation": "电影结束后我们可以聊，但我的手机一响，我就得接。",
+          "note": "同句对比：when只是到某时；as soon as强调立刻反应。",
+          "scene": "日常计划",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Once the data is ready, the report will be published.",
+          "translation": "数据一准备好，报告就会发布。",
+          "note": "较书面，常见于工作或说明文字。",
+          "scene": "书面说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "As soon as the teacher comes in, everyone gets quiet.",
+          "translation": "老师一进来，大家就安静下来。",
+          "note": "日常规律性场景，也可以理解为“每次一……就……”。",
+          "scene": "学校作业",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "安全入门模板",
+          "template": "When/Once/As soon as + 从句, + 主句",
+          "slotHints": [
+            "从句写主语+一般现在时动词，如 you get home",
+            "主句写结果或下一步，如 call me / we’ll start"
+          ],
+          "exampleSentence": "When you finish dinner, wash the dishes.",
+          "exampleTranslation": "你吃完晚饭后，把碗洗了。",
+          "position": 1
+        },
+        {
+          "label": "后置模板",
+          "template": "主句 + when/once/as soon as + 从句",
+          "slotHints": [
+            "主句先写主要信息，如 I’ll text you",
+            "后面的时间从句仍用完整从句，不用 will"
+          ],
+          "exampleSentence": "I’ll call you once I get there.",
+          "exampleTranslation": "我一到那儿就给你打电话。",
+          "position": 2
+        },
+        {
+          "label": "书面流程模板",
+          "template": "Once + 事项完成从句, + 主句",
+          "slotHints": [
+            "从句常用 finish, complete, be ready, be approved 等",
+            "主句写正式的下一步，如 will be sent / can begin"
+          ],
+          "exampleSentence": "Once the payment is confirmed, your order will be processed.",
+          "exampleTranslation": "付款一确认，您的订单就会处理。",
+          "position": 3
+        },
+        {
+          "label": "即时反应模板",
+          "template": "As soon as + 触发从句, + 立即动作主句",
+          "slotHints": [
+            "触发从句写刚发生的事，如 he arrives / the bell rings",
+            "主句常配 leave, reply, call, start 等即时动作"
+          ],
+          "exampleSentence": "As soon as the bell rings, the students leave the classroom.",
+          "exampleTranslation": "铃一响，学生们就离开教室。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "before-after-by-the-time",
+      "title": "before / after / by the time",
+      "shortLabel": "time order and deadline reference",
+      "pattern": "before / after / by the time",
+      "family": "time_sequence",
+      "subtype": "sequence_reference_contrast",
+      "anchor": "before",
+      "coreExplanation": "before、after、by the time都用来连接两个时间相关的动作。它们后面通常接完整从句（主语+动词），表示“在……之前”“在……之后”“到……的时候”。这类时间从句可放句首，也可放主句后；放句首时后面常加逗号。",
+      "usageNote": "语气通常是neutral，口语和书面语都很常见。适合讲先后顺序、安排计划、描述到某时已发生的情况。by the time尤其常用于“截止某时”的结果判断。不要把它们直接当介词后面只接一个完整句子碎片，也不要和until混用。句首时注意逗号；初学者最安全的做法是先写“Before/After/By the time + 从句, 主句”。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "planning",
+        "narration",
+        "schedules",
+        "安排做事先后",
+        "讲昨天发生的事",
+        "说明截止某时的结果",
+        "写邮件或通知",
+        "日常出门准备"
+      ],
+      "slotSchema": [
+        {
+          "key": "timeLinker",
+          "label": "时间连接词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "填before / after / by the time。常见错误是按中文直译乱换；例如截止某时用by the time更自然：By the time I arrived, they had left."
+        },
+        {
+          "key": "timeClause",
+          "label": "时间从句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里放完整从句，通常是主语+动词，如 I get home / the meeting started。常见错误是只放短语：误 Before dinner, I finish it.（可说但结构不同）；本卡先学 Before I eat dinner, I’ll finish it."
+        },
+        {
+          "key": "mainClause",
+          "label": "主句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里放主要结果或动作，如 I will call you / they had left。常见错误是时态搭配随便写；例如 By the time we got there, the movie had started."
+        }
+      ],
+      "commonErrors": [
+        "Wrong: Before to leave, check the door.｜错因：before后本卡重点接完整从句，不接to不定式。｜改法：Before you leave, check the door.",
+        "Wrong: After I arrived, then I called her.｜错因：after已经表示先后，再加then常显得重复累赘。｜改法：After I arrived, I called her.",
+        "Wrong: By the time I arrived, they leave.｜错因：到达时他们已经离开，主句常要用完成时表示“更早已发生”。｜改法：By the time I arrived, they had left.",
+        "Wrong: Until I got home, I took a shower.｜错因：until表示“直到……才/一直到……为止”，不表示简单先后。｜改法：After I got home, I took a shower.",
+        "Wrong: Before, I finish my homework.｜错因：before后缺少明确从句或时间对象，句子不完整。｜改法：Before I watch TV, I finish my homework.",
+        "Wrong: By the time tomorrow, I will finish it.｜错因：by the time后一般接从句，不直接接名词时间点。｜改法：By tomorrow, I will finish it. / By the time tomorrow comes, I will have finished it."
+      ],
+      "contrasts": [
+        {
+          "slug": "before-vs-after",
+          "title": "before vs after",
+          "note": "结构上两者都接从句，但before表示主句动作早于从句，after表示晚于从句。语气都中性，常用于叙事和计划。对比：Before I sleep, I read. / After I sleep, I dream."
+        },
+        {
+          "slug": "by-the-time-vs-until",
+          "title": "by the time vs until",
+          "note": "by the time后接从句，强调“到某时已经/将会”；until强调动作持续到某时。场景上，by the time更像截止点，until更像持续线。对比：By the time he arrived, we had eaten. / We waited until he arrived."
+        },
+        {
+          "slug": "after-vs-when",
+          "title": "after vs when",
+          "note": "after明确表示先后顺序；when只说“当……时”，不一定强调谁先谁后。口气上when更宽泛，after更明确。对比：When I got home, I cooked. / After I got home, I cooked."
+        },
+        {
+          "slug": "after-vs-as-soon-as",
+          "title": "after vs as soon as",
+          "note": "两者都可接从句；after只表示“之后”，时间间隔可长可短，as soon as强调“立刻、一……就……”。后者更强烈、更口语化。对比：After he arrived, we started. / As soon as he arrived, we started."
+        },
+        {
+          "slug": "by-the-time-vs-before",
+          "title": "by the time vs before",
+          "note": "before看的是“在某动作之前”，by the time看的是“到某时间点时的状态/结果”。叙事中by the time常配完成时，更突出已完成。对比：Before he came, I left. / By the time he came, I had left."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "Before I go to bed, I brush my teeth.",
+          "translation": "睡觉前，我会刷牙。",
+          "note": "最安全的基础用法：Before + 从句, 主句。",
+          "scene": "日常习惯",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I always check the map before I drive to a new place.",
+          "translation": "去新的地方开车前，我总会先看地图。",
+          "note": "时间从句放句末也很自然，前面通常不用逗号。",
+          "scene": "出行准备",
+          "isPrimary": false
+        },
+        {
+          "sentence": "After the meeting ended, we sent the report.",
+          "translation": "会议结束后，我们把报告发出去了。",
+          "note": "适合写邮件、工作记录等较正式场景。",
+          "scene": "工作写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "By the time we got to the station, the train had left.",
+          "translation": "等我们到车站时，火车已经开走了。",
+          "note": "典型搭配：by the time + 一般过去时，主句常用过去完成时。",
+          "scene": "出行叙事",
+          "isPrimary": false
+        },
+        {
+          "sentence": "After I finish dinner, I’ll call you.",
+          "translation": "我吃完晚饭后给你打电话。",
+          "note": "和as soon as相比，这里只表示之后，不强调立刻。",
+          "scene": "日常联系",
+          "isPrimary": false
+        },
+        {
+          "sentence": "By the time you read this email, I will be on the plane.",
+          "translation": "等你读到这封邮件时，我已经在飞机上了。",
+          "note": "常见于通知、留言，表示到某时的状态。",
+          "scene": "邮件通知",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "初学者最安全模板",
+          "template": "Before/After + 时间从句, + 主句",
+          "slotHints": [
+            "时间从句写“主语+动词”，如 I leave / class ends；主句写主要动作，如 I will call you。"
+          ],
+          "exampleSentence": "After I get home, I will take a shower.",
+          "exampleTranslation": "我到家后会洗澡。",
+          "position": 1
+        },
+        {
+          "label": "句末时间从句模板",
+          "template": "主句 + before/after + 时间从句",
+          "slotHints": [
+            "先写主句，再补充发生时间；适合口语和日常表达。"
+          ],
+          "exampleSentence": "I do my homework before I watch TV.",
+          "exampleTranslation": "我看电视前先做作业。",
+          "position": 2
+        },
+        {
+          "label": "截止时间模板",
+          "template": "By the time + 时间从句, + 主句",
+          "slotHints": [
+            "用来写“到……的时候已经/将会……”；如果主句动作更早完成，常用完成时。"
+          ],
+          "exampleSentence": "By the time she arrived, we had started dinner.",
+          "exampleTranslation": "等她到的时候，我们已经开始吃晚饭了。",
+          "position": 3
+        },
+        {
+          "label": "写作通知模板",
+          "template": "By the time + 时间从句, + 状态主句",
+          "slotHints": [
+            "常用于邮件、通知、留言，主句可写be动词状态，如 I will be at the office。"
+          ],
+          "exampleSentence": "By the time you see this note, I will be in class.",
+          "exampleTranslation": "等你看到这张便条时，我已经在上课了。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "until-by-the-time",
+      "title": "until / by the time",
+      "shortLabel": "end point vs deadline",
+      "pattern": "until + clause / by the time + clause",
+      "family": "time_sequence",
+      "subtype": "end_point_vs_deadline_contrast",
+      "anchor": "until",
+      "coreExplanation": "until表示“持续到某个时间点才结束/变化”，前面通常接持续性的动作或状态；by the time表示“到……的时候，某情况已经发生或将已完成”。两者都常放句首引导时间从句，也可放主句后；从句后接完整句子，不接单个名词。",
+      "usageNote": "语气一般是neutral，口语和写作都常见。until适合描述等待、停留、工作到几点等“持续到终点”的情况；by the time适合截止时间、进度结果、到某时已经怎样。不要把by the time当成单纯“当……时”来用，也不要在until后随便接瞬间动作表达“到时就做”。句首从句后常加逗号；句中一般不加。初学者最安全：I’ll wait until… / By the time…, I will have…",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "deadlines",
+        "processes",
+        "time-management",
+        "等到某个时间才结束",
+        "截止某时已经完成",
+        "安排学习或工作进度",
+        "描述等待与离开",
+        "写邮件说明时间点"
+      ],
+      "slotSchema": [
+        {
+          "key": "timeClause",
+          "label": "时间从句",
+          "type": "clause",
+          "required": true,
+          "hint": "这里放完整主谓结构，如 you arrive, the meeting ends。常见错误是只放名词如 until tomorrow；本卡重点是从句型。例：until you arrive / by the time the class starts"
+        },
+        {
+          "key": "mainAction",
+          "label": "主句动作或结果",
+          "type": "custom",
+          "required": true,
+          "hint": "until前面的主句通常是持续性动作/状态，如 wait, stay, work；by the time后面的主句常是已经完成或已经存在的结果。常见错误：until后主句用瞬间动作。例：I waited... / I had finished..."
+        },
+        {
+          "key": "tenseChoice",
+          "label": "时态选择",
+          "type": "custom",
+          "required": true,
+          "hint": "until常直接配一般现在/过去/将来语境；by the time常和完成时连用表示“到那时已经”。常见错误：By the time he arrived, I finish. 应改为 had finished。例：By the time he arrived, I had finished."
+        }
+      ],
+      "commonErrors": [
+        "Wrong: I will wait by the time you arrive. —— 错在把by the time当“等到”为止；它强调“到那时已经……”。Fix: I will wait until you arrive. / By the time you arrive, I will have left.",
+        "Wrong: Until you arrive, I will leave. —— 错在leave是瞬间动作，不适合表示“持续到……”。Fix: Until you arrive, I will stay here. / I won’t leave until you arrive.",
+        "Wrong: By the time he came, I finished my homework. —— 错在缺少“到那时已经完成”的时态。Fix: By the time he came, I had finished my homework.",
+        "Wrong: until tomorrow I finish it. —— 错在语序和结构都不自然；until引导时间点时应放在主句后，或用从句型。Fix: I’ll finish it by tomorrow. / I’ll work on it until tomorrow.",
+        "Wrong: By the time when she arrived, we ate. —— 错在by the time后不接when，且主句时态不对。Fix: By the time she arrived, we had eaten.",
+        "Wrong: I studied by the time midnight. —— 错在by the time后不能直接接名词时间点。Fix: I studied until midnight. / By the time it was midnight, I had finished studying."
+      ],
+      "contrasts": [
+        {
+          "slug": "until-vs-by-the-time",
+          "title": "until vs by the time",
+          "note": "结构上，until前后表示“持续到终点”；by the time后面给出参照时点，主句说“到那时已经怎样”。语气上，until重过程终止，by the time重截止结果。对比：I stayed until noon. / By the time it was noon, I had left."
+        },
+        {
+          "slug": "by-the-time-vs-when",
+          "title": "by the time vs when",
+          "note": "结构上，when只是“当……时”；by the time是“到……的时候已经”。场景上，when适合一般同时发生，by the time适合进度领先或延后。对比：When he arrived, I was cooking. / By the time he arrived, I had cooked."
+        },
+        {
+          "slug": "until-vs-before",
+          "title": "until vs before",
+          "note": "结构上，until表示一直持续到某点；before表示在某点之前。语义上，until强调终点，before只强调先后。对比：Wait until 6.（等到6点）/ Finish it before 6.（6点前完成）"
+        },
+        {
+          "slug": "by-the-time-vs-before",
+          "title": "by the time vs before",
+          "note": "结构上，before后可直接说“在……之前做”；by the time后常说“到……时已经做完”。语气上，before更像要求时限，by the time更像描述状态。对比：Finish it before he arrives. / By the time he arrives, I will have finished it."
+        },
+        {
+          "slug": "until-vs-not-until",
+          "title": "until vs not...until",
+          "note": "结构上，until可直接接持续动作；not...until常接瞬间动作，表示“直到……才”。场景上，not...until更强调延迟发生。对比：I stayed until 10. / I didn’t leave until 10."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I will wait until you arrive.",
+          "translation": "我会一直等到你到。",
+          "note": "最安全的until基础句：主句用持续动作wait。",
+          "scene": "等待别人",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Until the rain stops, we’ll stay inside.",
+          "translation": "雨停之前，我们会一直待在里面。",
+          "note": "时间从句放句首时，后面加逗号。",
+          "scene": "天气与出行",
+          "isPrimary": false
+        },
+        {
+          "sentence": "By the time the meeting starts, I will have printed the reports.",
+          "translation": "到会议开始的时候，我就已经把报告打印好了。",
+          "note": "写作和工作场景中很常见，突出截止前已完成。",
+          "scene": "工作安排",
+          "isPrimary": false
+        },
+        {
+          "sentence": "When he arrived, I was tired; by the time he arrived, I had finished everything.",
+          "translation": "当他到的时候，我很累；到他到的时候，我已经把一切都做完了。",
+          "note": "对比when和by the time：前者只是当时，后者强调“到那时已经”。",
+          "scene": "语义比较",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I didn’t go to bed until midnight.",
+          "translation": "我直到半夜才睡觉。",
+          "note": "not...until适合瞬间动作go to bed。",
+          "scene": "日常作息",
+          "isPrimary": false
+        },
+        {
+          "sentence": "By the time you get home, dinner will be ready.",
+          "translation": "等你到家时，晚饭就会准备好了。",
+          "note": "日常生活里表示“到那时结果已就绪”。",
+          "scene": "家庭日常",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "I will [mainAction] until [timeClause].",
+          "slotHints": [
+            "[mainAction] 放持续动作，如 wait/stay/work；不要用 leave/arrive 这类瞬间动作",
+            "[timeClause] 放完整句子，如 you arrive / the class ends"
+          ],
+          "exampleSentence": "I will stay here until you call me.",
+          "exampleTranslation": "我会一直待在这里，直到你给我打电话。",
+          "position": 1
+        },
+        {
+          "label": "句首时间从句模板",
+          "template": "Until [timeClause], [subject] will [mainAction].",
+          "slotHints": [
+            "句首从句后加逗号",
+            "主句仍尽量用持续动作或状态，如 we will stay / I will be here"
+          ],
+          "exampleSentence": "Until the bus comes, we will wait here.",
+          "exampleTranslation": "公交车来之前，我们会一直在这里等。",
+          "position": 2
+        },
+        {
+          "label": "截止前已完成模板",
+          "template": "By the time [timeClause], [subject] will have [pastParticiple].",
+          "slotHints": [
+            "适合未来某时点前完成的事",
+            "[timeClause] 用一般现在表达将来，如 he arrives，不说 he will arrive"
+          ],
+          "exampleSentence": "By the time he arrives, I will have finished the email.",
+          "exampleTranslation": "等他到的时候，我就已经把邮件写完了。",
+          "position": 3
+        },
+        {
+          "label": "过去截止点模板",
+          "template": "By the time [timeClause], [subject] had [pastParticiple].",
+          "slotHints": [
+            "用来回顾过去：到过去某时已经完成",
+            "主句常用had finished/had left/had eaten等"
+          ],
+          "exampleSentence": "By the time she got there, we had left.",
+          "exampleTranslation": "等她到那儿的时候，我们已经走了。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "that-whether-if-noun-clause",
+      "title": "that / whether / if (noun clause)",
+      "shortLabel": "that / whether / if noun clause",
+      "pattern": "that / whether / if + clause",
+      "family": "noun_clause",
+      "subtype": "statement_vs_question_clause_contrast",
+      "anchor": "that",
+      "coreExplanation": "这个结构把一个完整句子变成名词性内容，放在动词、形容词或名词后面作“所说/所想/是否”的内容。that后接陈述句，whether/if后接一般疑问意义的从句。最常见位置是主句谓语后，如 think, know, ask, wonder 后。",
+      "usageNote": "语气多为中性；口语和书面语都常见。适合表达看法、转述信息、说明自己知道/不知道、问是否发生。that 常可省略，尤其口语中放在 say/think/know 后；whether 比 if 更正式，也更适合写作、句首主语、不定式前和介词后。初学者先记：陈述内容用 that，是否用 whether/if。若从句很长，注意不要漏主语和谓语。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "opinions",
+        "reporting",
+        "uncertainty",
+        "表达看法",
+        "转述别人说的话",
+        "说明知道/不知道",
+        "询问是否发生",
+        "书面说明"
+      ],
+      "slotSchema": [
+        {
+          "key": "matrix",
+          "label": "主句触发词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "可放 think, say, know, ask, wonder, be sure 等。常见错误：ask 后误接 that 表示“是否”；若是问是否，应接 whether/if。例：I wonder whether... / She said that..."
+        },
+        {
+          "key": "linker",
+          "label": "连接词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "只能按意思选 that / whether / if。that 表示“……这件事”，whether/if 表示“是否”。常见错误：把 yes-no 内容写成 that。例：I know that he is busy. / I don't know if he is busy."
+        },
+        {
+          "key": "content",
+          "label": "从句内容",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "后面要是完整句子，有主语和谓语。常见错误：只放短语，如 that happy。应写 that he is happy。例：whether she can come / that they left early"
+        }
+      ],
+      "commonErrors": [
+        "I don't know that he will come.｜若你想表达“我不知道他是否会来”，that 不能表示“是否”。｜改为：I don't know whether/if he will come.",
+        "She asked that he was ready.｜ask 表示询问 yes-no 时通常不用 that-clause。｜改为：She asked whether/if he was ready.",
+        "Whether he will come is unclear to me.｜句子本身对，但初学者若放在句首容易写乱；而且 if 不能这样自然地作句首主语。｜更稳妥：It is unclear whether he will come.",
+        "It depends on if we have time.｜介词 on 后正式英语更自然用 whether，不用 if。｜改为：It depends on whether we have time.",
+        "I wonder if or not he agrees.｜or not 的位置错了。｜改为：I wonder whether or not he agrees. / I wonder if he agrees or not.",
+        "I think whether he is right.｜think 后通常接陈述内容，不直接接 whether 表示“认为是否”。｜改为：I think that he is right. / I am not sure whether he is right."
+      ],
+      "contrasts": [
+        {
+          "slug": "that-vs-whether-if",
+          "title": "that vs whether/if",
+          "note": "结构上，that 后是陈述内容；whether/if 后是“是否”内容。语气上，that 只是转述事实，whether/if 带不确定或选择判断。对比：I know that he is here.（我知道他在）/ I don't know whether he is here.（我不知道他在不在）"
+        },
+        {
+          "slug": "whether-vs-if",
+          "title": "whether vs if",
+          "note": "结构上二者都可引导“是否”从句，但 whether 能用于更广：句首主语、介词后、不定式前；if 常用于口语、动词后。语体上 whether 更正式。对比：Whether he comes matters. / I don't know if he will come."
+        },
+        {
+          "slug": "whether-or-not",
+          "title": "whether or not",
+          "note": "结构上 whether 可直接搭配 or not，强调“两种情况都考虑”；if 通常不直接接 if or not。语气上 whether or not 更完整、更书面。对比：Let me know whether or not you can come. / Let me know if you can come."
+        },
+        {
+          "slug": "that-clause-vs-what-clause",
+          "title": "that-clause vs what-clause",
+          "note": "结构上 that-clause 不自带缺失成分，只是完整陈述；what-clause 本身含“……的东西/事情”，从句里少宾语或补语。语义上不同。对比：I know that he said it. / I know what he said."
+        },
+        {
+          "slug": "that-omission",
+          "title": "that can be omitted",
+          "note": "结构上 that 在很多动词后可省略，如 think, say, know；但 whether/if 不能这样省。语气上省略 that 更口语。对比：I think (that) she is right. / I wonder whether she is right. 不能省 whether"
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I think that this plan will work.",
+          "translation": "我认为这个计划会成功。",
+          "note": "最基础：that 引导陈述内容；口语里 that 可省略。",
+          "scene": "表达看法",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Do you know if he is at home?",
+          "translation": "你知道他是否在家吗？",
+          "note": "动词后常用 if 表示“是否”，很口语自然。",
+          "scene": "日常询问",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Whether the policy will succeed remains unclear.",
+          "translation": "这项政策是否会成功仍不明确。",
+          "note": "句首主语位置用 whether，更适合书面表达。",
+          "scene": "书面说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "It depends on whether we can get enough time.",
+          "translation": "这取决于我们是否能有足够的时间。",
+          "note": "介词 on 后用 whether，不用 if。",
+          "scene": "分析条件",
+          "isPrimary": false
+        },
+        {
+          "sentence": "She said that she had finished the report.",
+          "translation": "她说她已经完成报告了。",
+          "note": "转述别人说的话，用 that-clause。",
+          "scene": "转述信息",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I'm not sure whether he is right.",
+          "translation": "我不确定他是否是对的。",
+          "note": "和 I think that he is right 对比明显：一个是不确定，一个是判断。",
+          "scene": "比较语义",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "安全初学者模板",
+          "template": "I don't know whether/if + 从句.",
+          "slotHints": [
+            "前面固定用 I don't know；后面放完整句子，如 he is busy / she can come。若想更正式，优先用 whether。"
+          ],
+          "exampleSentence": "I don't know whether she can come.",
+          "exampleTranslation": "我不知道她是否能来。",
+          "position": 1
+        },
+        {
+          "label": "常用陈述内容模板",
+          "template": "Subject + think/say/know + (that) + 从句.",
+          "slotHints": [
+            "主句常用 I/we/they；that 可省略，但初学者保留更稳。后面必须是完整陈述句。"
+          ],
+          "exampleSentence": "We know that the train is late.",
+          "exampleTranslation": "我们知道火车晚点了。",
+          "position": 2
+        },
+        {
+          "label": "替代位置模板",
+          "template": "Whether + 从句 + verb + complement.",
+          "slotHints": [
+            "用于句首主语时用 whether，不用 if。主句常接 matters, is unclear, depends on..."
+          ],
+          "exampleSentence": "Whether he agrees matters a lot.",
+          "exampleTranslation": "他是否同意非常重要。",
+          "position": 3
+        },
+        {
+          "label": "写作模板",
+          "template": "It + be + adjective/noun + whether + 从句.",
+          "slotHints": [
+            "适合写作和正式表达，如 unclear, uncertain, the question。比直接用 if 更稳妥。"
+          ],
+          "exampleSentence": "It is unclear whether the plan will succeed.",
+          "exampleTranslation": "这个计划是否会成功还不清楚。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "what-clause-that-clause",
+      "title": "what-clause / that-clause",
+      "shortLabel": "what vs that clauses",
+      "pattern": "what + clause / that + clause",
+      "family": "noun_clause",
+      "subtype": "content_clause_contrast",
+      "anchor": "what",
+      "coreExplanation": "what-clause 表示“……的事/内容”，what 本身就在从句里充当主语、宾语等，所以后面必须是完整但缺少一个成分的从句。that-clause 只是陈述“……这件事”，that 不充当成分，后面要接结构完整的句子。两者都常作主语、宾语、表语，最常见在动词后。",
+      "usageNote": "语体上两者都很常用；that-clause 更中性、适合陈述观点与转述事实，what-clause 更强调“具体内容/实际发生的事”，口语和写作都自然。适合说明、汇报、解释、讨论想法；不适合拿 what 直接代替关系代词修饰名词。句首作主语时后面常接谓语，句中作宾语最稳。初学者先记：know/see/explain + what...；think/say/believe + that...。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "reporting",
+        "explanations",
+        "writing",
+        "转述别人说的话",
+        "解释某件事的内容",
+        "课堂写作与议论文",
+        "日常表达想法",
+        "说明自己知道/看到的内容"
+      ],
+      "slotSchema": [
+        {
+          "key": "mainVerb",
+          "label": "主句动词",
+          "type": "custom",
+          "required": true,
+          "hint": "放能接名词性从句的动词，如 know, say, think, explain, see。常错：把所有动词都接 what/that。例：I know ... / She explained ..."
+        },
+        {
+          "key": "whatClause",
+          "label": "what 从句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "放“what + 缺一个成分的从句”。what 在从句里可作主语或宾语。常错：后面再加一个重复宾语。例：what he said；不是 what he said it"
+        },
+        {
+          "key": "thatClause",
+          "label": "that 从句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "放“that + 完整句子”。that 不作成分。常错：在 that 从句里缺主语或宾语。例：that he was tired；不是 that was tired"
+        },
+        {
+          "key": "position",
+          "label": "句中位置",
+          "type": "custom",
+          "required": true,
+          "hint": "最安全放在动词后作宾语；也可句首作主语。常错：长 what/that 从句乱插在名词前。例：What he said surprised me."
+        }
+      ],
+      "commonErrors": [
+        "I know that he said.｜错因：that 从句必须是完整句，he said 后缺宾语，不能用 that。｜改法：I know what he said.",
+        "She explained what the problem was true.｜错因：把 what-clause 和补语硬连在一起，结构混乱。｜改法：She explained that the problem was real. / She explained what the problem was.",
+        "What he said it surprised me.｜错因：what 已经作 said 的宾语，it 重复。｜改法：What he said surprised me.",
+        "I think what he is honest.｜错因：what 不能引出完整判断句“他很诚实”；这里不缺成分。｜改法：I think that he is honest.",
+        "The book what I bought is new.｜错因：这里是在修饰名词 book，是定语从句，不是名词性从句。｜改法：The book that/which I bought is new.",
+        "She told me that what happened.｜错因：that 后不能直接接疑似残缺结构；若表达“发生了什么”，要直接用 what-clause。｜改法：She told me what happened. / She told me that something happened."
+      ],
+      "contrasts": [
+        {
+          "slug": "what-vs-that",
+          "title": "what-clause vs that-clause",
+          "note": "结构上，what 从句内部缺一个成分；that 从句内部完整。语气上，what 更像“具体内容是什么”，that 更像“某个事实/判断”。对比：I know what he wants.（我知道他想要什么）/ I know that he wants help.（我知道他想要帮助）"
+        },
+        {
+          "slug": "what-vs-whether-if",
+          "title": "what-clause vs whether/if-clause",
+          "note": "结构上，what 问“什么内容”，whether/if 问“是否”。场景上，what 关注信息内容，whether/if 关注二选一或不确定。对比：I asked what he wanted. / I asked whether he wanted it."
+        },
+        {
+          "slug": "what-clause-vs-relative-clause",
+          "title": "what-clause vs relative clause",
+          "note": "结构上，what-clause 本身就是一个名词性整体；关系从句要先有被修饰名词。场景上，what 用来当“……的东西/事情”，关系从句用来描述某个名词。对比：What I need is time. / The thing that I need is time."
+        },
+        {
+          "slug": "that-clause-vs-zero-that",
+          "title": "that-clause vs zero that",
+          "note": "结构上，that 在很多宾语从句里可省略，但句首作主语时通常不能随便省。语体上，省略 that 更口语，保留 that 更清楚。对比：I think (that) he is right. / That he is right is obvious."
+        },
+        {
+          "slug": "what-as-subject-vs-object",
+          "title": "what-clause 作主语 vs 作宾语",
+          "note": "结构上都可以，但宾语位置更常见、更易写。语篇上，句首主语更像书面总结，动词后宾语更自然。对比：What she wrote was helpful. / I read what she wrote."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I know what he said.",
+          "translation": "我知道他说了什么。",
+          "note": "最核心对比：said 后缺宾语，所以用 what。",
+          "scene": "转述内容",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I think that he is right.",
+          "translation": "我认为他是对的。",
+          "note": "that 从句表达完整判断，that 不作成分。",
+          "scene": "表达观点",
+          "isPrimary": false
+        },
+        {
+          "sentence": "What she needs is more time.",
+          "translation": "她需要的是更多时间。",
+          "note": "what-clause 放句首作主语，较像总结说明。",
+          "scene": "说明需求",
+          "isPrimary": false
+        },
+        {
+          "sentence": "That the plan failed was obvious.",
+          "translation": "这个计划失败这件事是明显的。",
+          "note": "书面感较强；正式写作中可见。",
+          "scene": "正式写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I understand what you mean, but I don't think that we can do it today.",
+          "translation": "我明白你的意思，但我认为我们今天做不了。",
+          "note": "同句对比：what 表“你表达的内容”，that 表“一个判断”。",
+          "scene": "比较敏感用法",
+          "isPrimary": false
+        },
+        {
+          "sentence": "She explained what happened after class.",
+          "translation": "她课后解释了发生了什么。",
+          "note": "日常很自然；explain 后常接 what-clause。",
+          "scene": "日常交流",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "I know what + 从句",
+          "slotHints": [
+            "what 后接缺成分的从句，如 what he said / what you need；不要再补重复宾语"
+          ],
+          "exampleSentence": "I know what you need.",
+          "exampleTranslation": "我知道你需要什么。",
+          "position": 1
+        },
+        {
+          "label": "常用判断模板",
+          "template": "I think that + 完整句",
+          "slotHints": [
+            "that 后放完整句，如 he is right / we can win；不确定时先不要省 that"
+          ],
+          "exampleSentence": "I think that she is busy.",
+          "exampleTranslation": "我觉得她很忙。",
+          "position": 2
+        },
+        {
+          "label": "句首主语模板",
+          "template": "What + 从句 + be + 名词/形容词",
+          "slotHints": [
+            "用来总结“……的事”；what 从句内部仍要缺一个成分，如 What I need is ..."
+          ],
+          "exampleSentence": "What I need is a break.",
+          "exampleTranslation": "我需要的是休息一下。",
+          "position": 3
+        },
+        {
+          "label": "写作用模板",
+          "template": "That + 完整句 + be + 形容词",
+          "slotHints": [
+            "较正式，适合书面说明事实或结论；that 从句作主语时不要省略 that"
+          ],
+          "exampleSentence": "That he refused was surprising.",
+          "exampleTranslation": "他拒绝了，这很令人惊讶。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "whether-or-not-whether-if",
+      "title": "whether or not / whether / if",
+      "shortLabel": "whether vs if vs whether or not",
+      "pattern": "whether or not / whether / if + clause",
+      "family": "noun_clause",
+      "subtype": "alternative_strength_contrast",
+      "anchor": "whether",
+      "coreExplanation": "whether 和 if 都可引出“是否……”的名词从句；whether or not 强调“不管是否都成立”。后面通常接完整主谓句。它们常放在动词、形容词、介词后作宾语，也可放句首作主语从句；正式写作里 whether 更稳妥。",
+      "usageNote": "语气上，if 较口语、whether 较中性到正式、whether or not 最强调“无论是否”。适合表达不确定、做决定、说明某事与条件无关；不适合拿 whether or not 去表示“即使”让步。放在介词后、to do 前、句首主语从句时，初学者优先用 whether，不要用 if。若 whether or not 放句中，or not 通常紧跟 whether，也可放到从句末，但别两处都放。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "decision-making",
+        "formal-writing",
+        "uncertainty",
+        "做决定时说“是否”",
+        "邮件或报告中的正式表达",
+        "说明结果不受条件影响",
+        "讨论还没确认的信息",
+        "介词后接从句"
+      ],
+      "slotSchema": [
+        {
+          "key": "trigger",
+          "label": "前置成分",
+          "type": "custom",
+          "required": true,
+          "hint": "可放动词、形容词、名词或介词短语，如 know, decide, depend on。常见错误是介词后用 if；应改为 whether。例：It depends on whether he agrees."
+        },
+        {
+          "key": "linker",
+          "label": "连接词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "可用 whether / if / whether or not。常见错误是把 whether or not 当 even if；它表示“是否都……”，不是“即使……也……”。例：We'll go whether or not it rains."
+        },
+        {
+          "key": "clause",
+          "label": "从句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "后面放完整陈述语序的句子，不用疑问语序。常见错误：whether is he ready；应为 whether he is ready。例：I don't know whether he is ready."
+        }
+      ],
+      "commonErrors": [
+        "I’m not sure if or not he will come.｜错因：if 一般不直接和 or not 连用成 if or not。｜改法：用 whether or not he will come，或 if he will come。",
+        "It depends on if we have time.｜错因：介词 on 后接名词从句时，标准用法用 whether，不用 if。｜改法：It depends on whether we have time.",
+        "I wonder whether or not will she join us.｜错因：名词从句里不能倒装，必须用陈述语序。｜改法：I wonder whether or not she will join us.",
+        "Whether or not it rains, but we will go.｜错因：whether or not 引导让步/无关条件时，主句前通常不用 but。｜改法：Whether or not it rains, we will go.",
+        "I don’t know whether to he go.｜错因：whether 后接不定式时应是 whether to do，不是 whether to + 主语 + 动词。｜改法：I don’t know whether to go.",
+        "If to accept the offer is difficult.｜错因：to do 前不能用 if；这种结构要用 whether。｜改法：Whether to accept the offer is difficult."
+      ],
+      "contrasts": [
+        {
+          "slug": "whether-vs-if-basic",
+          "title": "whether vs if：普通“是否”",
+          "note": "结构上，两者都可接完整从句；但 if 更口语，whether 更正式。场景上，日常对话可常用 if，写作和考试里 whether 更安全。对比：I don’t know if he’s free. / I don’t know whether he’s free."
+        },
+        {
+          "slug": "whether-after-preposition",
+          "title": "介词后：用 whether，不用 if",
+          "note": "结构上，介词后接名词从句时通常只能用 whether。语气上更书面、更标准，常见于 depend on, worry about。对比：It depends on whether we win. ×depends on if we win."
+        },
+        {
+          "slug": "whether-or-not-vs-whether",
+          "title": "whether or not vs whether：强调强度不同",
+          "note": "结构上，whether or not 比单独 whether 多了 or not。语义上，whether 只是提出“是否”，whether or not 强调“无论是否都如此”。对比：Ask whether he agrees. / We will leave whether or not he agrees."
+        },
+        {
+          "slug": "whether-or-not-vs-even-if",
+          "title": "whether or not 不等于 even if",
+          "note": "结构上，whether or not 表示两种情况都包括；even if 表示“即使在某种不利情况也……”。语气上，even if 更像让步，whether or not 更像与条件无关。对比：We’ll go whether or not it rains. / We’ll go even if it rains."
+        },
+        {
+          "slug": "whether-vs-that",
+          "title": "whether vs that：是否 vs 事实",
+          "note": "结构上，两者都可引导名词从句，但 whether 表示不确定，that 表示已把内容当作事实陈述。场景上，表达“我知道这件事”用 that，表达“我不知道是不是”用 whether。对比：I know that he left. / I don’t know whether he left."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I don’t know whether he is at home.",
+          "translation": "我不知道他是否在家。",
+          "note": "最基础的“是否”名词从句；从句用陈述语序。",
+          "scene": "不确定信息",
+          "isPrimary": true
+        },
+        {
+          "sentence": "It depends on whether we can finish today.",
+          "translation": "这取决于我们今天是否能完成。",
+          "note": "介词 on 后要用 whether，不用 if。",
+          "scene": "做决定",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Whether the policy will work remains unclear.",
+          "translation": "这项政策是否有效仍不明确。",
+          "note": "句首主语从句，偏书面。",
+          "scene": "正式写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "We will continue whether or not they support us.",
+          "translation": "不管他们是否支持我们，我们都会继续。",
+          "note": "强调“无论是否都继续”，不是单纯提问。",
+          "scene": "结果不受条件影响",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I’m not sure if she likes coffee.",
+          "translation": "我不确定她是否喜欢咖啡。",
+          "note": "口语里 if 很自然；但正式写作可换 whether。",
+          "scene": "日常聊天",
+          "isPrimary": false
+        },
+        {
+          "sentence": "He is thinking about whether to apply for the job.",
+          "translation": "他正在考虑是否申请这份工作。",
+          "note": "whether 可接 to do；这里 if 不能这样用。",
+          "scene": "求职计划",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "I don't know whether + 从句",
+          "slotHints": [
+            "从句写陈述语序，如 he is ready，不要写 is he ready"
+          ],
+          "exampleSentence": "I don't know whether they need help.",
+          "exampleTranslation": "我不知道他们是否需要帮助。",
+          "position": 1
+        },
+        {
+          "label": "另一位置模板",
+          "template": "It depends on whether + 从句",
+          "slotHints": [
+            "介词后优先用 whether；这是最稳的说法"
+          ],
+          "exampleSentence": "It depends on whether we have enough time.",
+          "exampleTranslation": "这取决于我们是否有足够的时间。",
+          "position": 2
+        },
+        {
+          "label": "写作模板",
+          "template": "Whether + 从句 + remains + 形容词",
+          "slotHints": [
+            "适合书面表达，如 remains unclear/uncertain"
+          ],
+          "exampleSentence": "Whether the plan will succeed remains uncertain.",
+          "exampleTranslation": "这项计划是否会成功仍不确定。",
+          "position": 3
+        },
+        {
+          "label": "强调两种情况都成立",
+          "template": "主句 + whether or not + 从句",
+          "slotHints": [
+            "表示“无论是否都……”，不要再加 but"
+          ],
+          "exampleSentence": "We will start on time whether or not John arrives.",
+          "exampleTranslation": "无论约翰是否到达，我们都会准时开始。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "who-which-that-relative-clause",
+      "title": "who / which / that (relative clause)",
+      "shortLabel": "Relative pronouns",
+      "pattern": "who / which / that + relative clause",
+      "family": "relative_clause",
+      "subtype": "basic_relative_pronoun_contrast",
+      "anchor": "that",
+      "coreExplanation": "who、which、that 用来把两个信息合成一句，说明前面的名词“是哪个人/哪样东西”。结构通常是：先有名词，再接 who/which/that + 从句。从句紧跟被说明的名词，最常见放在句子中间，也可放句尾修饰主语或宾语。",
+      "usageNote": "语气一般是中性；口语和书面语都常用，但细微选择不同：who 更常指人，which 更常指物，that 最灵活、最像日常英语。适合描述人或东西、补充身份信息、写定义。初学者不要用它来直接接完整新句子；它必须紧跟所修饰的名词。若主句后面信息很长，注意相对从句不要离名词太远。安全做法：先写名词，再立刻加 who/which/that 从句。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "describing",
+        "writing",
+        "accuracy",
+        "描述人物",
+        "说明物品",
+        "课堂写作",
+        "日常介绍",
+        "做比较"
+      ],
+      "slotSchema": [
+        {
+          "key": "head",
+          "label": "被修饰名词",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "这里放你要进一步说明的人或物，如 the girl / the book。常见错误：先写完整句子再硬加 who。小例：the teacher who..."
+        },
+        {
+          "key": "rel",
+          "label": "关系代词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "人常用 who，物常用 which，that 可常用于人或物。常见错误：把 which 用在人上。小例：the man who... / the phone which... / the phone that..."
+        },
+        {
+          "key": "clause",
+          "label": "限定信息从句",
+          "type": "custom",
+          "required": true,
+          "hint": "放说明该名词的动作或状态，通常缺少一个对应前面名词的位置。常见错误：重复代词，如 who she is。小例：who lives next door / which I bought yesterday"
+        }
+      ],
+      "commonErrors": [
+        "I know a girl which lives here.｜错因：which 通常不用来指人。｜改法：用 who 或 that：I know a girl who lives here.",
+        "This is the book that it is expensive.｜错因：关系从句里又加了 it，重复指代。｜改法：去掉 it：This is the book that is expensive.",
+        "The man who I saw him yesterday is my uncle.｜错因：从句里 him 与 who 重复。｜改法：去掉 him：The man who I saw yesterday is my uncle.",
+        "She bought a dress, that was very cheap.｜错因：逗号后一般不用 that 引导这种补充说明。｜改法：去掉逗号作限定，或改用 which：She bought a dress that was very cheap. / She bought a dress, which was very cheap.",
+        "I like the place who is quiet.｜错因：who 不能指地方或事物。｜改法：用 that/which；若强调地点也可学 where：I like the place that is quiet.",
+        "The car is red who my father bought.｜错因：关系从句位置错了，必须紧跟被修饰名词。｜改法：The car that my father bought is red."
+      ],
+      "contrasts": [
+        {
+          "slug": "who-vs-which",
+          "title": "who vs which",
+          "note": "结构上，who 指人，which 指物；语气上两者都中性，但这样分最安全。说人用 which 很不自然。对比：the boy who helped me / the bag which broke."
+        },
+        {
+          "slug": "that-vs-who-which",
+          "title": "that vs who/which",
+          "note": "结构上，that 可指人也可指物，常放在限定性从句里；语气上更口语、更日常。正式写作里，指人时常优先 who，指物时常优先 which。对比：the woman who called / the woman that called."
+        },
+        {
+          "slug": "relative-pronoun-vs-where-when-why",
+          "title": "vs where / when / why",
+          "note": "结构上，who/which/that 后常接“缺人/缺物”的从句；where/when/why 后常接表示地点、时间、原因的完整信息。场景上，前者重在说明人或物，后者重在说明地点时间原因。对比：the day when we met / the friend who met me."
+        },
+        {
+          "slug": "relative-pronoun-vs-what",
+          "title": "vs what",
+          "note": "结构上，what 本身就包含“the thing(s) that)”的意思，前面通常没有先行词；who/which/that 前面必须先有名词。场景上，what 更像“所……的东西”，而本卡结构是“那个……的名词”。对比：What I need is sleep. / The thing that I need is sleep."
+        },
+        {
+          "slug": "relative-pronoun-vs-that-clause",
+          "title": "vs that-clause",
+          "note": "结构上，关系代词修饰名词；that-clause 常作“内容/事实”的宾语或主语补足语，不修饰前面名词。场景上，一个是“哪一个人/东西”，一个是“某个事实”。对比：the news that shocked me / I know that he left."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "The boy who is wearing a blue cap is my brother.",
+          "translation": "戴蓝色帽子的那个男孩是我弟弟。",
+          "note": "最基础用法：who 指人，关系从句紧跟名词 boy。",
+          "scene": "描述人物",
+          "isPrimary": true
+        },
+        {
+          "sentence": "The book that I bought yesterday is very useful.",
+          "translation": "我昨天买的那本书很有用。",
+          "note": "另一常见位置：整个“名词+关系从句”作主语。",
+          "scene": "说明物品",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Students who submit late work may lose points.",
+          "translation": "迟交作业的学生可能会被扣分。",
+          "note": "较书面、规则说明里很常见。",
+          "scene": "课堂写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The phone which is cheaper is not as good.",
+          "translation": "更便宜的那部手机没那么好。",
+          "note": "适合比较场景；which 指物，比 who 更准确。",
+          "scene": "做比较",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I’m looking for a café that stays open late.",
+          "translation": "我在找一家营业到很晚的咖啡馆。",
+          "note": "日常口语里 that 很自然。",
+          "scene": "日常介绍",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The teacher who I talked to after class was very kind.",
+          "translation": "我课后交谈的那位老师很亲切。",
+          "note": "who 后从句中缺的是宾语对应的人。",
+          "scene": "校园交流",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "安全基础模板",
+          "template": "the + 名词 + who/which/that + 从句",
+          "slotHints": [
+            "先放要说明的人或物；人优先 who，物优先 which，拿不准可在限定性从句里用 that；从句紧跟名词"
+          ],
+          "exampleSentence": "the student who sits by the window",
+          "exampleTranslation": "坐在窗边的那个学生",
+          "position": 1
+        },
+        {
+          "label": "作主语模板",
+          "template": "The + 名词 + who/which/that + 从句 + 谓语",
+          "slotHints": [
+            "把整个“名词+关系从句”当主语；不要把关系从句放得离名词太远"
+          ],
+          "exampleSentence": "The car that my mother drives is very old.",
+          "exampleTranslation": "我妈妈开的那辆车很旧。",
+          "position": 1
+        },
+        {
+          "label": "作宾语模板",
+          "template": "主语 + 动词 + the + 名词 + who/which/that + 从句",
+          "slotHints": [
+            "先说谁做什么，再说“那个……的名词”；关系从句仍然要紧跟该名词"
+          ],
+          "exampleSentence": "I met a woman who works at this hospital.",
+          "exampleTranslation": "我遇见了一位在这家医院工作的女士。",
+          "position": 2
+        },
+        {
+          "label": "写作说明模板",
+          "template": "名词复数 + who/which + 从句 + may/can + 动词",
+          "slotHints": [
+            "写规则、说明、定义时很好用；正式一点时，人多用 who，物多用 which"
+          ],
+          "exampleSentence": "People who exercise regularly can sleep better.",
+          "exampleTranslation": "经常锻炼的人能睡得更好。",
+          "position": 1
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "where-when-why-relative-clause",
+      "title": "where / when / why (relative clause)",
+      "shortLabel": "relative adverbs",
+      "pattern": "where / when / why + relative clause",
+      "family": "relative_clause",
+      "subtype": "relative_adverb_contrast",
+      "anchor": "where",
+      "coreExplanation": "where、when、why 用来把“地点、时间、原因”和后面的补充信息连成定语从句，修饰前面的名词。结构通常是 place + where + 完整句子、time + when + 完整句子、reason + why + 完整句子。它们一般紧跟所修饰的名词，常出现在句中，也可放句尾作补充说明。",
+      "usageNote": "语气多为中性，口语和写作都常见，其中 why 修饰 reason 更常见于说明、解释。适合描述某地、某时、某原因并继续补充信息；不适合直接连接两个完整独立句，也不用于单纯表示“在那儿/那时/因为”而没有先行词的情况。注意关系词通常紧跟先行词，不要被逗号或别的短语隔开。初学者最安全的做法是先写名词，再接 where/when/why + 主语 + 动词。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "describing",
+        "stories",
+        "writing",
+        "描述地点",
+        "讲过去经历",
+        "解释原因",
+        "人物故事写作",
+        "日常回忆"
+      ],
+      "slotSchema": [
+        {
+          "key": "head",
+          "label": "先行词",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "这里放表示地点、时间或原因的名词，如 the house / the day / the reason。常见错误：先行词类型不对，比如用 person + where。应改成 place/time/reason 类名词。例：the day when we met"
+        },
+        {
+          "key": "rel",
+          "label": "关系副词",
+          "type": "fixed_chunk",
+          "required": true,
+          "hint": "这里放 where、when 或 why，要和前面的名词匹配。常见错误：the reason where...；原因通常用 why。例：the place where I study"
+        },
+        {
+          "key": "clause",
+          "label": "从句",
+          "type": "statement_clause",
+          "required": true,
+          "hint": "这里放完整从句，通常要有主语和动词。常见错误：重复介词或重复宾语，如 the place where I live in。应写 where I live。例：when she arrived"
+        },
+        {
+          "key": "main",
+          "label": "主句其余部分",
+          "type": "custom",
+          "required": false,
+          "hint": "可在定语从句后继续主句。常见错误：把定语从句单独当完整句使用。例：This is the park where we played as children."
+        }
+      ],
+      "commonErrors": [
+        "the place where I live in.｜错因：where 已经包含“在那个地方”的意思，后面不能再加 in。｜改法：the place where I live / the place that I live in.",
+        "the reason where he left.｜错因：reason 通常不用 where 引导。｜改法：the reason why he left / the reason that he left.",
+        "the day where we met.｜错因：修饰时间名词 day 时通常用 when，不用 where。｜改法：the day when we met.",
+        "I remember when we first met was exciting.｜错因：这里 when 从句被错误地当主语补足结构，缺少明确先行词。｜改法：I remember the day when we first met.",
+        "This is where I bought yesterday.｜错因：where 后面需要完整从句，但 bought 缺宾语；若先行词不是地点也不成立。｜改法：This is the shop where I bought it yesterday.",
+        "The reason why because he was sick is clear.｜错因：why 和 because 不能在同一结构里重复表达原因。｜改法：The reason why he was sick is clear. / He stayed home because he was sick."
+      ],
+      "contrasts": [
+        {
+          "slug": "who-which-that-relative-clause",
+          "title": "vs who / which / that",
+          "note": "结构差别：who/which/that 代替人或物，在从句中常作主语或宾语；where/when/why 表示地点、时间、原因。语气上前者更泛用，后者更明确。对比：the book that I bought（物）vs the shop where I bought it（地点）。"
+        },
+        {
+          "slug": "when-vs-while",
+          "title": "when relative clause vs while",
+          "note": "结构差别：定语从句里的 when 前面必须有时间名词；while 用来连接两个动作或时间段，不修饰名词。场景上 when 可用于描述“那一天/那时候”，while 多讲“同时”。对比：the day when we met vs While we were eating, he called."
+        },
+        {
+          "slug": "where-vs-there",
+          "title": "where relative clause vs there",
+          "note": "结构差别：where 连接先行词和从句；there 只是副词，不引导定语从句。语气上 where 更像“……的地方”，there 只是“在那里”。对比：the cafe where we met 正确；the cafe there we met 错误。"
+        },
+        {
+          "slug": "why-vs-because",
+          "title": "why relative clause vs because",
+          "note": "结构差别：why 用在 reason 后修饰名词；because 直接引导原因状语从句。场景上 why 常用于解释某个“原因”这个名词，because 常用于直接说明动作原因。对比：the reason why she cried vs She cried because she was sad."
+        },
+        {
+          "slug": "prep+which",
+          "title": "vs in/on/for which",
+          "note": "结构差别：where/when/why 常可对应 in which / on which / for which。后者更正式，更常见于写作。对比：the house where I grew up = the house in which I grew up；the reason why he resigned = the reason for which he resigned（很正式）。"
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "This is the place where I first met her.",
+          "translation": "这就是我第一次见到她的地方。",
+          "note": "最基础安全句型：place + where + 完整从句。",
+          "scene": "描述地点",
+          "isPrimary": true
+        },
+        {
+          "sentence": "I still remember the day when we moved here.",
+          "translation": "我仍然记得我们搬来这里的那一天。",
+          "note": "when 紧跟时间名词 day。",
+          "scene": "回忆过去",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The reason why the plan failed is now clear.",
+          "translation": "这个计划失败的原因现在清楚了。",
+          "note": "偏说明、写作风格，主句较正式。",
+          "scene": "说明写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "This is the shop where I bought the book, not the library where I borrowed it.",
+          "translation": "这是我买那本书的商店，不是我借那本书的图书馆。",
+          "note": "对比敏感：两个 where 从句分别修饰不同地点。",
+          "scene": "比较说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Summer is the time when many people travel.",
+          "translation": "夏天是很多人旅行的时候。",
+          "note": "time + when 很自然，也常用于概括表达。",
+          "scene": "日常表达",
+          "isPrimary": false
+        },
+        {
+          "sentence": "That was the reason why I called you so late.",
+          "translation": "那就是我这么晚给你打电话的原因。",
+          "note": "口语中很常用来解释原因。",
+          "scene": "日常解释",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "初学者最安全模板",
+          "template": "This is the [head] where/when/why [clause].",
+          "slotHints": [
+            "[head] 用 place/day/reason 等名词；where 对地点，when 对时间，why 对 reason",
+            "[clause] 写完整从句：主语 + 动词 + 其他成分，如 I met her / we moved / he left"
+          ],
+          "exampleSentence": "This is the place where we had lunch.",
+          "exampleTranslation": "这就是我们吃午饭的地方。",
+          "position": 1
+        },
+        {
+          "label": "句中补充模板",
+          "template": "I remember the [head] where/when/why [clause].",
+          "slotHints": [
+            "适合接 day/time/reason/place 等，表示“我记得……”",
+            "如果是 reason，最自然的是 the reason why + 从句"
+          ],
+          "exampleSentence": "I remember the day when you called me.",
+          "exampleTranslation": "我记得你给我打电话的那一天。",
+          "position": 2
+        },
+        {
+          "label": "写作说明模板",
+          "template": "The [head] where/when/why [clause] is/was [comment].",
+          "slotHints": [
+            "[comment] 可放 clear, important, unforgettable 等评价词",
+            "写作里可把 where/when 改成 in which/on which，更正式"
+          ],
+          "exampleSentence": "The reason why he resigned was unclear.",
+          "exampleTranslation": "他辞职的原因当时并不清楚。",
+          "position": 3
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "so-that-in-order-to",
+      "title": "so that / in order to",
+      "shortLabel": "Purpose: clause vs infinitive",
+      "pattern": "so that + clause / in order to + base",
+      "family": "purpose_comparison",
+      "subtype": "purpose_form_contrast",
+      "anchor": "so that",
+      "coreExplanation": "这个结构用来说明“为了……”。so that后面必须接完整从句，通常有主语，常配can/could/will等：I spoke slowly so that everyone could understand. in order to后面接动词原形，主语默认和主句一致，常放在句中或句首：In order to save time, we left early.",
+      "usageNote": "两者都可用于中性到较正式表达；in order to比单独to更正式，so that更适合把“目的+结果能力/意图”说完整。常见于计划、解释做法、书面说明。口语里可常用to代替in order to。不要把in order to后面接完整句子，也不要在so that后只放动词。句首用目的短语后通常加逗号。初学者最安全：主句 + in order to + 动词原形。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "planning",
+        "formal-writing",
+        "explanations",
+        "说明做某事的目的",
+        "学习或工作计划",
+        "步骤说明或操作指示",
+        "较正式写作",
+        "日常解释原因和安排"
+      ],
+      "slotSchema": [
+        {
+          "key": "main_clause",
+          "label": "主句",
+          "type": "clause",
+          "required": true,
+          "hint": "放主要动作或安排。常见错误：主句过短缺主语。例：We left early."
+        },
+        {
+          "key": "purpose_clause",
+          "label": "so that 后的目的从句",
+          "type": "clause",
+          "required": true,
+          "hint": "必须是完整句子，常含主语+can/could/would等。常见错误：只写so that save time。例：so that we could save time"
+        },
+        {
+          "key": "purpose_inf",
+          "label": "in order to 后的动词",
+          "type": "to_infinitive",
+          "required": true,
+          "hint": "只接动词原形，不接完整句子。常见错误：in order to we can save time。例：in order to save time"
+        }
+      ],
+      "commonErrors": [
+        "× in order to we can finish early. → 错在in order to后不能接完整句子。√ in order to finish early / √ so that we can finish early.",
+        "× so that save money. → 错在so that后必须有完整从句。√ so that we can save money.",
+        "× I studied hard in order to my exam. → 错在后面不能直接接名词。√ I studied hard in order to pass my exam.",
+        "× In order to, we left early. → 错在缺少动词内容。√ In order to avoid traffic, we left early.",
+        "× I wore a coat so that stay warm. → 错在so that后缺主语和谓语。√ I wore a coat so that I could stay warm.",
+        "× So that catch the bus, he ran. → 错在把so that当不定式用了。√ In order to catch the bus, he ran. / √ He ran so that he could catch the bus."
+      ],
+      "contrasts": [
+        {
+          "slug": "to",
+          "title": "in order to vs to",
+          "note": "结构上，二者都接动词原形；但in order to更正式、更清楚地强调“目的”，to更口语更轻。场景上，写作说明常用in order to，日常对话常用to。对比：I left early to catch the bus. / I left early in order to catch the bus."
+        },
+        {
+          "slug": "because",
+          "title": "so that / in order to vs because",
+          "note": "结构上，so that/in order to表示“目的”，because后接原因从句。场景上，前者回答“为了什么”，后者回答“为什么”。语气上不是替换关系。对比：I left early so that I could catch the bus. / I left early because the traffic was bad."
+        },
+        {
+          "slug": "because_of",
+          "title": "in order to vs because of",
+          "note": "结构上，in order to后接动词原形；because of后接名词或名词短语。场景上，一个说目的，一个说原因。对比：We moved online in order to save costs. / We moved online because of the storm."
+        },
+        {
+          "slug": "too_enough",
+          "title": "purpose vs too...to / enough to",
+          "note": "结构上，so that/in order to表达“为了做”，too...to和enough to表达“程度导致能/不能做”。语义重点不同：前者是目的，后者是能力或结果。对比：I spoke loudly so that everyone could hear. / I was loud enough to be heard."
+        },
+        {
+          "slug": "so",
+          "title": "so that vs so",
+          "note": "结构上，so that后接目的从句；so常接结果句。场景上，so that强调事先目的，so更像发生后的结果。对比：I wrote it down so that I wouldn't forget. / I forgot, so I wrote it down."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I spoke slowly so that everyone could understand.",
+          "translation": "我说得很慢，这样每个人都能听懂。",
+          "note": "最核心用法：so that后是完整从句，并常用could/can。",
+          "scene": "课堂说明",
+          "isPrimary": true
+        },
+        {
+          "sentence": "In order to save time, we left early.",
+          "translation": "为了节省时间，我们提前出发了。",
+          "note": "句首目的短语，后面主句前通常加逗号。",
+          "scene": "出行计划",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The instructions are written clearly so that users can follow them easily.",
+          "translation": "说明写得很清楚，以便用户能轻松照着做。",
+          "note": "较书面、说明文常见。",
+          "scene": "正式写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I brought a map so that we wouldn't get lost, not because I was worried.",
+          "translation": "我带了地图是为了不让我们迷路，不是因为我在担心。",
+          "note": "适合和because对比，突出“目的”不是“原因”。",
+          "scene": "解释行为",
+          "isPrimary": false
+        },
+        {
+          "sentence": "She turned on the light in order to find her keys.",
+          "translation": "她打开灯，为了找到钥匙。",
+          "note": "主语一致时，用in order to很自然。",
+          "scene": "日常生活",
+          "isPrimary": false
+        },
+        {
+          "sentence": "He whispered so that the baby wouldn't wake up.",
+          "translation": "他小声说话，免得把宝宝吵醒。",
+          "note": "so that可表达希望避免某结果。",
+          "scene": "家庭场景",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "[主句] + in order to + [动词原形]",
+          "slotHints": [
+            "先说主要动作，再接目的动词；主句和to后动作默认是同一主语。"
+          ],
+          "exampleSentence": "We left early in order to catch the train.",
+          "exampleTranslation": "我们提前出发，为了赶上火车。",
+          "position": 1
+        },
+        {
+          "label": "完整目的从句模板",
+          "template": "[主句] + so that + [主语] + can/could/will/would + [动词原形]",
+          "slotHints": [
+            "当你需要明确写出另一个主语，或想表达“能/不会/会”时，用这个最稳。"
+          ],
+          "exampleSentence": "I wrote it down so that I could remember it later.",
+          "exampleTranslation": "我把它写下来，这样之后就能记住。",
+          "position": 2
+        },
+        {
+          "label": "句首目的模板",
+          "template": "In order to + [动词原形], + [主句]",
+          "slotHints": [
+            "适合计划、步骤说明、较正式写作；句首短语后通常加逗号。"
+          ],
+          "exampleSentence": "In order to reduce costs, the company changed suppliers.",
+          "exampleTranslation": "为了降低成本，公司更换了供应商。",
+          "position": 3
+        },
+        {
+          "label": "不同主语时的安全模板",
+          "template": "[主句] + so that + [另一个主语] + can/could + [动词原形]",
+          "slotHints": [
+            "如果目的动作不是主句主语来做，不要用in order to，优先用so that。"
+          ],
+          "exampleSentence": "I left a note so that my roommate could find the package.",
+          "exampleTranslation": "我留了张纸条，好让室友能找到包裹。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "too-to-enough-to",
+      "title": "too...to / enough to",
+      "shortLabel": "degree blocks vs allows action",
+      "pattern": "too + adj + to / adj + enough to",
+      "family": "purpose_comparison",
+      "subtype": "degree_threshold_contrast",
+      "anchor": "too",
+      "coreExplanation": "too + 形容词/副词 + to do表示“太……而不能……”，重点是程度过头，结果阻碍后面的动作。形容词/副词 + enough + to do表示“够……可以……”，重点是程度达到，后面的动作可实现。两者通常放在be动词、感官动词或实义动词后面作表语或补足说明。",
+      "usageNote": "这两个结构都很常见，语气中性，适合口语和写作。too...to常用于抱怨、说明限制或客观结果；enough to常用于表达条件已足够。它们后面接to do，不接完整从句。常放在句中，不单独成句；写作中可接逗号后的结果说明。初学者最安全的做法是先用be + adj，再接too...to或adj + enough to。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "describing",
+        "results",
+        "daily-life",
+        "描述人或物的状态",
+        "说明做某事是否可行",
+        "日常对话评价",
+        "写作中表达结果",
+        "比较程度差异"
+      ],
+      "slotSchema": [
+        {
+          "key": "degreeWord",
+          "label": "程度部分",
+          "type": "custom",
+          "required": true,
+          "hint": "放形容词或副词，如 tired, young, slowly。常错：在too后放名词。应说 too tired to walk，不说 too tiredness to walk。"
+        },
+        {
+          "key": "action",
+          "label": "后续动作",
+          "type": "to_infinitive",
+          "required": true,
+          "hint": "放to + 动词原形，表示受阻或可实现的动作。常错：用动词ing。应说 enough to go，不说 enough going。"
+        },
+        {
+          "key": "subject",
+          "label": "主语",
+          "type": "noun_phrase",
+          "required": false,
+          "hint": "通常是人、物、情况，如 I, the box, this room。常错：主语和动作逻辑不一致。The box is too heavy to carry 中默认是“人拿箱子”，语义要合理。"
+        }
+      ],
+      "commonErrors": [
+        "wrong: too tired to can walk；原因：too...to后面必须直接接动词原形，不加情态动词；改法：too tired to walk",
+        "wrong: enough tall to reach it；原因：enough修饰形容词时放在形容词后，不放前面；改法：tall enough to reach it",
+        "wrong: too enough expensive to buy；原因：too和enough不能一起修饰同一形容词；改法：too expensive to buy 或 cheap enough to buy",
+        "wrong: He is too young that he can't drive；原因：把too...to和so...that混用了；改法：He is too young to drive / He is so young that he can't drive",
+        "wrong: The soup is enough hot to eat；原因：形容词+enough顺序错；改法：The soup is hot enough to eat",
+        "wrong: I am too happy to go；原因：形式上可成立，但常被误用来表达“很开心所以去”；too...to通常表示阻碍，语义变成“开心得没法去”；改法：I am happy enough to go 或 I am so happy that I want to go"
+      ],
+      "contrasts": [
+        {
+          "slug": "so-that-in-order-to",
+          "title": "vs so that / in order to",
+          "note": "结构不同：too...to / enough to表示“程度导致能不能做”，so that / in order to表示“目的”。语气上前者说结果阈值，后者说打算。对比：He is too tired to study.（累得学不了）/ He went home early to study.（为了学习早点回家）"
+        },
+        {
+          "slug": "so-that-result",
+          "title": "vs so...that",
+          "note": "结构不同：too...to接to do，so...that接完整从句。语义上too...to常偏“过度导致不能”，so...that只说明结果，不一定是否定。对比：too tired to work / so tired that he fell asleep。"
+        },
+        {
+          "slug": "very",
+          "title": "vs very",
+          "note": "结构不同：very + adj 只表示程度高，不直接带结果动作；too + adj + to do带“过头而不能”，adj + enough + to do带“达到可以”。语气上very更中性。对比：very tired / too tired to drive / awake enough to drive。"
+        },
+        {
+          "slug": "not-enough-to",
+          "title": "vs too...to 的反向表达",
+          "note": "结构不同：not + adj + enough + to do表示“不够……不能……”，常与too...to表达相近结果。语气上not enough较客观，too...to更强调“过头”。对比：He is too weak to run. / He is not strong enough to run."
+        },
+        {
+          "slug": "for-noun-to",
+          "title": "with for + 名词 + to do",
+          "note": "若要明确动作执行者，可加for + 名词 + to do。结构上比基本式多一个执行者。语气更清楚，常见于说明条件。对比：The box is too heavy to carry. / The box is too heavy for me to carry."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I am too tired to walk.",
+          "translation": "我太累了，走不动了。",
+          "note": "最基础安全句型：be + too + 形容词 + to do。",
+          "scene": "日常状态",
+          "isPrimary": true
+        },
+        {
+          "sentence": "This bag is light enough to carry on the train.",
+          "translation": "这个包够轻，可以带上火车。",
+          "note": "enough放在形容词后。",
+          "scene": "出行",
+          "isPrimary": false
+        },
+        {
+          "sentence": "She spoke slowly enough for everyone to understand.",
+          "translation": "她说得够慢，大家都能听懂。",
+          "note": "副词也可以用于enough结构；加for everyone更明确动作执行者。",
+          "scene": "课堂/会议",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The report is too technical to be useful for beginners.",
+          "translation": "这份报告技术性太强，对初学者来说不好用。",
+          "note": "偏书面，用于评价内容是否适合某类读者。",
+          "scene": "写作/学术",
+          "isPrimary": false
+        },
+        {
+          "sentence": "He is old enough to drive, but his sister is too young to drive.",
+          "translation": "他年龄够大，可以开车，但他妹妹太小，还不能开车。",
+          "note": "同句对比enough to与too...to，最能帮助记忆差别。",
+          "scene": "比较说明",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The coffee was too hot to drink at first.",
+          "translation": "咖啡一开始太烫，没法喝。",
+          "note": "常见生活表达；at first说明时间。",
+          "scene": "吃喝",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全入门模板",
+          "template": "[subject] + be + too + [degreeWord] + to + [action]",
+          "slotHints": [
+            "主语常用I/he/it/this",
+            "degreeWord放形容词，如 tired, busy, hot",
+            "action用动词原形，如 go, eat, study"
+          ],
+          "exampleSentence": "The box is too heavy to lift.",
+          "exampleTranslation": "这个箱子太重了，抬不起来。",
+          "position": 1
+        },
+        {
+          "label": "可行条件模板",
+          "template": "[subject] + be + [degreeWord] + enough + to + [action]",
+          "slotHints": [
+            "degreeWord多用形容词，如 big, old, warm",
+            "表示“达到可以做某事的程度”",
+            "不要说 enough big，顺序必须是 big enough"
+          ],
+          "exampleSentence": "The room is warm enough to sleep in.",
+          "exampleTranslation": "这个房间够暖和，可以睡。",
+          "position": 2
+        },
+        {
+          "label": "替代位置模板",
+          "template": "[subject] + verb + [degreeWord] + enough + to + [action]",
+          "slotHints": [
+            "这里degreeWord常是副词，如 slowly, clearly, carefully",
+            "用于说明动作做得够……所以可以……",
+            "注意副词位置：speak clearly enough to hear"
+          ],
+          "exampleSentence": "Please speak loudly enough to be heard.",
+          "exampleTranslation": "请说得够大声，让别人听得见。",
+          "position": 3
+        },
+        {
+          "label": "写作说明模板",
+          "template": "[subject] + be + too + [degreeWord] + for + [subject] + to + [action]",
+          "slotHints": [
+            "用for + 人，明确是谁不能做",
+            "常用于说明条件限制，更清楚更书面",
+            "degreeWord多为hard, expensive, difficult, heavy"
+          ],
+          "exampleSentence": "The instructions are too complicated for children to follow.",
+          "exampleTranslation": "这些说明太复杂了，孩子们看不懂。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "rather-than-instead-of-would-rather",
+      "title": "rather than / instead of / would rather",
+      "shortLabel": "choice: rather than / instead of / would rather",
+      "pattern": "rather than / instead of / would rather",
+      "family": "purpose_comparison",
+      "subtype": "choice_preference_contrast",
+      "anchor": "rather than",
+      "coreExplanation": "rather than 表示“而不是、宁可”，常用来把两个选项并列比较；instead of 表示“代替、而不是”，后面通常接名词、代词或动词-ing；would rather 表示“宁愿”，主语后常接动词原形。它们多放在句中，也可放句首作书面化对比。",
+      "usageNote": "语气上，instead of 最中性，适合日常替换说明；rather than 稍强调对比，口语和写作都常见；would rather 最像表达个人偏好，常用于对话。不要把 would rather 后面直接接名词，也不要在它后面加 to。句首用 rather than / instead of 时，后面常接逗号。初学者最安全：I’d rather stay home than go out. / We used email instead of paper.",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "choices",
+        "preferences",
+        "conversation",
+        "表达两种选择",
+        "说明替代做法",
+        "谈个人偏好",
+        "口语对话",
+        "简单写作对比"
+      ],
+      "slotSchema": [
+        {
+          "key": "optionA",
+          "label": "首选项/实际项",
+          "type": "custom",
+          "required": true,
+          "hint": "放你选择、保留或实际发生的内容。常见错误是A和B形式不对称。最好保持同类：read books rather than watch TV；不要 read books rather than watching TV。"
+        },
+        {
+          "key": "optionB",
+          "label": "被拒绝项/替代项",
+          "type": "custom",
+          "required": true,
+          "hint": "放不选的内容。instead of 后面常接名词或动词-ing；常错用动词原形。例：instead of driving，不说 instead of drive。"
+        },
+        {
+          "key": "mainVerb",
+          "label": "would rather后的动词",
+          "type": "custom",
+          "required": false,
+          "hint": "只能用动词原形，前面通常有主语+would rather。常见错误是加 to。例：I’d rather walk，不说 I’d rather to walk。"
+        }
+      ],
+      "commonErrors": [
+        "I would rather coffee than tea.｜错因：would rather 后不能直接接名词表示选择。｜改法：说 I’d rather have coffee than tea. 或 I prefer coffee to tea.",
+        "Instead of to study, he played games.｜错因：instead of 后不能接 to do。｜改法：用名词或动词-ing：Instead of studying, he played games.",
+        "She chose to stay home rather than went out.｜错因：rather than 前后形式不平行。｜改法：She chose to stay home rather than go out.",
+        "Rather than he stayed home, he went out.｜错因：rather than 不这样连接完整主句对主句。｜改法：He went out rather than stayed home 不自然；初学者改成 He went out instead of staying home. 或 He chose to go out rather than stay home.",
+        "I rather stay here.｜错因：表达“宁愿”时缺少 would。｜改法：I would rather stay here. / I’d rather stay here.",
+        "We used online meetings rather than of face-to-face meetings.｜错因：混用了 rather than 和 instead of 的结构。｜改法：We used online meetings instead of face-to-face meetings. 或 We chose online meetings rather than face-to-face meetings."
+      ],
+      "contrasts": [
+        {
+          "slug": "rather-than-vs-instead-of",
+          "title": "rather than vs instead of",
+          "note": "结构上，rather than 常连接两个平行选项；instead of 后面更稳定地接名词/代词/动词-ing。语气上，rather than 对比感更强，instead of 更像“替代”。对比：We walked rather than took a taxi.（较别扭）/ We walked instead of taking a taxi.（更自然）"
+        },
+        {
+          "slug": "would-rather-vs-prefer-to",
+          "title": "would rather vs prefer...to...",
+          "note": "结构上，would rather + 动词原形；prefer + 名词 / prefer A to B。语气上，would rather 更像当下个人选择，口语更常见；prefer 较中性。对比：I’d rather stay home tonight. / I prefer staying home on weekends."
+        },
+        {
+          "slug": "would-rather-vs-rather-than",
+          "title": "would rather...than... vs rather than",
+          "note": "结构上，would rather 常由主语+would rather+A+than+B；rather than 可直接放在两个内容之间。语气上，前者更明确表达“我宁愿”，后者更像客观对比。对比：I’d rather walk than drive. / We walked rather than drove."
+        },
+        {
+          "slug": "instead-of-vs-because",
+          "title": "instead of vs because/since/as",
+          "note": "结构上，instead of 表示“替代选择”，because/since/as 表示“原因”。场景不同：一个说“用A不用B”，一个说“因为X所以Y”。对比：We stayed home instead of going out. / We stayed home because it rained."
+        },
+        {
+          "slug": "rather-than-vs-so-that",
+          "title": "rather than vs so that",
+          "note": "结构上，rather than 连接两个选项；so that 引出目的从句。语义不同：前者是“选A不选B”，后者是“为了……”。对比：Take the train rather than drive. / Take the train so that you can relax."
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I’d rather stay home than go out tonight.",
+          "translation": "今晚我宁愿待在家里，也不想出去。",
+          "note": "最安全的初学者句型：would rather + 动词原形 + than + 动词原形。",
+          "scene": "晚间计划",
+          "isPrimary": true
+        },
+        {
+          "sentence": "Instead of driving, we took the subway.",
+          "translation": "我们没有开车，而是坐了地铁。",
+          "note": "instead of 放句首时，后面常加逗号。",
+          "scene": "出行选择",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The company chose online training rather than in-person workshops.",
+          "translation": "公司选择了线上培训，而不是线下研讨会。",
+          "note": "较适合写作或正式说明。",
+          "scene": "工作写作",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I’d rather have tea than coffee.",
+          "translation": "我宁愿喝茶，不想喝咖啡。",
+          "note": "和 prefer A to B 接近，但口语里更直接表达当下偏好。",
+          "scene": "点饮料",
+          "isPrimary": false
+        },
+        {
+          "sentence": "She checked the facts instead of guessing.",
+          "translation": "她核实了事实，而不是靠猜。",
+          "note": "instead of 后接动词-ing 很自然。",
+          "scene": "学习/工作习惯",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Rather than argue, he apologized first.",
+          "translation": "他没有争论，而是先道了歉。",
+          "note": "句首 rather than 带一点书面、压缩表达的感觉。",
+          "scene": "人际沟通",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "安全入门：表达个人宁愿",
+          "template": "I’d rather {mainVerb} than {optionB}.",
+          "slotHints": [
+            "{mainVerb} 用动词原形，如 stay / walk / eat",
+            "{optionB} 放另一动作，也用动词原形，如 go out / drive"
+          ],
+          "exampleSentence": "I’d rather walk than drive.",
+          "exampleTranslation": "我宁愿走路，也不想开车。",
+          "position": 1
+        },
+        {
+          "label": "替代做法：instead of 结构",
+          "template": "Instead of {optionB}, {optionA}.",
+          "slotHints": [
+            "{optionB} 最安全放名词或动词-ing，如 driving / buying lunch",
+            "{optionA} 放完整主句，如 we cooked at home"
+          ],
+          "exampleSentence": "Instead of eating out, we cooked at home.",
+          "exampleTranslation": "我们没在外面吃，而是在家做饭。",
+          "position": 2
+        },
+        {
+          "label": "句中对比：rather than",
+          "template": "{optionA} rather than {optionB}.",
+          "slotHints": [
+            "前后尽量保持同类形式，如 noun+noun 或 base verb+base verb",
+            "初学者可直接用 chose A rather than B"
+          ],
+          "exampleSentence": "She chose the bus rather than a taxi.",
+          "exampleTranslation": "她选择了公交车，而不是出租车。",
+          "position": 3
+        },
+        {
+          "label": "写作型：句首对比",
+          "template": "Rather than {optionB}, {optionA}.",
+          "slotHints": [
+            "{optionB} 常放动词原形或短动作，如 argue / complain",
+            "{optionA} 放主句，后面别忘了逗号后的完整句子"
+          ],
+          "exampleSentence": "Rather than complain, they looked for a solution.",
+          "exampleTranslation": "他们没有抱怨，而是去找解决办法。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    },
+    {
+      "slug": "used-to-be-used-to-get-used-to",
+      "title": "used to / be used to / get used to",
+      "shortLabel": "past habit vs familiar vs adapting",
+      "pattern": "used to / be used to / get used to",
+      "family": "functional_pattern",
+      "subtype": "habit_vs_familiarity_contrast",
+      "anchor": "used to",
+      "coreExplanation": "used to 表示“过去常常……，现在不这样了”，后面接动词原形，常放在主语后。be used to 表示“习惯于……”，get used to 表示“逐渐习惯……”，两者后面都接名词、代词或动词-ing，不能接动词原形。",
+      "usageNote": "这组结构最常用于谈过去习惯、现在是否适应、以及适应过程，语气中性，口语和书面都常见。used to 适合回忆以前的状态或行为；be/get used to 适合说生活变化、工作学习适应。不适合直接表示“正在习惯”的瞬间动作。used to 常在主语后；be/get used to 后面的 to 是介词，不要漏掉，也不要把后面写成原形。初学者可先牢牢记：used to+动词原形；be/get used to+名词或-ing。",
+      "usageRegister": "neutral",
+      "sceneTags": [
+        "habits",
+        "adaptation",
+        "daily-life",
+        "回忆以前的习惯",
+        "搬家后适应新生活",
+        "开始新工作",
+        "学校作息变化",
+        "日常生活对比"
+      ],
+      "slotSchema": [
+        {
+          "key": "subject",
+          "label": "主语",
+          "type": "noun_phrase",
+          "required": true,
+          "hint": "可用 I, she, my parents 等。常见错误是主语后直接接 be used to do。例：I used to walk to school."
+        },
+        {
+          "key": "pastHabit",
+          "label": "过去常做的动作",
+          "type": "custom",
+          "required": true,
+          "hint": "这里放动词原形短语，如 play soccer, stay up late。常见错误是写成 playing。例：used to play outside."
+        },
+        {
+          "key": "familiarThing",
+          "label": "已习惯的事物",
+          "type": "custom",
+          "required": true,
+          "hint": "可放名词、代词或动词-ing，如 the weather, it, getting up early。常见错误是接动词原形。例：is used to spicy food."
+        },
+        {
+          "key": "adaptProcess",
+          "label": "正在适应的内容",
+          "type": "custom",
+          "required": true,
+          "hint": "用于 get used to，后面也放名词或动词-ing。常见错误是写成 get used to live here。例：got used to living alone."
+        }
+      ],
+      "commonErrors": [
+        "I am used to get up early.｜错因：be used to 后面不能接动词原形。｜改法：I am used to getting up early.",
+        "She used to playing tennis.｜错因：used to 表过去习惯时后面要接动词原形。｜改法：She used to play tennis.",
+        "We got used to live in Tokyo.｜错因：get used to 后面的 to 是介词，后接名词或动词-ing。｜改法：We got used to living in Tokyo.",
+        "He is used to the city now, but before he used to be afraid of noise.｜这句本身可对，但常见错误是把两种意思混淆成 He used to the city。｜改法：表示“习惯这座城市”要说 He is used to the city.",
+        "Did you used to go there?｜错因：在 did 后面，used 要变回 use。｜改法：Did you use to go there?",
+        "I didn't be used to the food at first.｜错因：be used to 需要和 be 动词搭配，否定时不能用 didn't 直接否定 be。｜改法：I wasn't used to the food at first."
+      ],
+      "contrasts": [
+        {
+          "slug": "used-to-vs-be-used-to",
+          "title": "used to vs be used to",
+          "note": "结构不同：used to+动词原形；be used to+名词/动词-ing。意思不同：前者讲过去常常，后者讲现在或某时“习惯于”。比较：I used to drive.（以前常开车）/ I am used to driving.（我习惯开车）"
+        },
+        {
+          "slug": "be-used-to-vs-get-used-to",
+          "title": "be used to vs get used to",
+          "note": "结构都接名词或-ing，但 be used to 强调“已经习惯”，get used to 强调“逐渐变得习惯”。场景上，前者说状态，后者说过程。比较：She is used to the cold. / She is getting used to the cold."
+        },
+        {
+          "slug": "used-to-vs-would",
+          "title": "used to vs would",
+          "note": "结构上，used to 可接动作也可接过去状态；would 多用于反复动作，不自然表示过去状态。语气上，used to 更安全。比较：I used to be shy.（自然）/ I would be shy.（这里不自然）"
+        },
+        {
+          "slug": "be-used-to-vs-have-trouble",
+          "title": "be used to vs have trouble + -ing",
+          "note": "结构不同：be used to+名词/ing 表“习惯”；have trouble+动词-ing 表“做某事有困难”。场景不同，一个讲适应，一个讲困难。比较：I'm used to getting up early. / I have trouble getting up early."
+        },
+        {
+          "slug": "be-used-to-vs-cant-help",
+          "title": "be used to vs can't help + -ing",
+          "note": "结构上两者都可接-ing，但意思不同：be used to 是“习惯于”，can't help 是“忍不住”。语气和场景差很多。比较：I'm used to hearing noise.（听惯了）/ I can't help hearing noise.（这个搭配本身少见，表示忍不住听到，不同义）"
+        }
+      ],
+      "examples": [
+        {
+          "sentence": "I used to drink a lot of coffee.",
+          "translation": "我以前常喝很多咖啡。",
+          "note": "最基础用法：过去习惯，现在通常暗示已经变了。",
+          "scene": "回忆过去习惯",
+          "isPrimary": true
+        },
+        {
+          "sentence": "At first, I wasn't used to getting up so early.",
+          "translation": "一开始，我不习惯起这么早。",
+          "note": "be used to 后接 getting，不接 get。",
+          "scene": "作息变化",
+          "isPrimary": false
+        },
+        {
+          "sentence": "After a few months, she got used to life in Beijing.",
+          "translation": "几个月后，她渐渐习惯了北京的生活。",
+          "note": "强调适应过程。",
+          "scene": "搬家适应",
+          "isPrimary": false
+        },
+        {
+          "sentence": "I used to be shy, but now I'm used to speaking in front of people.",
+          "translation": "我以前很害羞，但现在我已经习惯在人前讲话了。",
+          "note": "同句对比过去状态与现在习惯，最能看出区别。",
+          "scene": "性格与成长",
+          "isPrimary": false
+        },
+        {
+          "sentence": "The report notes that many residents are used to working from home.",
+          "translation": "报告指出，许多居民已经习惯在家工作。",
+          "note": "较偏书面；be used to 也常见于写作。",
+          "scene": "书面表达",
+          "isPrimary": false
+        },
+        {
+          "sentence": "Did you use to play here when you were a child?",
+          "translation": "你小时候常在这里玩吗？",
+          "note": "疑问句里用 use to，不用 used to。",
+          "scene": "日常聊天",
+          "isPrimary": false
+        }
+      ],
+      "templates": [
+        {
+          "label": "最安全初学者模板",
+          "template": "[subject] used to [pastHabit].",
+          "slotHints": [
+            "主语后直接放 used to；后面一定是动词原形短语"
+          ],
+          "exampleSentence": "My dad used to smoke.",
+          "exampleTranslation": "我爸爸以前常抽烟。",
+          "position": 1
+        },
+        {
+          "label": "状态对比模板",
+          "template": "[subject] am/is/are used to [familiarThing].",
+          "slotHints": [
+            "这里的 to 是介词；后面放名词、代词或动词-ing"
+          ],
+          "exampleSentence": "I am used to the noise now.",
+          "exampleTranslation": "我现在习惯这种噪音了。",
+          "position": 2
+        },
+        {
+          "label": "适应过程模板",
+          "template": "[subject] got used to [adaptProcess].",
+          "slotHints": [
+            "强调从不习惯到习惯的变化；后面不能用动词原形"
+          ],
+          "exampleSentence": "We got used to cooking at home.",
+          "exampleTranslation": "我们渐渐习惯在家做饭了。",
+          "position": 3
+        },
+        {
+          "label": "写作型对比模板",
+          "template": "[subject] used to [pastHabit], but now [subject] am/is/are used to [familiarThing].",
+          "slotHints": [
+            "前半句写过去，后半句写现在；同一主语时可重复写，更清楚"
+          ],
+          "exampleSentence": "She used to work at night, but now she is used to an early schedule.",
+          "exampleTranslation": "她以前常在夜里工作，但现在已经习惯早作息了。",
+          "position": 4
+        }
+      ],
+      "difficulty": 1
+    }
+  ]
+}
