@@ -256,22 +256,22 @@ export default function LibrariesClient({
           </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          <div className="flex-1 min-w-[calc(50%-6px)] md:min-w-0 rounded-2xl border border-white/5 bg-white/[0.02] p-4 text-center">
-            <p className="text-[10px] uppercase tracking-wider text-zinc-500">{itemLabel}</p>
-            <p className="mt-1 text-2xl font-black text-white">{library.wordCount}</p>
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-3 flex flex-col items-center justify-center text-center">
+            <p className="text-[11px] uppercase tracking-wider text-zinc-500">{itemLabel}</p>
+            <p className="mt-1 flex items-center justify-center text-2xl font-black text-white">{library.wordCount}</p>
           </div>
-          <div className="flex-1 min-w-[calc(50%-6px)] md:min-w-0 rounded-2xl border border-amber-500/20 bg-gradient-to-b from-amber-500/10 to-amber-500/[0.02] p-4 text-center shadow-[inset_0_1px_0_rgba(245,158,11,0.1)]">
-            <p className="text-[10px] uppercase tracking-wider text-amber-500/70">待复习</p>
-            <p className="mt-1 text-2xl font-black tracking-tight text-amber-400 drop-shadow-sm">{library.dueCount}</p>
+          <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-b from-amber-500/10 to-amber-500/[0.02] p-3 flex flex-col items-center justify-center text-center shadow-[inset_0_1px_0_rgba(245,158,11,0.1)]">
+            <p className="text-[11px] uppercase tracking-wider text-amber-500/70">待复习</p>
+            <p className="mt-1 flex items-center justify-center text-2xl font-black tracking-tight text-amber-400 drop-shadow-sm">{library.dueCount}</p>
           </div>
-          <div className="flex-1 min-w-[calc(50%-6px)] md:min-w-0 rounded-2xl border border-blue-500/20 bg-gradient-to-b from-blue-500/10 to-blue-500/[0.02] p-4 text-center shadow-[inset_0_1px_0_rgba(59,130,246,0.1)]">
-            <p className="text-[10px] uppercase tracking-wider text-blue-400/70">已学习</p>
-            <p className="mt-1 text-2xl font-black tracking-tight text-blue-300 drop-shadow-sm">{library.activeCount}</p>
+          <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-b from-blue-500/10 to-blue-500/[0.02] p-3 flex flex-col items-center justify-center text-center shadow-[inset_0_1px_0_rgba(59,130,246,0.1)]">
+            <p className="text-[11px] uppercase tracking-wider text-blue-400/70">已学习</p>
+            <p className="mt-1 flex items-center justify-center text-2xl font-black tracking-tight text-blue-300 drop-shadow-sm">{library.activeCount}</p>
           </div>
-          <div className="flex-1 min-w-[calc(50%-6px)] md:min-w-0 rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-emerald-500/10 to-emerald-500/[0.02] p-4 text-center shadow-[inset_0_1px_0_rgba(16,185,129,0.1)]">
-            <p className="text-[10px] uppercase tracking-wider text-emerald-500/70">未学习</p>
-            <p className="mt-1 text-2xl font-black tracking-tight text-emerald-400 drop-shadow-sm">{library.remainingCount}</p>
+          <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-emerald-500/10 to-emerald-500/[0.02] p-3 flex flex-col items-center justify-center text-center shadow-[inset_0_1px_0_rgba(16,185,129,0.1)]">
+            <p className="text-[11px] uppercase tracking-wider text-emerald-500/70">未学习</p>
+            <p className="mt-1 flex items-center justify-center text-2xl font-black tracking-tight text-emerald-400 drop-shadow-sm">{library.remainingCount}</p>
           </div>
         </div>
 
