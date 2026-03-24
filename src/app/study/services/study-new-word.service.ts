@@ -58,6 +58,28 @@ async function pickUnseenWordViaRpc(
   return null
 }
 
+async function pickUnseenWordsViaBatchRpc(
+  tag: string,
+  skippedWordIds: string[],
+  supabase: SupabaseClient,
+  userId: string,
+  limit: number
+): Promise<unknown[]> {
+  const { data, error } = await supabase.rpc('pick_unstudied_words_batch', {
+    p_user_id: userId,
+    p_tag: tag === 'All' ? null : tag,
+    p_skipped_ids: [...new Set(skippedWordIds)],
+    p_limit: limit,
+  })
+
+  if (error) {
+    console.error('Failed to pick unseen words via batch RPC:', error)
+    return []
+  }
+
+  return Array.isArray(data) ? data : []
+}
+
 async function pickRandomUnseenWord(
   tag: string,
   skippedWordIds: string[],
@@ -224,6 +246,36 @@ export async function loadNewStudyItems({
   if (libraryWordIds.length > 0) {
     const startedWordIds = await deps.getStartedWordIds(supabase, userId, libraryWordIds)
     libraryUnseenWordIds = libraryWordIds.filter((wordId) => !startedWordIds.has(wordId))
+  }
+
+  if (!libraryId && libraryWordIds.length === 0 && preferredWordIds.length === 0) {
+    const batchCandidates = await pickUnseenWordsViaBatchRpc(
+      tag,
+      Array.from(excludedWordIds),
+      supabase,
+      userId,
+      batchSize
+    )
+
+    for (const candidate of batchCandidates) {
+      if (!isWordCandidate(candidate) || excludedWordIds.has(candidate.id)) {
+        continue
+      }
+
+      excludedWordIds.add(candidate.id)
+      const item = deps.normalizeNewStudyBatchItem(candidate, {
+        isNew: true,
+        priorityReason: 'new',
+      })
+
+      if (item) {
+        items.push(item)
+      }
+
+      if (items.length >= batchSize) {
+        break
+      }
+    }
   }
 
   while (items.length < batchSize) {

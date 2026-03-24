@@ -175,7 +175,7 @@ export default function StudyClient({
     }
   }, [initialStudyView])
 
-  useEffect(() => {
+  const cacheCurrentVisibleBatch = () => {
     const visibleBatch = [currentItem, ...queuedItems].filter(
       (item): item is StudyBatchItem => item !== null
     )
@@ -185,7 +185,7 @@ export default function StudyClient({
     }
 
     storeCachedBatch(librarySlug, studyView, visibleBatch)
-  }, [currentItem, queuedItems, librarySlug, studyView, storeCachedBatch])
+  }
 
   const resetComposerState = (options?: {
     preserveSentence?: boolean
@@ -248,6 +248,7 @@ export default function StudyClient({
       availableLibraries.find((item) => item.slug === nextLibrarySlug) ?? null
     const nextStudyView = normalizeStudyViewForContentType(nextLibrary?.contentType, studyView)
 
+    cacheCurrentVisibleBatch()
     setLibrarySlug(nextLibrarySlug)
     setStudyView(nextStudyView)
     setHistoryReviewContext(null)
@@ -263,6 +264,7 @@ export default function StudyClient({
     }
 
     // Cache miss — normal async load with loading indicator
+    clearVisibleBatch()
     await reloadStudyBatch(nextLibrarySlug, nextStudyView, [])
   }
 
@@ -271,6 +273,7 @@ export default function StudyClient({
       selectedLibraryContentType,
       nextStudyView as StudyView
     )
+    cacheCurrentVisibleBatch()
     setStudyView(normalizedView)
     setHistoryReviewContext(null)
     resetSessionScope()
@@ -282,6 +285,7 @@ export default function StudyClient({
       return
     }
 
+    clearVisibleBatch()
     await reloadStudyBatch(librarySlug, normalizedView, [])
   }
 
