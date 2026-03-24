@@ -1,84 +1,59 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { getStudyBatch, type StudyBatchItem, type StudyLibrary, type StudyView } from "../actions"
+import { useCallback, useRef } from "react"
+import { type StudyBatchItem, type StudyView } from "../actions"
 
 type PrefetchedCache = Map<string, StudyBatchItem[]>
+
+const MAX_CACHED_BATCHES = 8
 
 function makeCacheKey(librarySlug: string, studyView: StudyView) {
   return `${librarySlug}::${studyView}`
 }
 
-function getPrefetchViewsForLibrary(library: StudyLibrary): StudyView[] {
-  if (library.contentType === "grammar") {
-    return ["all", "weak", "recent_failures"]
-  }
-
-  return ["all", "weak", "recent_failures", "favorites"]
-}
-
-export function useLibraryPrefetch({
-  availableLibraries,
-  activeLibrarySlug,
-  activeStudyView,
-}: {
-  availableLibraries: StudyLibrary[]
-  activeLibrarySlug: string
-  activeStudyView: StudyView
-}) {
+export function useLibraryPrefetch() {
   const cacheRef = useRef<PrefetchedCache>(new Map())
-  const prefetchedRef = useRef<Set<string>>(new Set())
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      for (const library of availableLibraries) {
-        for (const view of getPrefetchViewsForLibrary(library)) {
-          if (library.slug === activeLibrarySlug && view === activeStudyView) {
-            continue
-          }
+  const storeCachedBatch = useCallback((
+    librarySlug: string,
+    studyView: StudyView,
+    batch: StudyBatchItem[]
+  ) => {
+    if (batch.length === 0) {
+      return
+    }
 
-          const key = makeCacheKey(library.slug, view)
-          if (prefetchedRef.current.has(key)) {
-            continue
-          }
+    const key = makeCacheKey(librarySlug, studyView)
+    const nextCache = new Map(cacheRef.current)
+    nextCache.delete(key)
+    nextCache.set(key, batch)
 
-          prefetchedRef.current.add(key)
-
-          void getStudyBatch({
-            librarySlug: library.slug,
-            studyView: view,
-            batchSize: 5,
-          })
-            .then((batch) => {
-              if (batch.length > 0) {
-                cacheRef.current.set(key, batch)
-              } else {
-                cacheRef.current.delete(key)
-              }
-            })
-            .catch(() => {
-              prefetchedRef.current.delete(key)
-            })
-        }
+    while (nextCache.size > MAX_CACHED_BATCHES) {
+      const oldestKey = nextCache.keys().next().value
+      if (!oldestKey) {
+        break
       }
-    }, 1200)
+      nextCache.delete(oldestKey)
+    }
 
-    return () => clearTimeout(timer)
-  }, [availableLibraries, activeLibrarySlug, activeStudyView])
+    cacheRef.current = nextCache
+  }, [])
 
-  const popCachedBatch = (
+  const popCachedBatch = useCallback((
     librarySlug: string,
     studyView: StudyView
   ): StudyBatchItem[] | null => {
     const key = makeCacheKey(librarySlug, studyView)
     const cached = cacheRef.current.get(key)
-    if (cached && cached.length > 0) {
-      cacheRef.current.delete(key)
-      prefetchedRef.current.delete(key)
-      return cached
+    if (!cached || cached.length === 0) {
+      return null
     }
-    return null
-  }
 
-  return { popCachedBatch }
+    const nextCache = new Map(cacheRef.current)
+    nextCache.delete(key)
+    cacheRef.current = nextCache
+    return cached
+  }, [])
+
+  return { popCachedBatch, storeCachedBatch }
 }

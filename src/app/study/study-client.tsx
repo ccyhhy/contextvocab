@@ -106,11 +106,7 @@ export default function StudyClient({
       initialEnrichmentProgress: enrichmentProgress,
     })
 
-  const { popCachedBatch } = useLibraryPrefetch({
-    availableLibraries,
-    activeLibrarySlug: librarySlug,
-    activeStudyView: studyView,
-  })
+  const { popCachedBatch, storeCachedBatch } = useLibraryPrefetch()
   const {
     currentItem,
     queuedItems,
@@ -178,6 +174,18 @@ export default function StudyClient({
       setStudyView(initialStudyView)
     }
   }, [initialStudyView])
+
+  useEffect(() => {
+    const visibleBatch = [currentItem, ...queuedItems].filter(
+      (item): item is StudyBatchItem => item !== null
+    )
+
+    if (visibleBatch.length === 0) {
+      return
+    }
+
+    storeCachedBatch(librarySlug, studyView, visibleBatch)
+  }, [currentItem, queuedItems, librarySlug, studyView, storeCachedBatch])
 
   const resetComposerState = (options?: {
     preserveSentence?: boolean
