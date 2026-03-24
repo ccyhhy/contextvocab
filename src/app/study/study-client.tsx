@@ -1,8 +1,9 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
+  getStudyBatch,
   type HistoryReviewContext,
   toggleFavoriteWord,
   type StudyBatchItem,
@@ -106,7 +107,8 @@ export default function StudyClient({
       initialEnrichmentProgress: enrichmentProgress,
     })
 
-  const { popCachedBatch, storeCachedBatch } = useLibraryPrefetch()
+  const { popCachedBatch, storeCachedBatch, hasCachedBatch } = useLibraryPrefetch()
+  const prefetchInFlightRef = useRef<Set<string>>(new Set())
   const {
     currentItem,
     queuedItems,
@@ -213,6 +215,109 @@ export default function StudyClient({
       input.setSelectionRange(text.length, text.length)
     })
   }
+
+  const prefetchLibraryBatch = useCallback(async (
+    nextLibrarySlug: string,
+    nextStudyView: StudyView
+  ) => {
+    if (nextLibrarySlug === librarySlug && nextStudyView === studyView) {
+      return
+    }
+
+    if (hasCachedBatch(nextLibrarySlug, nextStudyView)) {
+      return
+    }
+
+    const key = `${nextLibrarySlug}::${nextStudyView}`
+    if (prefetchInFlightRef.current.has(key)) {
+      return
+    }
+
+    prefetchInFlightRef.current.add(key)
+
+    try {
+      const batch = await getStudyBatch({
+        librarySlug: nextLibrarySlug,
+        studyView: nextStudyView,
+        batchSize: 5,
+      })
+
+      if (batch.length > 0) {
+        storeCachedBatch(nextLibrarySlug, nextStudyView, batch)
+      }
+    } catch {
+      // Ignore hover/open prefetch failures - normal switching path still works.
+    } finally {
+      prefetchInFlightRef.current.delete(key)
+    }
+  }, [hasCachedBatch, librarySlug, storeCachedBatch, studyView])
+
+  const getNormalizedViewForLibrary = useCallback((nextLibrarySlug: string, baseView = studyView) => {
+    const nextLibrary =
+      availableLibraries.find((item) => item.slug === nextLibrarySlug) ?? null
+    return normalizeStudyViewForContentType(nextLibrary?.contentType, baseView)
+  }, [availableLibraries, studyView])
+
+  const handleLibraryOptionHover = useCallback((nextLibrarySlug: string) => {
+    const nextStudyView = getNormalizedViewForLibrary(nextLibrarySlug)
+    void prefetchLibraryBatch(nextLibrarySlug, nextStudyView)
+  }, [getNormalizedViewForLibrary, prefetchLibraryBatch])
+
+  const handleLibraryDropdownOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      return
+    }
+
+    const warmCandidates = new Set<string>()
+
+    if (selectedLibraryContentType === "grammar") {
+      warmCandidates.add("cet-4")
+    } else {
+      warmCandidates.add("basic-scene-grammar")
+    }
+
+    if (librarySlug === "cet-4") {
+      warmCandidates.add("cet-6")
+    }
+
+    for (const candidateSlug of warmCandidates) {
+      if (candidateSlug === librarySlug) {
+        continue
+      }
+      const nextStudyView = getNormalizedViewForLibrary(candidateSlug)
+      void prefetchLibraryBatch(candidateSlug, nextStudyView)
+    }
+  }, [
+    getNormalizedViewForLibrary,
+    librarySlug,
+    prefetchLibraryBatch,
+    selectedLibraryContentType,
+  ])
+
+  useEffect(() => {
+    const likelyTargetSlug =
+      selectedLibraryContentType === "grammar"
+        ? "cet-4"
+        : librarySlug === "cet-4" || librarySlug === "cet-6" || librarySlug === "all"
+          ? "basic-scene-grammar"
+          : null
+
+    if (!likelyTargetSlug || likelyTargetSlug === librarySlug) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const nextStudyView = getNormalizedViewForLibrary(likelyTargetSlug, "all")
+      void prefetchLibraryBatch(likelyTargetSlug, nextStudyView)
+    }, 1200)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [
+    getNormalizedViewForLibrary,
+    librarySlug,
+    prefetchLibraryBatch,
+    selectedLibraryContentType,
+  ])
 
   const handleRewrite = () => {
     const nextSentence = beginRewrite(sentence)
@@ -331,6 +436,8 @@ export default function StudyClient({
         selectedLibraryContentType={selectedLibraryContentType}
         onLibraryChange={handleLibraryChange}
         onStudyViewChange={handleStudyModeChange}
+        onLibraryDropdownOpenChange={handleLibraryDropdownOpenChange}
+        onLibraryOptionHover={handleLibraryOptionHover}
         onRefresh={async () => {
           resetSessionScope()
           clearVisibleBatch()
@@ -387,6 +494,8 @@ export default function StudyClient({
         refillingQueue={refillingQueue}
         onLibraryChange={handleLibraryChange}
         onStudyViewChange={handleStudyModeChange}
+        onLibraryDropdownOpenChange={handleLibraryDropdownOpenChange}
+        onLibraryOptionHover={handleLibraryOptionHover}
         onOpenSettings={() => setShowSettings(true)}
       />
 

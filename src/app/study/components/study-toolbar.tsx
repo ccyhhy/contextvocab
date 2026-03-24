@@ -11,11 +11,15 @@ export function CustomDropdown({
   onChange,
   disabled,
   options,
+  onOpenChange,
+  onOptionHover,
 }: {
   value: string
   onChange: (val: string) => void
   disabled?: boolean
   options: { label: string; value: string }[]
+  onOpenChange?: (open: boolean) => void
+  onOptionHover?: (val: string) => void
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -24,11 +28,12 @@ export function CustomDropdown({
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false)
+        onOpenChange?.(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  }, [onOpenChange])
 
   const selectedOption = options.find((opt) => opt.value === value) || options[0]
 
@@ -37,7 +42,11 @@ export function CustomDropdown({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          const nextOpen = !isOpen
+          setIsOpen(nextOpen)
+          onOpenChange?.(nextOpen)
+        }}
         className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/60 px-4 py-2 text-sm font-medium text-zinc-200 outline-none transition-all hover:bg-black/80 focus:border-white/20 focus:ring-2 focus:ring-white/10 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span className="truncate">{selectedOption?.label}</span>
@@ -60,9 +69,12 @@ export function CustomDropdown({
               <button
                 key={opt.value}
                 type="button"
+                onMouseEnter={() => onOptionHover?.(opt.value)}
+                onFocus={() => onOptionHover?.(opt.value)}
                 onClick={() => {
                   onChange(opt.value)
                   setIsOpen(false)
+                  onOpenChange?.(false)
                 }}
                 className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
                   value === opt.value
@@ -99,6 +111,8 @@ export function StudyToolbar({
   onLibraryChange,
   onStudyViewChange,
   onOpenSettings,
+  onLibraryDropdownOpenChange,
+  onLibraryOptionHover,
 }: {
   availableLibraries: StudyLibrary[]
   librarySlug: string
@@ -111,6 +125,8 @@ export function StudyToolbar({
   onLibraryChange: (value: string) => void | Promise<void>
   onStudyViewChange: (value: string) => void | Promise<void>
   onOpenSettings: () => void
+  onLibraryDropdownOpenChange?: (open: boolean) => void
+  onLibraryOptionHover?: (value: string) => void
 }) {
   const isGrammarLibrary = selectedLibraryContentType === "grammar"
   const queueLabel =
@@ -148,6 +164,8 @@ export function StudyToolbar({
           onChange={onLibraryChange}
           disabled={disabled}
           options={libraryOptions}
+          onOpenChange={onLibraryDropdownOpenChange}
+          onOptionHover={onLibraryOptionHover}
         />
 
         <CustomDropdown

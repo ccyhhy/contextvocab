@@ -13,6 +13,8 @@ export function StudyEmptyState({
   onLibraryChange,
   onStudyViewChange,
   onRefresh,
+  onLibraryDropdownOpenChange,
+  onLibraryOptionHover,
 }: {
   availableLibraries: StudyLibrary[]
   librarySlug: string
@@ -22,6 +24,8 @@ export function StudyEmptyState({
   onLibraryChange: (value: string) => void | Promise<void>
   onStudyViewChange: (value: string) => void | Promise<void>
   onRefresh: () => void | Promise<void>
+  onLibraryDropdownOpenChange?: (open: boolean) => void
+  onLibraryOptionHover?: (value: string) => void
 }) {
   const isGrammarLibrary = selectedLibraryContentType === "grammar"
 
@@ -53,6 +57,8 @@ export function StudyEmptyState({
             value={librarySlug}
             onChange={onLibraryChange}
             options={libraryOptions}
+            onOpenChange={onLibraryDropdownOpenChange}
+            onOptionHover={onLibraryOptionHover}
           />
 
           <CustomDropdown
