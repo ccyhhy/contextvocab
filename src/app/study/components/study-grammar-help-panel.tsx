@@ -2,15 +2,24 @@
 
 import { BookOpen, Copy, X } from "lucide-react"
 import type { GrammarExampleInfo, GrammarTemplateInfo } from "@/lib/study-content"
+import type { SentenceHelpItem } from "../actions"
+import type { GrammarHelpState } from "../hooks"
+import { getSentenceHelpItemSourceLabel } from "./study-ui"
 
 export function StudyGrammarHelpPanel({
   visible,
+  sourceLabel,
+  state,
+  aiItems,
   templates,
   examples,
   onClose,
   onApply,
 }: {
   visible: boolean
+  sourceLabel: string
+  state: GrammarHelpState
+  aiItems: SentenceHelpItem[]
   templates: GrammarTemplateInfo[]
   examples: GrammarExampleInfo[]
   onClose: () => void
@@ -20,14 +29,15 @@ export function StudyGrammarHelpPanel({
     return null
   }
 
+  const hasAiItems = aiItems.length > 0
   const hasTemplates = templates.length > 0
   const hasExamples = examples.length > 0
 
-  if (!hasTemplates && !hasExamples) {
+  if (state !== "loading" && !hasAiItems && !hasTemplates && !hasExamples) {
     return (
       <div className="glass-panel rounded-2xl border border-white/[0.08] p-5">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-400">暂时没有可用的造句提示</span>
+          <span className="text-sm text-zinc-400">???????????</span>
           <button
             type="button"
             onClick={onClose}
@@ -43,9 +53,14 @@ export function StudyGrammarHelpPanel({
   return (
     <div className="glass-panel space-y-4 rounded-2xl border border-white/[0.08] p-5">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm font-medium text-zinc-200">
-          <BookOpen className="h-4 w-4 text-amber-400" />
-          造句提示
+        <div>
+          <div className="flex items-center gap-2 text-sm font-medium text-zinc-200">
+            <BookOpen className="h-4 w-4 text-amber-400" />
+            ????
+          </div>
+          {sourceLabel ? (
+            <p className="mt-1 text-[11px] tracking-[0.12em] text-amber-300/70">{sourceLabel}</p>
+          ) : null}
         </div>
         <button
           type="button"
@@ -56,9 +71,42 @@ export function StudyGrammarHelpPanel({
         </button>
       </div>
 
+      {state === "loading" ? (
+        <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-zinc-400">
+          ????????????????...
+        </div>
+      ) : null}
+
+      {hasAiItems ? (
+        <div className="space-y-2">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">AI ??</p>
+          <div className="space-y-2">
+            {aiItems.map((item) => (
+              <button
+                key={`grammar-ai-${item.source}-${item.sentence}`}
+                type="button"
+                onClick={() => onApply(item.sentence)}
+                className="group flex w-full items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-left transition-colors hover:border-amber-500/20 hover:bg-amber-500/[0.04]"
+              >
+                <Copy className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-600 transition-colors group-hover:text-amber-400" />
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[10px] font-medium text-amber-100">
+                      {getSentenceHelpItemSourceLabel(item.source)}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-6 text-zinc-100">{item.sentence}</p>
+                  <p className="text-xs leading-5 text-zinc-400">{item.cue}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {hasTemplates ? (
         <div className="space-y-2">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">模板</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">??</p>
           <div className="space-y-2">
             {templates.map((template) => (
               <button
@@ -71,7 +119,7 @@ export function StudyGrammarHelpPanel({
                 <div className="min-w-0 space-y-1">
                   <p className="text-sm leading-6 text-zinc-100">{template.template}</p>
                   {template.exampleSentence ? (
-                    <p className="text-xs leading-5 text-zinc-500">例：{template.exampleSentence}</p>
+                    <p className="text-xs leading-5 text-zinc-500">??{template.exampleSentence}</p>
                   ) : null}
                   {template.exampleTranslation ? (
                     <p className="text-xs leading-5 text-zinc-600">{template.exampleTranslation}</p>
@@ -85,7 +133,7 @@ export function StudyGrammarHelpPanel({
 
       {hasExamples ? (
         <div className="space-y-2">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">参考例句</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">????</p>
           <div className="space-y-2">
             {examples.map((example) => (
               <button
@@ -108,7 +156,7 @@ export function StudyGrammarHelpPanel({
       ) : null}
 
       <p className="text-xs leading-5 text-zinc-600">
-        点击任意提示可直接填入输入框，建议在此基础上改写成你自己的句子。
+        ?????????????????? AI ????????????????
       </p>
     </div>
   )

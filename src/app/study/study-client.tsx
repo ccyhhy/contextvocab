@@ -24,6 +24,7 @@ import {
 import {
   DEFAULT_PREVIEW_SENTENCE,
   type SubmissionMode,
+  useGrammarHelp,
   useSentenceHelp,
   useSpeechSynthesis,
   useStudySession,
@@ -133,6 +134,10 @@ export default function StudyClient({
       currentWord,
       enabled: showSentenceHelp && currentWord !== null,
     })
+  const { grammarHelpItems, grammarHelpState, grammarHelpSourceLabel } = useGrammarHelp({
+    currentGrammar,
+    enabled: showGrammarHints && currentGrammar !== null,
+  })
   const {
     status,
     result,
@@ -476,6 +481,9 @@ export default function StudyClient({
 
             <StudyGrammarHelpPanel
               visible={showGrammarHints && status !== "result"}
+              sourceLabel={grammarHelpSourceLabel}
+              state={grammarHelpState}
+              aiItems={grammarHelpItems}
               templates={currentGrammar.grammar.templates}
               examples={currentGrammar.grammar.examples}
               onClose={() => setShowGrammarHints(false)}

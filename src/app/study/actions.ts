@@ -1297,6 +1297,44 @@ function buildFallbackSentenceHelpItemsSafe(args: {
   ]).slice(0, MAX_SENTENCE_HELP_ITEMS)
 }
 
+function buildGrammarFallbackSentenceHelpItemsSafe(args: {
+  examples: GrammarExampleInfo[]
+  templates: GrammarTemplateInfo[]
+}) {
+  const templateItems: SentenceHelpItem[] = args.templates.flatMap((template, index) => {
+    const sentence = template.exampleSentence?.trim() ?? ''
+    if (!sentence) {
+      return []
+    }
+
+    return [
+      {
+        sentence,
+        cue:
+          index === 0
+            ? '????????????????????????'
+            : '??????????????????????????',
+        source: 'local_template',
+      },
+    ]
+  })
+
+  const exampleItems: SentenceHelpItem[] = args.examples
+    .map((example) => example.sentence?.trim() ?? '')
+    .filter((sentence) => sentence.length > 0)
+    .filter((sentence) => isLearnerFriendlyExampleSentence(sentence))
+    .map((sentence) => ({
+      sentence,
+      cue: '??????????????????????????????',
+      source: 'dictionary_example' as const,
+    }))
+
+  return dedupeSentenceHelpItemsSafe([...templateItems, ...exampleItems]).slice(
+    0,
+    MAX_SENTENCE_HELP_ITEMS
+  )
+}
+
 function normalizeSentenceHelpSafe(
   payload: SentenceHelpPayload,
   word: string
@@ -1337,6 +1375,60 @@ function normalizeSentenceHelpSafe(
         cue:
           item.cue ||
           '\u5148\u7167\u7740\u5199\uff0c\u518d\u628a\u4eba\u7269\u3001\u65f6\u95f4\u6216\u573a\u666f\u66ff\u6362\u6210\u4f60\u81ea\u5df1\u7684\u3002',
+        source: 'ai' as const,
+      }))
+  ).slice(0, MAX_SENTENCE_HELP_ITEMS)
+}
+
+function normalizeGrammarSentenceHelpSafe(
+  payload: SentenceHelpPayload,
+  pattern: string
+): SentenceHelpItem[] {
+  const items = Array.isArray(payload.hints) ? payload.hints : []
+  const normalizedPattern = pattern.trim().toLowerCase()
+
+  return dedupeSentenceHelpItemsSafe(
+    items
+      .map((item) => {
+        if (typeof item === 'string') {
+          return {
+            sentence: item.trim(),
+            cue: '',
+          }
+        }
+
+        const payloadItem = (item ?? {}) as SentenceHelpItemPayload
+        return {
+          sentence: sanitizeText(payloadItem.sentence ?? payloadItem.text).trim(),
+          cue: sanitizeText(
+            payloadItem.cue ?? payloadItem.tip ?? payloadItem.explanation ?? payloadItem.reason
+          ).trim(),
+        }
+      })
+      .filter((item) => item.sentence.length > 0)
+      .filter((item) => isLearnerFriendlyExampleSentence(item.sentence))
+      .filter((item) => {
+        if (!normalizedPattern) {
+          return true
+        }
+
+        const normalizedSentence = item.sentence.toLowerCase()
+        const requiredTokens = normalizedPattern
+          .replace(/\([^)]*\)/g, ' ')
+          .replace(/[^a-z\s]/g, ' ')
+          .split(/\s+/)
+          .filter(
+            (token) =>
+              token.length > 1 &&
+              !['clause', 'noun', 'base', 'that', 'statement', 'question'].includes(token)
+          )
+          .slice(0, 2)
+
+        return requiredTokens.every((token) => normalizedSentence.includes(token))
+      })
+      .map((item) => ({
+        sentence: item.sentence,
+        cue: item.cue || '先照着这个结构写，再把信息换成你自己的场景。',
         source: 'ai' as const,
       }))
   ).slice(0, MAX_SENTENCE_HELP_ITEMS)
@@ -3187,6 +3279,242 @@ export async function generateSentenceHelp(
       structuredJsonMode,
       error,
     })
+    return buildSentenceHelpFallbackResultSafe({
+      reason: 'request_exception',
+      remoteModelLabel,
+      providerLabel,
+      modelName: model,
+      fallbackItems,
+    })
+  }
+}
+
+export async function generateGrammarSentenceHelp(
+  grammarItemId: string,
+  title: string,
+  pattern: string,
+  coreExplanation: string,
+  usageNote?: string | null,
+  sceneTags: string[] = [],
+  templates: GrammarTemplateInfo[] = [],
+  examples: GrammarExampleInfo[] = []
+): Promise<SentenceHelpResult> {
+  const apiKey = process.env.OPENAI_HINT_API_KEY || process.env.OPENAI_API_KEY
+  const apiBase =
+    process.env.OPENAI_HINT_API_BASE ||
+    process.env.OPENAI_API_BASE ||
+    'https://api.openai.com/v1'
+  const apiType = normalizeOpenAiApiType(
+    process.env.OPENAI_HINT_API_TYPE || process.env.OPENAI_API_TYPE
+  )
+  const model = process.env.OPENAI_HINT_MODEL || process.env.OPENAI_MODEL || 'gpt-5.2'
+  const providerLabel = getModelProviderLabel(apiBase)
+  const remoteModelLabel = formatModelLabel(model, apiBase)
+  const fallbackItems = buildGrammarFallbackSentenceHelpItemsSafe({
+    examples,
+    templates,
+  })
+  const requestUrl = getChatCompletionsUrl(apiBase, apiType)
+  const structuredJsonMode = shouldUseStructuredJsonOutputForSentenceHelp(apiType, apiBase)
+
+  if (!apiKey) {
+    return buildSentenceHelpFallbackResultSafe({
+      reason: 'no_hint_config',
+      remoteModelLabel,
+      providerLabel: 'Local',
+      modelName: null,
+      fallbackItems,
+    })
+  }
+
+  try {
+    const { supabase, user } = await requireActionSession()
+    const learningHistory = await getGrammarLearningHistory(supabase, user.id, grammarItemId)
+    const response = await fetch(requestUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(
+        buildTextGenerationRequest({
+          apiType,
+          model,
+          temperature: 0.4,
+          jsonMode: structuredJsonMode,
+          maxOutputTokens: SENTENCE_HELP_MAX_OUTPUT_TOKENS,
+          systemPrompt: [
+            'You help a Chinese learner write one sentence with a target English grammar pattern.',
+            'Return JSON only.',
+            'Generate exactly 3 short, natural example sentences that clearly use the target pattern.',
+            'The sentences must sound like something a learner can adapt, not like grammar notes.',
+            'Each item must include:',
+            '- sentence: an English sentence.',
+            '- cue: one concise coaching tip in Simplified Chinese explaining why this sentence fits the pattern or how to adapt it.',
+            'Do not wrap the JSON in markdown code fences.',
+            'Do not add any explanation before or after the JSON.',
+            'Do not output placeholders like ___ or generic meta sentences about grammar.',
+            'Schema: {"hints":[{"sentence":"...","cue":"..."}]}',
+          ].join('\n'),
+          userPrompt: [
+            `Target grammar title: ${title}`,
+            `Target pattern: ${pattern}`,
+            `Core explanation: ${coreExplanation}`,
+            `Usage note: ${usageNote || 'N/A'}`,
+            `Scene tags: ${sceneTags.join(', ') || 'N/A'}`,
+            `Template examples:\n${
+              templates
+                .map((template, index) =>
+                  `${index + 1}. ${template.template}${template.exampleSentence ? ` -> ${template.exampleSentence}` : ''}`
+                )
+                .join('\n') || 'N/A'
+            }`,
+            `Reference examples:\n${
+              examples.map((example, index) => `${index + 1}. ${example.sentence}`).join('\n') || 'N/A'
+            }`,
+            learningHistory.length > 0
+              ? `Past learner sentences:\n${learningHistory.map((item, index) => `${index + 1}. ${item}`).join('\n')}`
+              : 'Past learner sentences: none',
+            'Generate better sentence hints that clearly match the target pattern and are easy to adapt.',
+          ].join('\n\n'),
+        })
+      ),
+    })
+
+    if (!response.ok) {
+      const requestId = getProviderRequestId(response.headers)
+      const errorBodyPreview = (await response.text().catch(() => '')).slice(0, 1200)
+
+      console.error('Grammar sentence help request failed:', {
+        grammarItemId,
+        title,
+        pattern,
+        remoteModelLabel,
+        providerLabel,
+        apiType,
+        requestUrl,
+        structuredJsonMode,
+        status: response.status,
+        statusText: response.statusText,
+        requestId,
+        errorBodyPreview,
+      })
+
+      return buildSentenceHelpFallbackResultSafe({
+        reason: 'request_failed',
+        remoteModelLabel,
+        providerLabel,
+        modelName: model,
+        fallbackItems,
+      })
+    }
+
+    const data = await response.json()
+    const requestId = getProviderRequestId(response.headers)
+    const responseShape = summarizeOpenAiPayloadShape(data)
+    const content = extractTextFromOpenAiResponse(data)
+    if (!content) {
+      console.error('Grammar sentence help response had no extractable content:', {
+        grammarItemId,
+        title,
+        pattern,
+        remoteModelLabel,
+        providerLabel,
+        apiType,
+        requestUrl,
+        structuredJsonMode,
+        status: response.status,
+        requestId,
+        responseShape,
+      })
+
+      return buildSentenceHelpFallbackResultSafe({
+        reason: 'empty_content',
+        remoteModelLabel,
+        providerLabel,
+        modelName: model,
+        fallbackItems,
+      })
+    }
+
+    let parsed: SentenceHelpPayload
+    try {
+      parsed = parseSentenceHelpPayload(content)
+    } catch (error) {
+      console.error('Failed to parse grammar sentence help JSON:', {
+        grammarItemId,
+        title,
+        pattern,
+        remoteModelLabel,
+        providerLabel,
+        apiType,
+        requestUrl,
+        structuredJsonMode,
+        status: response.status,
+        requestId,
+        responseShape,
+        error,
+        rawContentPreview: content.slice(0, 1200),
+      })
+
+      return buildSentenceHelpFallbackResultSafe({
+        reason: 'parse_error',
+        remoteModelLabel,
+        providerLabel,
+        modelName: model,
+        fallbackItems,
+      })
+    }
+
+    const normalized = normalizeGrammarSentenceHelpSafe(parsed, pattern)
+
+    if (normalized.length === 0) {
+      console.error('Grammar sentence help response failed validation:', {
+        grammarItemId,
+        title,
+        pattern,
+        remoteModelLabel,
+        providerLabel,
+        apiType,
+        requestUrl,
+        structuredJsonMode,
+        status: response.status,
+        requestId,
+        responseShape,
+        parsedShape: summarizeSentenceHelpPayloadForLogs(parsed),
+        rawContentPreview: content.slice(0, 1200),
+      })
+
+      return buildSentenceHelpFallbackResultSafe({
+        reason: 'validation_failed',
+        remoteModelLabel,
+        providerLabel,
+        modelName: model,
+        fallbackItems,
+      })
+    }
+
+    return {
+      items: normalized,
+      sourceType: 'ai',
+      providerLabel,
+      modelName: model,
+      fallbackReason: null,
+      sourceLabel: `来源：${remoteModelLabel}`,
+    }
+  } catch (error) {
+    console.error('Failed to generate grammar sentence help:', {
+      grammarItemId,
+      title,
+      pattern,
+      remoteModelLabel,
+      providerLabel,
+      apiType,
+      requestUrl,
+      structuredJsonMode,
+      error,
+    })
+
     return buildSentenceHelpFallbackResultSafe({
       reason: 'request_exception',
       remoteModelLabel,

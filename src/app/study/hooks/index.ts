@@ -1,4 +1,6 @@
 export { useSentenceHelp } from './use-sentence-help'
+export { useGrammarHelp } from './use-grammar-help'
+export type { GrammarHelpState } from './use-grammar-help'
 export {
   DEFAULT_PREVIEW_SENTENCE,
   useSpeechSynthesis,
